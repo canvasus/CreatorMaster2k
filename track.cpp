@@ -15,7 +15,7 @@ void Track::setHandleNoteOff(MIDIcallback cb) { noteOff_cb = cb; }
 
 void Track::triggerEvent(uint16_t eventIndex)
 {
-  if (eventIndex < NR_EVENTS)
+  if (eventIndex < _nrEvents)
   {
     //Serial.printf("triggered event %d\n", eventIndex);
     switch (events[eventIndex].type)
@@ -30,7 +30,7 @@ void Track::triggerEvent(uint16_t eventIndex)
   }
 }
 
- void Track::triggerEvents(uint16_t timestamp)
+ void Track::triggerEvents(uint32_t timestamp)
  {
    //timestamp = timestamp + RESOLUTION / quantize; // timestamp + 1/2 quantize step length
    if (_quantizeCounter == 0)
@@ -46,7 +46,7 @@ void Track::triggerEvent(uint16_t eventIndex)
 
 void Track::reset() { nextEventId = 0; }
 
-uint16_t Track::addEvent(uint16_t timestamp, uint8_t type, uint8_t data1, uint8_t data2)
+uint16_t Track::addEvent(uint32_t timestamp, uint8_t type, uint8_t data1, uint8_t data2)
 {
   if (_nrEvents < NR_EVENTS - 1)
   {
@@ -70,7 +70,7 @@ void Track::clear()
 
 void Track::_sortEvents() { qsort(events, NR_EVENTS, sizeof(event), compareEvents); }
 
-uint16_t Track::getEventTimestamp(uint16_t eventIndex) { return events[eventIndex].timestamp; }
+uint32_t Track::getEventTimestamp(uint16_t eventIndex) { return events[eventIndex].timestamp; }
 
 void Track::printEventArray(uint8_t lastIndex)
 {

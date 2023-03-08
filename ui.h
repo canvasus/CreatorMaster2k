@@ -4,6 +4,7 @@
 #include <RA8875.h>
 #include <USBHost_t36.h>
 #include "uiElements.h"
+#include "sequencer.h"
 
 #define RA8875_CS 10 
 #define RA8875_RESET 9
@@ -29,4 +30,12 @@ void updateUI();
 void updateMouse();
 void updateCursor(int deltaX, int deltaY);
 
+void recordClick(uint8_t clickType);
+void startClick(uint8_t clickType);
+void stopClick(uint8_t clickType);
+
 void testClick(uint8_t clickType);
+void testClickIndicator(uint8_t clickType);
+
+void uiUpdateTransport();
+void uiUpdateControls();

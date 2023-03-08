@@ -15,5 +15,7 @@ class Pattern
     uint16_t patternTick;
     Track tracks[NR_TRACKS];
     void tick();
+    void reset();
 
+    uint16_t lastTriggeredEventId[NR_TRACKS];
 };

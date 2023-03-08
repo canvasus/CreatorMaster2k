@@ -12,14 +12,14 @@ Pattern::Pattern()
 
 void Pattern::tick()
 {
-  static uint16_t lastTriggeredEventId[NR_TRACKS]; // last triggered event for each track
   patternTick++;
-  if (patternTick > lengthBeats * RESOLUTION)
-  {
-    patternTick = 0;
-    memset(lastTriggeredEventId, 0, NR_TRACKS * sizeof(lastTriggeredEventId[0]));
-    tracks[0].reset();
-  }
-  
+  if (patternTick > lengthBeats * RESOLUTION) reset();
   for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++) tracks[trackId].triggerEvents(patternTick);
+}
+
+void Pattern::reset()
+{
+  patternTick = 0;
+  memset(lastTriggeredEventId, 0, NR_TRACKS * sizeof(lastTriggeredEventId[0]));
+  tracks[0].reset();
 }

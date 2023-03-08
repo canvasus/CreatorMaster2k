@@ -9,8 +9,7 @@ typedef void (*MIDIcallback)(uint8_t channel, uint8_t note, uint8_t velocity);
 
 struct event
 {
-  uint16_t  id;
-  uint16_t  timestamp;
+  uint32_t  timestamp;
   uint8_t   type;
   uint8_t   data1;
   uint8_t   data2;
@@ -38,13 +37,13 @@ class Track
     //uint16_t length;
     uint16_t nextEventId;
     event * events;
-    uint16_t addEvent(uint16_t timestamp, uint8_t type, uint8_t data1, uint8_t data2);
+    uint16_t addEvent(uint32_t timestamp, uint8_t type, uint8_t data1, uint8_t data2);
     void clear();
-    uint16_t getEventTimestamp(uint16_t eventIndex);
+    uint32_t getEventTimestamp(uint16_t eventIndex);
     //event * getNextEvent();
     void reset();
     void triggerEvent(uint16_t eventIndex);
-    void triggerEvents(uint16_t timestamp);
+    void triggerEvents(uint32_t timestamp);
     void printEventArray(uint8_t lastIndex);
 };
 
