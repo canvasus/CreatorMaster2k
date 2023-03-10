@@ -1,5 +1,31 @@
 #include "uiElements.h"
 
+
+// --- DECO CLASS ---
+
+Deco::Deco() { }
+
+void Deco::layout(String label, uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t fillColor, uint16_t textColor, int textRelXposition)
+{
+  _geo.label = label;
+  _geo.xPos = xPos;
+  _geo.yPos = yPos;
+  _geo.width = width;
+  _geo.height = height;
+  _geo.color1 = fillColor;
+  _geo.color2 = textColor;
+  _textRelXposition = textRelXposition;
+}
+
+void Deco::draw()
+{
+  tft.writeTo(L2);
+  tft.fillRect(_geo.xPos, _geo.yPos , _geo.width, _geo.height, _geo.color1);
+  tft.setTextColor(_geo.color2);
+  tft.setCursor(_geo.xPos + _textRelXposition , _geo.yPos + 2);
+  tft.print(_geo.label);
+}
+
 // --- CONTAINER CLASS ---
 
 Container::Container(String label, uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t bgColor, uint16_t selectedColor)
@@ -17,9 +43,10 @@ void Container::draw()
 {
   tft.writeTo(L2);
   tft.fillRect(geo.xPos, geo.yPos , geo.width, geo.height, geo.color1);
-  tft.setTextColor(RA8875_BLACK);
-  tft.setCursor(geo.xPos + 5, geo.yPos + 1);
-  tft.print(geo.label);
+  if (drawBorder) tft.drawRect(geo.xPos, geo.yPos , geo.width, geo.height, BUTTON_BORDER_COLOR);
+  //tft.setTextColor(CONTAINER_TITLE_COLOR);
+  //tft.setCursor(relX(0.5) , geo.yPos + 1);
+  //tft.print(geo.label);
 }
 
 bool Container::checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType)
@@ -93,9 +120,9 @@ void Button::set(bool newState)
 
 // --- INDICATOR CLASS ---
 
-Indicator::Indicator() { }
+Indicator::Indicator() { cb = nullptr; }
 
-void Indicator::layout(String label, uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2)
+void Indicator::layout(String label, uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2, uint8_t labelPosition)
 {
   _geo.label = label;
   _geo.xPos = xPos;
@@ -104,6 +131,7 @@ void Indicator::layout(String label, uint16_t xPos, uint16_t yPos, uint16_t widt
   _geo.height = height;
   _geo.color1 = color1;
   _geo.color2 = color2;
+  _labelPosition = labelPosition;
 }
 
 void Indicator::_drawCommon()
@@ -111,10 +139,15 @@ void Indicator::_drawCommon()
   tft.writeTo(L2);
   tft.fillRect(_geo.xPos, _geo.yPos , _geo.width, _geo.height, INDICATOR_BG_COLOR); // background
   tft.drawRect(_geo.xPos, _geo.yPos , _geo.width, _geo.height, INDICATOR_BORDER_COLOR); // border
-  tft.setCursor(_geo.xPos + _geo.width * 0.7, _geo.yPos - 14);
-  tft.setTextColor(INDICATOR_LABEL_COLOR);
-  tft.print(_geo.label);
-  tft.setCursor(_geo.xPos + 2, _geo.yPos + 2);
+  if (_labelPosition != INDICATOR_LABEL_NONE)
+  {
+    if (_labelPosition == INDICATOR_LABEL_TOP) tft.setCursor(_geo.xPos, _geo.yPos - 16);
+    if (_labelPosition == INDICATOR_LABEL_LEFT40) tft.setCursor(_geo.xPos - 40, _geo.yPos + 2);
+    if (_labelPosition == INDICATOR_LABEL_LEFT80) tft.setCursor(_geo.xPos - 80, _geo.yPos + 2);
+    tft.setTextColor(INDICATOR_LABEL_COLOR);
+    tft.print(_geo.label);
+  }
+  tft.setCursor(_geo.xPos + 2, _geo.yPos + 2); // set position for main text
   tft.setTextColor(INDICATOR_TEXT_COLOR);
 }
 
@@ -130,9 +163,11 @@ void Indicator::draw(String string)
   tft.print(string);
 }
 
-void Indicator::draw(uint16_t trp_bar, uint16_t trp_4th, uint16_t trp_16th, uint16_t trp_768th)
+void Indicator::draw(uint16_t trp_bar, uint16_t trp_4th, uint16_t trp_16th, uint16_t trp_768th, bool drawStatics)
 {
-  _drawCommon();
+  if (drawStatics) _drawCommon();
+  else tft.fillRect(_geo.xPos + 1, _geo.yPos + 1 , _geo.width - 2, _geo.height - 2, INDICATOR_BG_COLOR);
+  tft.setTextColor(INDICATOR_TEXT_COLOR);
   tft.setCursor(_geo.xPos + _geo.width * 0.05, _geo.yPos + 2);
   tft.print(trp_bar);
   tft.setCursor(_geo.xPos + _geo.width * 0.25, _geo.yPos + 2);
@@ -151,6 +186,106 @@ bool Indicator::checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType)
     if (cb) cb(clickType);
     return true;
   }
+}
+
+// --- TRACK ROW ---
+
+TrackRow::TrackRow() { }
+
+void TrackRow::layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2)
+{
+  _geo.xPos = xPos;
+  _geo.yPos = yPos;
+  _geo.width = width;
+  _geo.height = height;
+  _geo.color1 = color1;
+  _geo.color2 = color2;
+}
+
+void TrackRow::draw(bool selected)
+{
+  tft.writeTo(L2);
+  if (selected) tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_SELECTED_COLOR); // background
+  else tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_NORMAL_COLOR); // background
+  tft.setCursor(_geo.xPos + 20, _geo.yPos + 5);
+  tft.printf("%2d", id);
+  tft.setCursor(_geo.xPos + 40, _geo.yPos + 5);
+  tft.print(trackName);
+  tft.setCursor(_geo.xPos + _geo.width - 20, _geo.yPos + 5);
+  tft.print(channel);
+}
+
+bool TrackRow::checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType)
+{
+  if ( (xPos < _geo.xPos) || (xPos > _geo.xPos + _geo.width) || (yPos < _geo.yPos) || (yPos > _geo.yPos + _geo.height) ) return false;
+  else
+  {
+    if (cb) cb(id);
+    return true;
+  }
+}
+
+void TrackRow::activity()
+{
+  
+}
+
+// --- PATTERN VIEW ---
+
+
+void PatternView::layout()
+{
+  indicator_patternName.layout("PATTERN", relX(0.2), relY(0), relW(0.6), relH(1/17.0) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL, INDICATOR_LABEL_NONE);
+  indicator_patternName.draw("PATTERN01");
+
+  for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++)
+  {
+    trackRows[trackId].cb = &trackSelectClick;
+    trackRows[trackId].trackName = "test";
+    trackRows[trackId].id = trackId;
+    trackRows[trackId].layout(relX(0), relY((1/17.0) * (trackId + 1)), relW(1.0), relH(1/17.0) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+    trackRows[trackId].draw(trackId == currentTrack);
+  }
+}
+
+bool PatternView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
+{
+  bool matchClick = false;
+  uint8_t trackId = 0;
+  while (!matchClick && trackId < NR_TRACKS)
+  {
+    trackRows[trackId++].checkCursor(xPos, yPos, clickType); 
+  }
+  return false;
+}
+
+// --- TRACK DETAILS ---
+
+void TrackDetails::layout()
+{
+  indicator_trackNr.layout("TRACK:", relX(0.4), relY(0), relW(0.2), relH(1/17.0) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL, INDICATOR_LABEL_LEFT40);
+  indicator_trackNr.draw(1);
+  
+  indicator_quantize.layout("QUANTIZE", relX(0.7), relY(1/17.0), relW(0.2), relH(1/17.0) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL, INDICATOR_LABEL_LEFT80);
+  indicator_quantize.cb = &quantizeClick;
+  indicator_quantize.draw(0);
+
+  button_clear.layout("CLEAR", relX(0.1), relY(0.9), relW(0.6), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL);
+  button_clear.cb = &clearClick;
+  button_clear.draw(false);
+}
+
+bool TrackDetails::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
+{
+  if (indicator_quantize.checkCursor(xPos, yPos, clickType)) return true;
+  if (button_clear.checkCursor(xPos, yPos, clickType)) return true;
+  return false;
+}
+
+void TrackDetails::update(uint8_t trackNr, uint8_t quantize)
+{
+  indicator_trackNr.draw(trackNr);
+  indicator_quantize.draw(quantize);
 }
 
 // --- CONTROLS ---
@@ -196,33 +331,34 @@ void Controls::layout()
 
 bool Controls::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 {
-  if (button_start.checkCursor(xPos, yPos, clickType) ||
-      button_continue.checkCursor(xPos, yPos, clickType) ||
-      button_stop.checkCursor(xPos, yPos, clickType) ||
-      button_reverse.checkCursor(xPos, yPos, clickType) ||
-      button_forward.checkCursor(xPos, yPos, clickType) ||
-      button_fastReverse.checkCursor(xPos, yPos, clickType) ||
-      button_fastForward.checkCursor(xPos, yPos, clickType) ||
-      button_punch.checkCursor(xPos, yPos, clickType) ||
-      button_record.checkCursor(xPos, yPos, clickType)
-      )
-      return true;
-  else return false;
+  if (button_start.checkCursor(xPos, yPos, clickType)) return true;
+  if (button_continue.checkCursor(xPos, yPos, clickType)) return true;
+  if (button_stop.checkCursor(xPos, yPos, clickType)) return true;
+  if (button_reverse.checkCursor(xPos, yPos, clickType)) return true;
+  if (button_forward.checkCursor(xPos, yPos, clickType)) return true;
+  if (button_fastReverse.checkCursor(xPos, yPos, clickType)) return true;
+  if (button_fastForward.checkCursor(xPos, yPos, clickType)) return true;
+  if (button_punch.checkCursor(xPos, yPos, clickType)) return true;
+  if (button_record.checkCursor(xPos, yPos, clickType)) return true;
+  return false;
 }
 
 void Header::layout()
 {
-  indicator_freeMem.layout("free", relX(0.01), relY(0.5), relW(0.1), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR);
-  indicator_freeMem.cb = &testClickIndicator;
+  indicator_freeMem.layout("MEM", relX(0.01), relY(0.5), relW(0.1), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR,INDICATOR_LABEL_TOP);
   indicator_freeMem.draw(12345);
 
-  indicator_transport.layout("free", relX(0.80), relY(0.5), relW(0.15), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR);
-  indicator_transport.cb = &testClickIndicator;
-  indicator_transport.draw(0,0,0,0);
+  indicator_transport.layout("bar 4  16  768", relX(0.80), relY(0.5), relW(0.15), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
+  indicator_transport.draw(0,0,0,0, true);
+
+  indicator_bpm.layout("BPM", relX(0.40), relY(0.5), relW(0.08), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
+  indicator_bpm.cb = &bpmClick;
+  indicator_bpm.draw(transport.bpm);
 }
 
 bool Header::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 {
   if (indicator_freeMem.checkCursor(xPos, yPos, clickType)) return true;
-  else return false;
+  if (indicator_bpm.checkCursor(xPos, yPos, clickType)) return true;
+  return false;
 }

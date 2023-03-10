@@ -2,8 +2,7 @@
 
 #include "track.h"
 #include "peripherals.h"
-
-#define NR_TRACKS 1
+#include "x_globals.h"
 
 class Pattern
 {

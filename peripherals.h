@@ -14,3 +14,4 @@ void serialMidiNoteOn(uint8_t channel, uint8_t note, uint8_t velocity);
 void serialMidiNoteOff(uint8_t channel, uint8_t note, uint8_t velocity);
 
 void clearUsbMidi();
+void allNotesOff();

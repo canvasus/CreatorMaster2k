@@ -1,9 +1,11 @@
 #pragma once
 
 #include <Arduino.h>
+#include "x_globals.h"
 
-#define NR_EVENTS 128
 #define NONE 0
+#define TYPE_NOTEON_TEMP  usbMIDI.NoteOn - 1
+#define TYPE_NOTEOFF_TEMP usbMIDI.NoteOff -1
 
 typedef void (*MIDIcallback)(uint8_t channel, uint8_t note, uint8_t velocity);
 
@@ -18,29 +20,28 @@ struct event
 class Track
 {
   private:
-    void  _sortEvents();
-    uint16_t _nrEvents;
-    uint8_t _quantizeCounter;
+    void      _sortEvents();
+    uint16_t  _nrEvents;
+    uint8_t   _quantizeCounter;
+    void      _convertTempEvents();
   public:
     Track();
     uint8_t   channel;
-    uint16_t  quantize;
-    uint8_t   groove;
-    uint8_t   transpose;
-    uint8_t   loop;
+    uint16_t  quantize = 0;
+    uint8_t   quantizeIndex = 0;
+    int       transpose = 0;
+    uint8_t   loop = 0;
 
     MIDIcallback  noteOn_cb;
     MIDIcallback  noteOff_cb;
     void setHandleNoteOn(MIDIcallback cb);
     void setHandleNoteOff(MIDIcallback cb);
 
-    //uint16_t length;
     uint16_t nextEventId;
     event * events;
     uint16_t addEvent(uint32_t timestamp, uint8_t type, uint8_t data1, uint8_t data2);
     void clear();
     uint32_t getEventTimestamp(uint16_t eventIndex);
-    //event * getNextEvent();
     void reset();
     void triggerEvent(uint16_t eventIndex);
     void triggerEvents(uint32_t timestamp);

@@ -7,7 +7,6 @@ Track::Track()
   noteOn_cb = nullptr;
   noteOff_cb = nullptr;
   channel = 1;
-  quantize = 0;
 }
 
 void Track::setHandleNoteOn(MIDIcallback cb) { noteOn_cb = cb; }
@@ -17,7 +16,6 @@ void Track::triggerEvent(uint16_t eventIndex)
 {
   if (eventIndex < _nrEvents)
   {
-    //Serial.printf("triggered event %d\n", eventIndex);
     switch (events[eventIndex].type)
     {
       case usbMIDI.NoteOn:
@@ -32,31 +30,42 @@ void Track::triggerEvent(uint16_t eventIndex)
 
  void Track::triggerEvents(uint32_t timestamp)
  {
-   //timestamp = timestamp + RESOLUTION / quantize; // timestamp + 1/2 quantize step length
    if (_quantizeCounter == 0)
    {
+     timestamp = timestamp + (uint32_t)(quantize >> 1);
      _quantizeCounter = quantize;
-     while ( (nextEventId < NR_EVENTS) && (events[nextEventId].timestamp <= timestamp) && (events[nextEventId].type != NONE) )
-     {
-        triggerEvent(nextEventId++);
-     }
+     while ( (nextEventId < NR_EVENTS) && (events[nextEventId].timestamp <= timestamp) && (events[nextEventId].type != NONE) ) triggerEvent(nextEventId++);
    }
    else _quantizeCounter--;
  }
 
-void Track::reset() { nextEventId = 0; }
+void Track::reset()
+{
+  _convertTempEvents(); 
+  nextEventId = 0;
+  _quantizeCounter = 0;
+}
+
+void Track::_convertTempEvents()
+{
+  for (uint16_t eventId = 0; eventId < _nrEvents; eventId++)
+  {
+    if (events[eventId].type == TYPE_NOTEON_TEMP) events[eventId].type = usbMIDI.NoteOn;
+    if (events[eventId].type == TYPE_NOTEOFF_TEMP) events[eventId].type = usbMIDI.NoteOff;
+  }
+}
 
 uint16_t Track::addEvent(uint32_t timestamp, uint8_t type, uint8_t data1, uint8_t data2)
 {
+  // Note: should add events with special types to prevent double trigger
   if (_nrEvents < NR_EVENTS - 1)
   {
-    events[NR_EVENTS - 1].timestamp = timestamp;
-    events[NR_EVENTS - 1].type = type;
-    events[NR_EVENTS - 1].data1 = data1;
-    events[NR_EVENTS - 1].data2 = data2;
+    events[_nrEvents].timestamp = timestamp;
+    events[_nrEvents].type = type - 1;
+    events[_nrEvents].data1 = data1;
+    events[_nrEvents].data2 = data2;
     _nrEvents++;
     _sortEvents();
-    //printEventArray(32);
     return _nrEvents;
   }
   else return 0;
@@ -68,7 +77,7 @@ void Track::clear()
   _nrEvents = 0;
 }
 
-void Track::_sortEvents() { qsort(events, NR_EVENTS, sizeof(event), compareEvents); }
+void Track::_sortEvents() { qsort(events, _nrEvents, sizeof(event), compareEvents); }
 
 uint32_t Track::getEventTimestamp(uint16_t eventIndex) { return events[eventIndex].timestamp; }
 

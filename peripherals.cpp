@@ -15,7 +15,7 @@ void setupPeripherals()
   Serial.println(F("MIDI SETUP"));
   delay(100);
   myusb.begin();
-  delay(500);
+  delay(200);
   clearUsbMidi();
   midi1.setHandleNoteOn(input_noteOn);
   midi1.setHandleNoteOff(input_noteOff);
@@ -48,7 +48,20 @@ void input_controlChange(uint8_t channel, uint8_t control, uint8_t value)
 void serialMidiNoteOn(uint8_t channel, uint8_t note, uint8_t velocity) { MIDI.sendNoteOn(note, velocity, channel); }
 void serialMidiNoteOff(uint8_t channel, uint8_t note, uint8_t velocity) { MIDI.sendNoteOff(note, velocity, channel); }
 
+void allNotesOff()
+{
+  for (uint8_t channel = 1; channel < 17; channel++)
+  {
+    //for (uint8_t note = 0; note <= 127; note++) MIDI.sendNoteOff(note, 0, channel);
+    //delay(1);
+    MIDI.sendControlChange(120, 0, channel);
+    MIDI.sendControlChange(123, 0, channel);
+  }
+}
+
+
 void clearUsbMidi()
 {
   for (uint8_t i = 0; i < 25; i++) midi1.read();
+  delay(10);
 }

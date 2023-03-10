@@ -1,11 +1,9 @@
 #include "sequencer.h"
 
-SequencerParameters sequencerParameters;
+//SequencerParameters sequencerParameters;
 Transport transport;
 IntervalTimer sequencerUpdateTimer;
-//uint8_t sequencerState = SEQ_STOPPED;
-//bool sequencerRecording = false;
-uint32_t currentTick = 0;
+//uint32_t currentTick = 0;
 uint8_t currentTrack = 0;
 uint8_t currentPattern = 0;
 bool midiThrough =  true;
@@ -19,41 +17,34 @@ uint8_t metronomeNote2 = 56;
 
 void setupSequencer()
 {
-  setBpm(sequencerParameters.bpm);
+  setBpm(transport.bpm);
   metronome_noteOn_cb = serialMidiNoteOn;
   metronome_noteOff_cb = serialMidiNoteOff;
 }
 
 void updateSequencer()
 {
-  updateTransport(currentTick);
+  updateTransport(patterns[currentPattern].patternTick);
   updateMetronome();
 }
 
 void tickPattern()
 {
-  if (transport.state != SEQ_STOPPED)
-  {
-    currentTick++;
-    if (currentTick >= patterns[currentPattern].lengthBeats * RESOLUTION) currentTick = 0;
-    patterns[0].tick();
-  }
+  if (transport.state != SEQ_STOPPED) patterns[currentPattern].tick();
 }
 
 void play() { transport.state = SEQ_PLAYING;}
 void stop() { transport.state = SEQ_STOPPED;}
-void reset()
-{
-  currentTick = 0;
-  patterns[0].reset();
-}
+void reset() { patterns[currentPattern].reset(); }
+
+void panic() { allNotesOff(); }
 
 void record(bool record) { transport.recording = record; }
 
 void setBpm(uint8_t bpm)
 {
-  sequencerParameters.bpm = bpm;
-  uint16_t oneTickUs = 1000 * 60000 / (sequencerParameters.bpm * RESOLUTION);
+  transport.bpm = bpm;
+  uint16_t oneTickUs = 1000 * 60000 / (transport.bpm * RESOLUTION);
   sequencerUpdateTimer.begin(tickPattern, oneTickUs); 
 }
 
@@ -108,3 +99,6 @@ void clearTrack(uint8_t trackId)
 {
   patterns[currentPattern].tracks[trackId].clear();
 }
+
+void setQuantize(uint8_t quantize) { patterns[currentPattern].tracks[currentTrack].quantize = quantize; }
+uint8_t getQuantize() { return patterns[currentPattern].tracks[currentTrack].quantize;}

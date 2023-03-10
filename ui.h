@@ -29,10 +29,15 @@ void setupUI();
 void updateUI();
 void updateMouse();
 void updateCursor(int deltaX, int deltaY);
+void drawCursor();
 
 void recordClick(uint8_t clickType);
 void startClick(uint8_t clickType);
 void stopClick(uint8_t clickType);
+void trackSelectClick(uint8_t id);
+void bpmClick(uint8_t clickType);
+void quantizeClick(uint8_t clickType);
+void clearClick(uint8_t clickType);
 
 void testClick(uint8_t clickType);
 void testClickIndicator(uint8_t clickType);
