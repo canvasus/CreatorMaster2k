@@ -21,6 +21,7 @@
 #define INDICATOR_LABEL_TOP     1
 #define INDICATOR_LABEL_LEFT40  2
 #define INDICATOR_LABEL_LEFT80  3
+#define INDICATOR_LABEL_CUSTOM  4
 
 #define TRACK_SELECTED_COLOR    0xCEFC // dark blue
 #define TRACK_NORMAL_COLOR      RA8875_WHITE
@@ -75,14 +76,17 @@ class Indicator
     Geo     _geo;
     void    _drawCommon();
     uint8_t _labelPosition;
+    int _labelXoffset = 0;
+    int _labelYoffset = 0;
   public:
     Indicator();
     buttonCallback cb;
     void layout(String label, uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2, uint8_t labelPosition);
+    void setLabelOffset(int xOffset, int yOffset);
     bool checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType); 
     void draw(uint16_t value);
     void draw(String string);
-    void draw(uint16_t trp_bar, uint16_t trp_4th, uint16_t trp_16th, uint16_t trp_768th, bool drawStatics);
+    void draw(uint16_t trp_bar, uint16_t trp_4th, uint16_t trp_16th, bool drawStatics);
 };
 
 class TrackRow
@@ -132,6 +136,10 @@ class Arrangement :  public Container
 {
   using Container::Container;
   public:
+    Indicator indicator_patternLength;
+    Indicator indicator_patternPosition;
+    bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);
+    void layout();
 };
 
 class PatternView :  public Container
@@ -149,7 +157,7 @@ class TrackDetails :  public Container
 {
   using Container::Container;
   private:
-    const String quantizeStrings[6] = {" -  ", " 1/2", " 1/3", " 1/4" ," 1/8", "1/16"};
+    const String quantizeStrings[6] = {"OFF  ", " 1/2", " 1/3", " 1/4" ," 1/8", "1/16"};
     const uint16_t quantizeSettings[6] = {0, (RESOLUTION * 2) - 1, (RESOLUTION * 3 / 4) - 1, RESOLUTION - 1, (RESOLUTION / 2) - 1, (RESOLUTION / 4) - 1};
   public:
     Indicator indicator_trackNr;

@@ -24,13 +24,16 @@ class Track
     uint16_t  _nrEvents;
     uint8_t   _quantizeCounter;
     void      _convertTempEvents();
+    void      _initBuffer();
+    void      _releaseBuffer();
   public:
     Track();
     uint8_t   channel;
-    uint16_t  quantize = 0;
-    uint8_t   quantizeIndex = 0;
+    uint16_t  quantize = 47;
+    uint8_t   quantizeIndex = 3;
     int       transpose = 0;
     uint8_t   loop = 0;
+    uint16_t  memUsage = 0;
 
     MIDIcallback  noteOn_cb;
     MIDIcallback  noteOff_cb;

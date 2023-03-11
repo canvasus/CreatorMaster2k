@@ -6,9 +6,11 @@
 #include "uiElements.h"
 #include "sequencer.h"
 
-#define RA8875_CS 10 
-#define RA8875_RESET 9
-// MOSI=11, MISO=12, SCK=13
+#define RA8875_CS 10   // ER-TFTM070 pin 5
+#define RA8875_RESET 9 // ER-TFTM070 pin 11
+// MOSI=11,  ER-TFTM070 pin 7
+// MISO=12,  ER-TFTM070 pin 6
+// SCK=13,   ER-TFTM070 pin 8
 
 #define SCREEN_XRES 800
 #define SCREEN_YRES 480
@@ -38,6 +40,7 @@ void trackSelectClick(uint8_t id);
 void bpmClick(uint8_t clickType);
 void quantizeClick(uint8_t clickType);
 void clearClick(uint8_t clickType);
+void patternLengthClick(uint8_t clickType);
 
 void testClick(uint8_t clickType);
 void testClickIndicator(uint8_t clickType);

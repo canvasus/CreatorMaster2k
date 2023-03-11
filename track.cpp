@@ -2,11 +2,26 @@
 
 Track::Track()
 {
-  events = (event*)malloc(NR_EVENTS * sizeof(event));
-  memset(events, 0, NR_EVENTS * sizeof(event));
+  //events = (event*)malloc(NR_EVENTS * sizeof(event));
+  //memset(events, 0, NR_EVENTS * sizeof(event));
+  events = nullptr;
   noteOn_cb = nullptr;
   noteOff_cb = nullptr;
   channel = 1;
+}
+
+void Track::_initBuffer()
+{
+  events = (event*)malloc(NR_EVENTS * sizeof(event));
+  memset(events, 0, NR_EVENTS * sizeof(event));
+  memUsage = NR_EVENTS;
+}
+
+void Track::_releaseBuffer()
+{
+  free(events);
+  events = nullptr;
+  memUsage = 0;
 }
 
 void Track::setHandleNoteOn(MIDIcallback cb) { noteOn_cb = cb; }
@@ -14,7 +29,7 @@ void Track::setHandleNoteOff(MIDIcallback cb) { noteOff_cb = cb; }
 
 void Track::triggerEvent(uint16_t eventIndex)
 {
-  if (eventIndex < _nrEvents)
+  if (events != nullptr && eventIndex < _nrEvents)
   {
     switch (events[eventIndex].type)
     {
@@ -34,14 +49,17 @@ void Track::triggerEvent(uint16_t eventIndex)
    {
      timestamp = timestamp + (uint32_t)(quantize >> 1);
      _quantizeCounter = quantize;
-     while ( (nextEventId < NR_EVENTS) && (events[nextEventId].timestamp <= timestamp) && (events[nextEventId].type != NONE) ) triggerEvent(nextEventId++);
+     if (events != nullptr)
+     {
+      while ( (nextEventId < NR_EVENTS) && (events[nextEventId].timestamp <= timestamp) && (events[nextEventId].type != NONE) ) triggerEvent(nextEventId++);
+     }
    }
    else _quantizeCounter--;
  }
 
 void Track::reset()
 {
-  _convertTempEvents(); 
+  if (events != nullptr) _convertTempEvents(); 
   nextEventId = 0;
   _quantizeCounter = 0;
 }
@@ -57,7 +75,8 @@ void Track::_convertTempEvents()
 
 uint16_t Track::addEvent(uint32_t timestamp, uint8_t type, uint8_t data1, uint8_t data2)
 {
-  // Note: should add events with special types to prevent double trigger
+  if (_nrEvents == 0 || events == nullptr) _initBuffer();
+  
   if (_nrEvents < NR_EVENTS - 1)
   {
     events[_nrEvents].timestamp = timestamp;
@@ -73,13 +92,18 @@ uint16_t Track::addEvent(uint32_t timestamp, uint8_t type, uint8_t data1, uint8_
 
 void Track::clear()
 {
-  memset(events, 0, NR_EVENTS * sizeof(event));
+  //memset(events, 0, NR_EVENTS * sizeof(event));
+  _releaseBuffer();
   _nrEvents = 0;
 }
 
 void Track::_sortEvents() { qsort(events, _nrEvents, sizeof(event), compareEvents); }
 
-uint32_t Track::getEventTimestamp(uint16_t eventIndex) { return events[eventIndex].timestamp; }
+uint32_t Track::getEventTimestamp(uint16_t eventIndex)
+{
+  if ( (events != nullptr) && (eventIndex < _nrEvents)) return events[eventIndex].timestamp;
+  else return 4294967295;
+}
 
 void Track::printEventArray(uint8_t lastIndex)
 {

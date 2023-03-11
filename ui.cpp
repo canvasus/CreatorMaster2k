@@ -11,7 +11,7 @@ TrackDetails trackDetails = TrackDetails("TRACK", ARRANGE_W + PATTERN_W + 2 * PA
 Controls controls = Controls("CONTROL", ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 3 * PADDING, HEADER_H + PADDING, CONTROLS_W, MAIN_H,  MAIN_BG_COLOR, RA8875_WHITE);
 
 const uint8_t cursorOn[16] = {
-  0b10000000,
+  0b00000000,
   0b11000000,
   0b11100000,
   0b11110000,
@@ -26,7 +26,7 @@ const uint8_t cursorOn[16] = {
   0b10001110,
   0b00001110,
   0b00000111,
-  0b00000111
+  0b00000000
 };
 
 const uint8_t cursorOff[16] = {0xFF, 0xFF, 0xFF, 0xFF,
@@ -40,7 +40,7 @@ uint16_t cursorYpos = 0;
 uint16_t testVariable = 12345;
 
 elapsedMillis uiTimer = 0;
-const uint8_t uiInterval = 40;
+const uint8_t uiInterval = 30;
 elapsedMillis uiResetTimer = 0;
 const uint8_t uiResetInterval = 250;
 
@@ -52,16 +52,22 @@ void setupUI()
   tft.uploadUserChar(cursorOff, 1);
   tft.writeTo(L2);
   tft.clearScreen(MAIN_BG_COLOR); //RA8875_GRAYSCALE * 20);
+  
   header.draw();
   header.layout();
+  
   arrangement.drawBorder = true;
   arrangement.draw();
+  arrangement.layout();
+  
   patternView.drawBorder = true;
   patternView.draw();
   patternView.layout();
+  
   trackDetails.drawBorder = true;
   trackDetails.draw();
   trackDetails.layout();
+  
   controls.draw();
   controls.layout();
   
@@ -138,7 +144,8 @@ void drawCursor()
 
 void uiUpdateTransport()
 {
-  header.indicator_transport.draw(transport.trp_bar + 1, transport.trp_4th + 1, transport.trp_16th + 1, transport.trp_768th + 1, false);
+  header.indicator_transport.draw(transport.trp_bar + 1, transport.trp_4th + 1, transport.trp_16th + 1, false);
+
 }
 
 void uiUpdateControls()
@@ -147,6 +154,7 @@ void uiUpdateControls()
   if (controls.button_stop.state && !controls.button_stop.latch) controls.button_stop.set(false);
   //if (controls.button_start.state && !controls.button_start.latch) controls.button_start.set(false);
   if (trackDetails.button_clear.state && !trackDetails.button_clear.latch) trackDetails.button_clear.set(false);
+  header.indicator_freeMem.draw(transport.freeMemory);
 }
 
 void recordClick(uint8_t clickType)
@@ -203,6 +211,16 @@ void quantizeClick(uint8_t clickType)
 }
 
 void clearClick(uint8_t clickType) { clearTrack(currentTrack); }
+
+void patternLengthClick(uint8_t clickType)
+{
+  uint16_t currentLengthBeats = patterns[currentPattern].lengthBeats;
+  if (clickType == 1) currentLengthBeats++;
+  if (clickType == 2 && currentLengthBeats > 0) currentLengthBeats--;
+  patterns[currentPattern].lengthBeats = currentLengthBeats;
+  arrangement.indicator_patternLength.draw(currentLengthBeats / 4 + 1, currentLengthBeats % 4, 0, false);
+  Serial.printf("Length beats %d\n", currentLengthBeats);
+}
 
 void testClick(uint8_t clickType)
 {

@@ -30,13 +30,11 @@ void updateMidi()
 
 void input_noteOn(uint8_t channel, uint8_t note, uint8_t velocity)
 {
-  Serial.printf("Note on, ch: %d, note: %d\n", channel, note);
   processNoteOn(channel, note, velocity);
 }
 
 void input_noteOff(uint8_t channel, uint8_t note, uint8_t velocity)
 {
-  Serial.printf("Note off, ch: %d, note: %d\n", channel, note);
   processNoteOff(channel, note, velocity);
 }
 

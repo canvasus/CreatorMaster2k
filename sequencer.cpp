@@ -39,7 +39,11 @@ void reset() { patterns[currentPattern].reset(); }
 
 void panic() { allNotesOff(); }
 
-void record(bool record) { transport.recording = record; }
+void record(bool record)
+{
+  transport.recording = record;
+  if (!record) updateFreeMemory();
+}
 
 void setBpm(uint8_t bpm)
 {
@@ -93,6 +97,20 @@ void updateMetronome()
     played = false;
     metronome_noteOff_cb(metronomeChannel, note, 0);
   }
+}
+
+void updateFreeMemory()
+{
+  uint16_t freeMemory = MEMORY_MAX;
+  for (uint8_t patternId = 0; patternId < NR_PATTERNS; patternId++)
+  {
+    for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++)
+    {
+      freeMemory = freeMemory - patterns[patternId].tracks[trackId].memUsage;
+    }
+  }
+  transport.freeMemory = freeMemory;
+
 }
 
 void clearTrack(uint8_t trackId)

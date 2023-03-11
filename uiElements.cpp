@@ -134,6 +134,12 @@ void Indicator::layout(String label, uint16_t xPos, uint16_t yPos, uint16_t widt
   _labelPosition = labelPosition;
 }
 
+void Indicator::setLabelOffset(int xOffset, int yOffset)
+{
+  _labelXoffset = xOffset;
+  _labelYoffset = yOffset;
+}
+
 void Indicator::_drawCommon()
 {
   tft.writeTo(L2);
@@ -144,10 +150,11 @@ void Indicator::_drawCommon()
     if (_labelPosition == INDICATOR_LABEL_TOP) tft.setCursor(_geo.xPos, _geo.yPos - 16);
     if (_labelPosition == INDICATOR_LABEL_LEFT40) tft.setCursor(_geo.xPos - 40, _geo.yPos + 2);
     if (_labelPosition == INDICATOR_LABEL_LEFT80) tft.setCursor(_geo.xPos - 80, _geo.yPos + 2);
+    if (_labelPosition == INDICATOR_LABEL_CUSTOM) tft.setCursor(_geo.xPos + _labelXoffset, _geo.yPos + _labelYoffset);
     tft.setTextColor(INDICATOR_LABEL_COLOR);
     tft.print(_geo.label);
   }
-  tft.setCursor(_geo.xPos + 2, _geo.yPos + 2); // set position for main text
+  tft.setCursor(_geo.xPos + 5, _geo.yPos + 2); // set position for main text
   tft.setTextColor(INDICATOR_TEXT_COLOR);
 }
 
@@ -163,7 +170,7 @@ void Indicator::draw(String string)
   tft.print(string);
 }
 
-void Indicator::draw(uint16_t trp_bar, uint16_t trp_4th, uint16_t trp_16th, uint16_t trp_768th, bool drawStatics)
+void Indicator::draw(uint16_t trp_bar, uint16_t trp_4th, uint16_t trp_16th, bool drawStatics)
 {
   if (drawStatics) _drawCommon();
   else tft.fillRect(_geo.xPos + 1, _geo.yPos + 1 , _geo.width - 2, _geo.height - 2, INDICATOR_BG_COLOR);
@@ -174,8 +181,6 @@ void Indicator::draw(uint16_t trp_bar, uint16_t trp_4th, uint16_t trp_16th, uint
   tft.print(trp_4th);
   tft.setCursor(_geo.xPos + _geo.width * 0.50, _geo.yPos + 2);
   tft.print(trp_16th);
-  tft.setCursor(_geo.xPos + _geo.width * 0.75, _geo.yPos + 2);
-  tft.print(trp_768th);
 }
 
 bool Indicator::checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType)
@@ -208,6 +213,7 @@ void TrackRow::draw(bool selected)
   if (selected) tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_SELECTED_COLOR); // background
   else tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_NORMAL_COLOR); // background
   tft.setCursor(_geo.xPos + 20, _geo.yPos + 5);
+  tft.setTextColor(INDICATOR_TEXT_COLOR);
   tft.printf("%2d", id);
   tft.setCursor(_geo.xPos + 40, _geo.yPos + 5);
   tft.print(trackName);
@@ -263,8 +269,9 @@ bool PatternView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 
 void TrackDetails::layout()
 {
-  indicator_trackNr.layout("TRACK:", relX(0.4), relY(0), relW(0.2), relH(1/17.0) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL, INDICATOR_LABEL_LEFT40);
-  indicator_trackNr.draw(1);
+  indicator_trackNr.layout("TRACK:", relX(0.4), relY(0), relW(0.2), relH(1/17.0) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL, INDICATOR_LABEL_CUSTOM);
+  indicator_trackNr.setLabelOffset(-60, 2);
+  indicator_trackNr.draw(0);
   
   indicator_quantize.layout("QUANTIZE", relX(0.7), relY(1/17.0), relW(0.2), relH(1/17.0) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL, INDICATOR_LABEL_LEFT80);
   indicator_quantize.cb = &quantizeClick;
@@ -346,10 +353,10 @@ bool Controls::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 void Header::layout()
 {
   indicator_freeMem.layout("MEM", relX(0.01), relY(0.5), relW(0.1), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR,INDICATOR_LABEL_TOP);
-  indicator_freeMem.draw(12345);
+  indicator_freeMem.draw(MEMORY_MAX);
 
-  indicator_transport.layout("bar 4  16  768", relX(0.80), relY(0.5), relW(0.15), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
-  indicator_transport.draw(0,0,0,0, true);
+  indicator_transport.layout("bar 4  16", relX(0.80), relY(0.5), relW(0.12), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
+  indicator_transport.draw(0,0,0, true);
 
   indicator_bpm.layout("BPM", relX(0.40), relY(0.5), relW(0.08), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
   indicator_bpm.cb = &bpmClick;
@@ -360,5 +367,23 @@ bool Header::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 {
   if (indicator_freeMem.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_bpm.checkCursor(xPos, yPos, clickType)) return true;
+  return false;
+}
+
+// --- ARRANGEMENT ---
+
+void Arrangement::layout()
+{
+  indicator_patternLength.layout("LENGTH", relX(0.02), relY(0.9), relW(0.48), relH(1/17.0), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
+  indicator_patternLength.cb = &patternLengthClick;
+  indicator_patternLength.draw(0,0,0, true);
+    
+  indicator_patternPosition.layout("POSITION", relX(0.52), relY(0.9), relW(0.48), relH(1/17.0), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
+  indicator_patternPosition.draw(0,0,0, true);
+}
+
+bool Arrangement::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
+{
+  if (indicator_patternLength.checkCursor(xPos, yPos, clickType)) return true;
   return false;
 }
