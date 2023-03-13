@@ -22,15 +22,15 @@ class Track
   private:
     void      _sortEvents();
     uint16_t  _nrEvents;
-    uint8_t   _quantizeCounter;
+    uint8_t   _loopCounter;
     void      _convertTempEvents();
     void      _initBuffer();
     void      _releaseBuffer();
   public:
     Track();
     uint8_t   channel;
-    uint16_t  quantize = 47;
-    uint8_t   quantizeIndex = 3;
+    uint16_t  quantize = 1;
+    uint8_t   quantizeIndex = 0;
     int       transpose = 0;
     uint8_t   loop = 0;
     uint16_t  memUsage = 0;
@@ -47,7 +47,7 @@ class Track
     uint32_t getEventTimestamp(uint16_t eventIndex);
     void reset();
     void triggerEvent(uint16_t eventIndex);
-    void triggerEvents(uint32_t timestamp);
+    uint16_t triggerEvents(uint32_t timestamp);
     void printEventArray(uint8_t lastIndex);
 };
 

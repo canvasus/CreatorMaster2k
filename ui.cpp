@@ -40,7 +40,7 @@ uint16_t cursorYpos = 0;
 uint16_t testVariable = 12345;
 
 elapsedMillis uiTimer = 0;
-const uint8_t uiInterval = 30;
+const uint8_t uiInterval = 35;
 elapsedMillis uiResetTimer = 0;
 const uint8_t uiResetInterval = 250;
 
@@ -84,6 +84,7 @@ void updateUI()
   {
     uiTimer = 0;
     uiUpdateTransport();
+    uiUpdateActivity();
     drawCursor();
   }
   if (uiResetTimer > uiResetInterval)
@@ -129,12 +130,12 @@ void drawCursor()
   tft.writeTo(L1);
   tft.setCursor(oldCursorXpos, oldCursorYpos);
   //tft.setFontScale(1);
-  tft.setTextColor(RA8875_MAGENTA);
-  tft.showUserChar(0);
+  tft.setTextColor(RA8875_MAGENTA, RA8875_MAGENTA);
+  tft.showUserChar(1);
   //tft.print("^");
 
   tft.setCursor(cursorXpos, cursorYpos);
-  tft.setTextColor(RA8875_RED);
+  tft.setTextColor(RA8875_RED, RA8875_MAGENTA);
   tft.showUserChar(0);
   //tft.print("^");
   //tft.setFontScale(0);
@@ -145,7 +146,20 @@ void drawCursor()
 void uiUpdateTransport()
 {
   header.indicator_transport.draw(transport.trp_bar + 1, transport.trp_4th + 1, transport.trp_16th + 1, false);
+}
 
+void uiUpdateActivity()
+{
+  static uint16_t smoothedActivity[NR_TRACKS];
+  uint16_t recentActivity = 0;
+  for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++)
+  {
+    recentActivity = patterns[currentPattern].getActivity(trackId);
+    if (recentActivity > 0) smoothedActivity[trackId] = 10;
+    if (recentActivity > 2) smoothedActivity[trackId] = 20;
+    else if (smoothedActivity[trackId] > 0 ) smoothedActivity[trackId]--;
+    patternView.trackRows[trackId].activity(smoothedActivity[trackId]);
+  }
 }
 
 void uiUpdateControls()
@@ -183,7 +197,11 @@ void trackSelectClick(uint8_t id)
   patternView.trackRows[currentTrack].draw(false);
   currentTrack = id;
   patternView.trackRows[currentTrack].draw(true);
-  trackDetails.update(currentTrack, getQuantize());
+  uint8_t channel = patterns[currentPattern].tracks[currentTrack].channel;
+  uint8_t quantizeIndex = patterns[currentPattern].tracks[currentTrack].quantizeIndex;
+  int transpose = patterns[currentPattern].tracks[currentTrack].transpose;
+  uint8_t loop = patterns[currentPattern].tracks[currentTrack].loop;
+  trackDetails.update(currentTrack, channel, quantizeIndex, transpose, loop);
 }
 
 void bpmClick(uint8_t clickType)
@@ -193,21 +211,41 @@ void bpmClick(uint8_t clickType)
   header.indicator_bpm.draw(transport.bpm);
 }
 
+void channelClick(uint8_t clickType)
+{
+  uint8_t channel = patterns[currentPattern].tracks[currentTrack].channel;
+  if (clickType == 1 && channel < 16) channel++;
+  if (clickType == 2 && channel > 0) channel--;
+  trackDetails.indicator_channel.draw(channel);
+  patterns[currentPattern].tracks[currentTrack].channel = channel;
+}
+
 void quantizeClick(uint8_t clickType)
 {
-  uint8_t q = getQuantize();
-  if (clickType == 1)
-  {
-    if (q >= 192) q = 192;
-    else q = q +1;
-  }
-  if (clickType == 2)
-  {
-    if (q == 0) q = 0;
-    else q = q - 1;
-  }
-  setQuantize(q);
-  trackDetails.indicator_quantize.draw(q);
+  uint8_t quantizeIndex = patterns[currentPattern].tracks[currentTrack].quantizeIndex;
+  if (clickType == 1 && quantizeIndex < (NR_QUANTIZESTEPS - 1)) quantizeIndex++;
+  if (clickType == 2 && quantizeIndex > 0) quantizeIndex--;
+  trackDetails.indicator_quantize.draw(trackDetails.quantizeStrings[quantizeIndex]);
+  patterns[currentPattern].tracks[currentTrack].quantizeIndex = quantizeIndex;
+  patterns[currentPattern].tracks[currentTrack].quantize = trackDetails.quantizeSettings[quantizeIndex];
+}
+
+void transposeClick(uint8_t clickType)
+{
+  int transpose = patterns[currentPattern].tracks[currentTrack].transpose;
+  if (clickType == 1 && transpose < 64) transpose++;
+  if (clickType == 2 && transpose > -64) transpose--;
+  patterns[currentPattern].tracks[currentTrack].transpose = transpose;
+  trackDetails.indicator_transpose.draw(transpose);
+}
+
+void loopClick(uint8_t clickType)
+{
+  uint8_t loop = patterns[currentPattern].tracks[currentTrack].loop;
+  if (clickType == 1 && loop < 64) loop++;
+  if (clickType == 2 && loop > 0) loop--;
+  patterns[currentPattern].tracks[currentTrack].loop = loop;
+  trackDetails.indicator_loop.draw(loop);
 }
 
 void clearClick(uint8_t clickType) { clearTrack(currentTrack); }
@@ -218,7 +256,7 @@ void patternLengthClick(uint8_t clickType)
   if (clickType == 1) currentLengthBeats++;
   if (clickType == 2 && currentLengthBeats > 0) currentLengthBeats--;
   patterns[currentPattern].lengthBeats = currentLengthBeats;
-  arrangement.indicator_patternLength.draw(currentLengthBeats / 4 + 1, currentLengthBeats % 4, 0, false);
+  arrangement.indicator_patternLength.draw(currentLengthBeats / 4, currentLengthBeats % 4, 0, false);
   Serial.printf("Length beats %d\n", currentLengthBeats);
 }
 
@@ -229,6 +267,5 @@ void testClick(uint8_t clickType)
 
 void testClickIndicator(uint8_t clickType)
 {
-  if (clickType == 1) header.indicator_freeMem.draw(++testVariable);
-  if (clickType == 2) header.indicator_freeMem.draw(--testVariable);
+  
 }

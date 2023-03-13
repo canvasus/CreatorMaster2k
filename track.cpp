@@ -2,8 +2,6 @@
 
 Track::Track()
 {
-  //events = (event*)malloc(NR_EVENTS * sizeof(event));
-  //memset(events, 0, NR_EVENTS * sizeof(event));
   events = nullptr;
   noteOn_cb = nullptr;
   noteOff_cb = nullptr;
@@ -43,25 +41,32 @@ void Track::triggerEvent(uint16_t eventIndex)
   }
 }
 
- void Track::triggerEvents(uint32_t timestamp)
+ uint16_t Track::triggerEvents(uint32_t timestamp)
  {
-   if (_quantizeCounter == 0)
-   {
-     timestamp = timestamp + (uint32_t)(quantize >> 1);
-     _quantizeCounter = quantize;
-     if (events != nullptr)
-     {
-      while ( (nextEventId < NR_EVENTS) && (events[nextEventId].timestamp <= timestamp) && (events[nextEventId].type != NONE) ) triggerEvent(nextEventId++);
-     }
-   }
-   else _quantizeCounter--;
- }
+  uint16_t eventCounter = 0;
+  
+  if(loop > 0)
+  {
+    timestamp = timestamp % (loop * 192); // loop is set in 1/4ths
+    if (timestamp == 0) nextEventId = 0;
+  }
+  
+  if (events != nullptr)
+  {
+    while ( (nextEventId < _nrEvents) && ( ((events[nextEventId].timestamp + (quantize>>1)) / quantize) * quantize <= timestamp) && (events[nextEventId].type != NONE) )
+        {
+          triggerEvent(nextEventId++);
+          eventCounter++;
+        }
+  }
+  return eventCounter;
+}
 
 void Track::reset()
 {
   if (events != nullptr) _convertTempEvents(); 
   nextEventId = 0;
-  _quantizeCounter = 0;
+  _loopCounter = 0;
 }
 
 void Track::_convertTempEvents()
@@ -92,7 +97,6 @@ uint16_t Track::addEvent(uint32_t timestamp, uint8_t type, uint8_t data1, uint8_
 
 void Track::clear()
 {
-  //memset(events, 0, NR_EVENTS * sizeof(event));
   _releaseBuffer();
   _nrEvents = 0;
 }

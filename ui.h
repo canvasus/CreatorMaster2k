@@ -14,11 +14,11 @@
 
 #define SCREEN_XRES 800
 #define SCREEN_YRES 480
-#define PADDING 10
+#define PADDING 6
 
-#define ARRANGE_W       (uint16_t)(SCREEN_XRES * 0.3 - PADDING)
-#define PATTERN_W       (uint16_t)(SCREEN_XRES * 0.3 - PADDING)
-#define TRACKDETAILS_W  (uint16_t)(SCREEN_XRES * 0.2 - PADDING)
+#define ARRANGE_W       (uint16_t)(SCREEN_XRES * 0.32 - PADDING)
+#define PATTERN_W       (uint16_t)(SCREEN_XRES * 0.32 - PADDING)
+#define TRACKDETAILS_W  (uint16_t)(SCREEN_XRES * 0.16 - PADDING)
 #define CONTROLS_W      (uint16_t)(SCREEN_XRES * 0.2)
 #define HEADER_H        (uint16_t)(SCREEN_YRES * 0.1)
 #define MAIN_H          (uint16_t)(SCREEN_YRES * 0.9 - PADDING)
@@ -38,12 +38,16 @@ void startClick(uint8_t clickType);
 void stopClick(uint8_t clickType);
 void trackSelectClick(uint8_t id);
 void bpmClick(uint8_t clickType);
+void channelClick(uint8_t clickType);
 void quantizeClick(uint8_t clickType);
 void clearClick(uint8_t clickType);
 void patternLengthClick(uint8_t clickType);
+void transposeClick(uint8_t clickType);
+void loopClick(uint8_t clickType);
 
 void testClick(uint8_t clickType);
 void testClickIndicator(uint8_t clickType);
 
 void uiUpdateTransport();
 void uiUpdateControls();
+void uiUpdateActivity();

@@ -6,6 +6,9 @@
 
 #define MAIN_BG_COLOR         0x9D39 //0xCEFC //light blue
 
+#define DECO_TOPROW_FILL_COLOR  0x1175 // dark blue
+#define DECO_TOPROW_TEXT_COLOR  RA8875_WHITE
+
 #define BUTTON_BG_COLOR       RA8875_WHITE
 #define BUTTON_BORDER_COLOR   0x1175 // dark blue
 #define BUTTON_SHADOW_COLOR   0x7BEF // dark grey
@@ -16,20 +19,21 @@
 #define INDICATOR_BG_COLOR      RA8875_WHITE
 #define INDICATOR_BORDER_COLOR  0x1175 // dark blue
 #define INDICATOR_TEXT_COLOR    0x1175
-#define INDICATOR_LABEL_COLOR   0x9CF3 // medium grey
+#define INDICATOR_LABEL_COLOR   0x1175 //0x9CF3 // medium grey
 #define INDICATOR_LABEL_NONE    0
 #define INDICATOR_LABEL_TOP     1
 #define INDICATOR_LABEL_LEFT40  2
 #define INDICATOR_LABEL_LEFT80  3
 #define INDICATOR_LABEL_CUSTOM  4
 
+#define ACTIVITY_BG_COLOR       RA8875_WHITE
+#define ACTIVITY_FILL_COLOR     0xA55B
+
 #define TRACK_SELECTED_COLOR    0xCEFC // dark blue
 #define TRACK_NORMAL_COLOR      RA8875_WHITE
 
 #define CONTAINER_TITLE_COLOR 0xADB9
 #define CONTAINER_TITLE_H 20
-
-
 
 typedef void (*buttonCallback)(uint8_t);
 
@@ -78,6 +82,7 @@ class Indicator
     uint8_t _labelPosition;
     int _labelXoffset = 0;
     int _labelYoffset = 0;
+ 
   public:
     Indicator();
     buttonCallback cb;
@@ -85,6 +90,7 @@ class Indicator
     void setLabelOffset(int xOffset, int yOffset);
     bool checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType); 
     void draw(uint16_t value);
+    void draw(int value);
     void draw(String string);
     void draw(uint16_t trp_bar, uint16_t trp_4th, uint16_t trp_16th, bool drawStatics);
 };
@@ -102,8 +108,7 @@ class TrackRow
     buttonCallback cb;
     void layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2);
     void draw(bool selected);
-    void activity();
-    // activity indicator
+    void activity(uint8_t level);
 };
 
 class Container
@@ -136,6 +141,9 @@ class Arrangement :  public Container
 {
   using Container::Container;
   public:
+    Deco decoLeft;
+    Indicator indicator_arrange;
+    Deco decoRight;
     Indicator indicator_patternLength;
     Indicator indicator_patternPosition;
     bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);
@@ -147,6 +155,8 @@ class PatternView :  public Container
   using Container::Container;
   public:
     String patternName;
+    Deco decoLeft;
+    Deco decoRight;
     Indicator indicator_patternName;
     TrackRow trackRows[NR_TRACKS];
     bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);
@@ -156,16 +166,20 @@ class PatternView :  public Container
 class TrackDetails :  public Container
 {
   using Container::Container;
-  private:
-    const String quantizeStrings[6] = {"OFF  ", " 1/2", " 1/3", " 1/4" ," 1/8", "1/16"};
-    const uint16_t quantizeSettings[6] = {0, (RESOLUTION * 2) - 1, (RESOLUTION * 3 / 4) - 1, RESOLUTION - 1, (RESOLUTION / 2) - 1, (RESOLUTION / 4) - 1};
   public:
+    const String quantizeStrings[NR_QUANTIZESTEPS] = {"OFF ", "1/4 " ,"1/8 ", "1/16", "1/3 "};
+    const uint16_t quantizeSettings[NR_QUANTIZESTEPS] = {1, 192, 96, 48, 64};
+    Deco decoLeft;
+    Deco decoRight;
     Indicator indicator_trackNr;
+    Indicator indicator_channel;
     Indicator indicator_quantize;
+    Indicator indicator_transpose;
+    Indicator indicator_loop;
     Button button_clear;
     bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);
     void layout();
-    void update(uint8_t trackNr, uint8_t quantize);
+    void update(uint8_t trackNr, uint8_t channel, uint8_t quantizeIndex, int transpose, uint8_t loop);
 };
 
 class Controls :  public Container

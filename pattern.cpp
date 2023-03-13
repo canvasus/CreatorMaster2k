@@ -17,13 +17,19 @@ Pattern::Pattern()
 void Pattern::tick()
 {
   patternTick++;
-  if (patternTick > lengthBeats * RESOLUTION) reset();
-  for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++) tracks[trackId].triggerEvents(patternTick);
+  if (patternTick > (lengthBeats * RESOLUTION - 1)) reset();
+  for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++) trackActivity[trackId] = trackActivity[trackId] + tracks[trackId].triggerEvents(patternTick);
 }
 
 void Pattern::reset()
 {
   patternTick = 0;
-  memset(lastTriggeredEventId, 0, NR_TRACKS * sizeof(lastTriggeredEventId[0]));
   for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++) tracks[trackId].reset();
+}
+
+uint16_t Pattern::getActivity(uint8_t trackId)
+{
+  uint16_t activity = trackActivity[trackId];
+  trackActivity[trackId] = 0;
+  return activity;
 }

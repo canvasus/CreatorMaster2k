@@ -15,6 +15,6 @@ class Pattern
     Track tracks[NR_TRACKS];
     void tick();
     void reset();
-
-    uint16_t lastTriggeredEventId[NR_TRACKS];
+    uint8_t trackActivity[NR_TRACKS];
+    uint16_t getActivity(uint8_t trackId);
 };
