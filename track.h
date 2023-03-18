@@ -26,14 +26,17 @@ class Track
     void      _convertTempEvents();
     void      _initBuffer();
     void      _releaseBuffer();
+    uint32_t  _quantizeTimestamp(uint32_t timestamp);
   public:
     Track();
+    String    name;
     uint8_t   channel;
     uint16_t  quantize = 1;
     uint8_t   quantizeIndex = 0;
     int       transpose = 0;
     uint8_t   loop = 0;
     uint16_t  memUsage = 0;
+    bool      hidden = false;
 
     MIDIcallback  noteOn_cb;
     MIDIcallback  noteOff_cb;

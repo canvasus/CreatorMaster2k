@@ -4,8 +4,10 @@ Transport transport;
 IntervalTimer sequencerUpdateTimer;
 uint8_t currentTrack = 0;
 uint8_t currentPattern = 0;
+uint8_t currentArrangementPosition = 0;
 bool midiThrough =  true;
 
+Arrangement arrangement;
 Pattern patterns[NR_PATTERNS];
 MIDIcallback  metronome_noteOn_cb;
 MIDIcallback  metronome_noteOff_cb;
@@ -13,22 +15,37 @@ uint8_t metronomeChannel = 10;
 uint8_t metronomeNote1 = 76;
 uint8_t metronomeNote2 = 77;
 
+String patternNames[NR_PATTERNS] = {"PATTERN01", "PATTERN02", "PATTERN03", "PATTERN04", "PATTERN05", "PATTERN06", "PATTERN07", "PATTERN08"};
+
 void setupSequencer()
 {
   setBpm(transport.bpm);
   metronome_noteOn_cb = serialMidiNoteOn;
   metronome_noteOff_cb = serialMidiNoteOff;
+  for (uint8_t patternId = 0; patternId < NR_PATTERNS; patternId++) patterns[patternId].name = patternNames[patternId];
 }
 
 void updateSequencer()
 {
-  updateTransport(patterns[currentPattern].patternTick);
-  if (transport.metronomeOn) updateMetronome();
+  if (transport.arrangementOn) updateTransport(arrangement.arrangementTick);
+  else updateTransport(patterns[currentPattern].patternTick);
+  if (transport.metronomeOn && transport.recording) updateMetronome();
 }
 
 void tickPattern()
 {
   if (transport.state == SEQ_PRECOUNT) handlePrecount();
+  if (transport.state == SEQ_PLAYING && transport.arrangementOn)
+  {
+    static uint8_t lastArrPosition = 0;
+    currentArrangementPosition = arrangement.tick();
+    if (lastArrPosition != currentArrangementPosition)
+    {
+      lastArrPosition = currentArrangementPosition;
+      patterns[currentPattern].reset();
+    }
+    currentPattern = arrangement.arrangementItems_a[currentArrangementPosition].patternIndex;
+  }
   if (transport.state == SEQ_PLAYING) patterns[currentPattern].tick();
 }
 
@@ -39,7 +56,16 @@ void play()
 }
 
 void stop() { transport.state = SEQ_STOPPED;}
-void reset() { patterns[currentPattern].reset(); }
+
+void reset()
+{ 
+  if (transport.arrangementOn)
+  {
+    arrangement.arrangementTick = 0;
+    for (uint8_t patternId = 0; patternId < NR_TRACKS; patternId++) patterns[patternId].reset();
+  }
+  else patterns[currentPattern].reset();
+}
 
 void panic() { allNotesOff(); }
 
@@ -80,15 +106,23 @@ void setBpm(uint8_t bpm)
 void processNoteOn(uint8_t channel, uint8_t note, uint8_t velocity)
 {
   uint32_t timestamp = patterns[currentPattern].patternTick;
-  if (patterns[currentPattern].tracks[currentTrack].noteOn_cb && midiThrough) patterns[currentPattern].tracks[currentTrack].noteOn_cb(patterns[currentPattern].tracks[currentTrack].channel, note, velocity);
+  
+  if (patterns[currentPattern].tracks[currentTrack].noteOn_cb && midiThrough) patterns[currentPattern].tracks[currentTrack].noteOn_cb(patterns[currentPattern].tracks[currentTrack].channel, 
+            note + patterns[currentPattern].tracks[currentTrack].transpose, velocity);
+  
   if (transport.state == SEQ_PLAYING && transport.recording) patterns[currentPattern].tracks[currentTrack].addEvent(timestamp, usbMIDI.NoteOn, note, velocity);
+  if (transport.state == SEQ_PRECOUNT && transport.recording) patterns[currentPattern].tracks[currentTrack].addEvent(0, usbMIDI.NoteOn, note, velocity);
 }
 
 void processNoteOff(uint8_t channel, uint8_t note, uint8_t velocity)
 {
   uint32_t timestamp = patterns[currentPattern].patternTick;
-  if (patterns[currentPattern].tracks[currentTrack].noteOff_cb && midiThrough) patterns[currentPattern].tracks[currentTrack].noteOff_cb(patterns[currentPattern].tracks[currentTrack].channel, note, velocity);
+  
+  if (patterns[currentPattern].tracks[currentTrack].noteOff_cb && midiThrough) patterns[currentPattern].tracks[currentTrack].noteOff_cb(patterns[currentPattern].tracks[currentTrack].channel, 
+            note + patterns[currentPattern].tracks[currentTrack].transpose, velocity);
+  
   if (transport.state == SEQ_PLAYING && transport.recording) patterns[currentPattern].tracks[currentTrack].addEvent(timestamp, usbMIDI.NoteOff, note, velocity);
+  if (transport.state == SEQ_PRECOUNT && transport.recording) patterns[currentPattern].tracks[currentTrack].addEvent(0, usbMIDI.NoteOff, note, velocity);
 }
 
 void updateTransport(uint32_t tick)
@@ -142,6 +176,9 @@ void clearTrack(uint8_t trackId)
 {
   patterns[currentPattern].tracks[trackId].clear();
 }
+
+
+
 
 void setQuantize(uint8_t quantize) { patterns[currentPattern].tracks[currentTrack].quantize = quantize; }
 uint8_t getQuantize() { return patterns[currentPattern].tracks[currentTrack].quantize;}

@@ -6,10 +6,9 @@
 
 class Pattern
 {
-  private:
-    
   public:
     Pattern();
+    String name;
     uint16_t lengthBeats;
     uint16_t patternTick;
     Track tracks[NR_TRACKS];

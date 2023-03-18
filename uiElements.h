@@ -126,24 +126,47 @@ class Container
     uint16_t relH(float fraction);
 };
 
-class Header :  public Container
+class HeaderView : public Container
 {
   using Container :: Container;
   public:
     Indicator indicator_freeMem;
+    Indicator indicator_arrOn;
     Indicator indicator_transport;
     Indicator indicator_bpm;
     bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);
     void layout();
 };
 
-class Arrangement :  public Container
+class ArrangementRow
+{
+  private:
+    Geo _geo;
+  public:
+    ArrangementRow();
+    uint8_t id;
+    bool active;
+    uint16_t startBars;
+    String patternName;
+    bool checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType); 
+    buttonCallback cb;
+    void layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2);
+    void draw(bool selected);
+    void clear();
+};
+
+class ArrangementView :  public Container
 {
   using Container::Container;
   public:
     Deco decoLeft;
     Indicator indicator_arrange;
     Deco decoRight;
+    ArrangementRow arrangementRows[NR_ARRITEMS];
+    Button button_new;
+    Button button_delete;
+    Button button_up;
+    Button button_down;
     Indicator indicator_patternLength;
     Indicator indicator_patternPosition;
     bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);
@@ -163,7 +186,7 @@ class PatternView :  public Container
     void layout();
 };
 
-class TrackDetails :  public Container
+class TrackDetailsView :  public Container
 {
   using Container::Container;
   public:
@@ -182,7 +205,7 @@ class TrackDetails :  public Container
     void update(uint8_t trackNr, uint8_t channel, uint8_t quantizeIndex, int transpose, uint8_t loop);
 };
 
-class Controls :  public Container
+class ControlsView :  public Container
 {
   using Container::Container;
   public:

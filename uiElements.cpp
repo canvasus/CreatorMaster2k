@@ -170,14 +170,15 @@ void Indicator::draw(String string)
 
 void Indicator::draw(uint16_t trp_bar, uint16_t trp_4th, uint16_t trp_16th, bool drawStatics)
 {
+  tft.writeTo(L2);
   if (drawStatics) _drawCommon();
   else tft.fillRect(_geo.xPos + 1, _geo.yPos + 1 , _geo.width - 2, _geo.height - 2, INDICATOR_BG_COLOR);
   tft.setTextColor(INDICATOR_TEXT_COLOR);
-  tft.setCursor(_geo.xPos + _geo.width * 0.05, _geo.yPos + 2);
+  tft.setCursor(_geo.xPos + _geo.width * 0.2, _geo.yPos + 2);
   tft.print(trp_bar);
-  tft.setCursor(_geo.xPos + _geo.width * 0.25, _geo.yPos + 2);
+  tft.setCursor(_geo.xPos + _geo.width * 0.5, _geo.yPos + 2);
   tft.print(trp_4th);
-  tft.setCursor(_geo.xPos + _geo.width * 0.50, _geo.yPos + 2);
+  tft.setCursor(_geo.xPos + _geo.width * 0.80, _geo.yPos + 2);
   tft.print(trp_16th);
 }
 
@@ -242,6 +243,7 @@ void PatternView::layout()
 {
   indicator_patternName.layout("PATTERN", relX(0.2), relY(0), relW(0.6), relH(1/17.0) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL, INDICATOR_LABEL_NONE);
   indicator_patternName.draw("PATTERN01");
+  indicator_patternName.cb = &patternSelectClick;
   
   decoLeft.layout("STAT", relX(0.00), relY(0), relW(0.2), relH(1/17.0), DECO_TOPROW_FILL_COLOR, DECO_TOPROW_TEXT_COLOR, 4);
   decoLeft.draw();
@@ -252,7 +254,7 @@ void PatternView::layout()
   for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++)
   {
     trackRows[trackId].cb = &trackSelectClick;
-    trackRows[trackId].trackName = "test";
+    trackRows[trackId].trackName = "<empty>";
     trackRows[trackId].id = trackId;
     trackRows[trackId].layout(relX(0), relY((1/17.0) * (trackId + 1)), relW(1.0), relH(1/17.0) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
     trackRows[trackId].draw(trackId == currentTrack);
@@ -261,6 +263,8 @@ void PatternView::layout()
 
 bool PatternView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 {
+  if (indicator_patternName.checkCursor(xPos, yPos, clickType)) return true;
+  
   bool matchClick = false;
   uint8_t trackId = 0;
   while (!matchClick && trackId < NR_TRACKS)
@@ -272,7 +276,7 @@ bool PatternView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 
 // --- TRACK DETAILS CLASS ---
 
-void TrackDetails::layout()
+void TrackDetailsView::layout()
 {
   decoLeft.layout("", relX(0.00), relY(0), relW(0.2), relH(1/17.0), DECO_TOPROW_FILL_COLOR, DECO_TOPROW_TEXT_COLOR, 0);
   decoLeft.draw();
@@ -284,22 +288,22 @@ void TrackDetails::layout()
   indicator_trackNr.setLabelOffset(-48, 2);
   indicator_trackNr.draw(1);
 
-  indicator_channel.layout("CHANNEL", relX(0.66), relY(2/17.0), relW(0.31), relH(1/17.5) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL, INDICATOR_LABEL_CUSTOM);
+  indicator_channel.layout("CHANNEL", relX(0.66), relY(2/17.0), relW(0.32), relH(1/17.5) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL, INDICATOR_LABEL_CUSTOM);
   indicator_channel.cb = &channelClick;
   indicator_channel.setLabelOffset(-74, 2);
   indicator_channel.draw(1);
   
-  indicator_quantize.layout("QUANTIZE", relX(0.66), relY(3/17.0), relW(0.31), relH(1/17.5) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL, INDICATOR_LABEL_CUSTOM);
+  indicator_quantize.layout("QUANTIZE", relX(0.66), relY(3/17.0), relW(0.32), relH(1/17.5) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL, INDICATOR_LABEL_CUSTOM);
   indicator_quantize.cb = &quantizeClick;
   indicator_quantize.setLabelOffset(-74, 2);
   indicator_quantize.draw(quantizeStrings[0]);
 
-  indicator_transpose.layout("TRANSPOSE", relX(0.66), relY(4/17.0), relW(0.31), relH(1/17.5) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL, INDICATOR_LABEL_CUSTOM);
+  indicator_transpose.layout("TRANSPOSE", relX(0.66), relY(4/17.0), relW(0.32), relH(1/17.5) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL, INDICATOR_LABEL_CUSTOM);
   indicator_transpose.cb = &transposeClick;
   indicator_transpose.setLabelOffset(-74, 2);
   indicator_transpose.draw(0);
 
-  indicator_loop.layout("LOOP", relX(0.66), relY(5/17.0), relW(0.31), relH(1/17.5) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL, INDICATOR_LABEL_CUSTOM);
+  indicator_loop.layout("LOOP", relX(0.66), relY(5/17.0), relW(0.32), relH(1/17.5) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL, INDICATOR_LABEL_CUSTOM);
   indicator_loop.cb = &loopClick;
   indicator_loop.setLabelOffset(-74, 2);
   indicator_loop.draw("");
@@ -309,7 +313,7 @@ void TrackDetails::layout()
   button_clear.draw(false);
 }
 
-bool TrackDetails::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
+bool TrackDetailsView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 {
   if (indicator_channel.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_quantize.checkCursor(xPos, yPos, clickType)) return true;
@@ -319,19 +323,18 @@ bool TrackDetails::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType
   return false;
 }
 
-void TrackDetails::update(uint8_t trackNr, uint8_t channel, uint8_t quantizeIndex, int transpose, uint8_t loop)
+void TrackDetailsView::update(uint8_t trackNr, uint8_t channel, uint8_t quantizeIndex, int transpose, uint8_t loop)
 {
   indicator_trackNr.draw(trackNr + 1);
   indicator_channel.draw(channel);
   indicator_quantize.draw(quantizeStrings[quantizeIndex]);
   indicator_transpose.draw(transpose);
-  if (loop > 0) indicator_loop.draw(loop);
-  else indicator_loop.draw(" ");
+  indicator_loop.draw(loop);
 }
 
 // --- CONTROLS ---
 
-void Controls::layout()
+void ControlsView::layout()
 {
   button_start.layout("START", relX(0.02), relY(0.9), relW(0.56), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
   button_start.draw(false);
@@ -370,7 +373,7 @@ void Controls::layout()
   button_record.cb = &recordClick;
 }
 
-bool Controls::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
+bool ControlsView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 {
   if (button_start.checkCursor(xPos, yPos, clickType)) return true;
   if (button_continue.checkCursor(xPos, yPos, clickType)) return true;
@@ -386,10 +389,14 @@ bool Controls::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 
 // --- HEADER CLASS ---
 
-void Header::layout()
+void HeaderView::layout()
 {
-  indicator_freeMem.layout("MEM", relX(0.01), relY(0.5), relW(0.1), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR,INDICATOR_LABEL_TOP);
+  indicator_freeMem.layout("MEM", relX(0.01), relY(0.5), relW(0.08), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR,INDICATOR_LABEL_TOP);
   indicator_freeMem.draw(MEMORY_MAX);
+
+  indicator_arrOn.layout("ARRANGE", relX(0.12), relY(0.5), relW(0.05), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR,INDICATOR_LABEL_TOP);
+  indicator_arrOn.cb = &arrangementOnClick;
+  indicator_arrOn.draw("OFF");
 
   indicator_transport.layout("bar 4  16", relX(0.80), relY(0.5), relW(0.10), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
   indicator_transport.draw(0,0,0, true);
@@ -399,16 +406,63 @@ void Header::layout()
   indicator_bpm.draw(transport.bpm);
 }
 
-bool Header::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
+bool HeaderView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 {
   if (indicator_freeMem.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_bpm.checkCursor(xPos, yPos, clickType)) return true;
+  if (indicator_arrOn.checkCursor(xPos, yPos, clickType)) return true;
   return false;
 }
 
-// --- ARRANGEMENT CLASS ---
+// --- ARRANGEMENT ROW CLASS ---
 
-void Arrangement::layout()
+ArrangementRow::ArrangementRow()
+{
+  active = false;
+}
+
+void ArrangementRow::layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2)
+{
+  _geo.xPos = xPos;
+  _geo.yPos = yPos;
+  _geo.width = width;
+  _geo.height = height;
+  _geo.color1 = color1;
+  _geo.color2 = color2;
+}
+
+void ArrangementRow::draw(bool selected)
+{
+  tft.writeTo(L2);
+  if (selected) tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_SELECTED_COLOR); // background
+  else tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_NORMAL_COLOR); // background
+  tft.setCursor(_geo.xPos + 20, _geo.yPos + 5);
+  tft.setTextColor(INDICATOR_TEXT_COLOR);
+  tft.printf("%d", startBars);
+  tft.setCursor(_geo.xPos + 50, _geo.yPos + 5);
+  tft.print(patternName);
+}
+
+void ArrangementRow::clear()
+{
+  tft.writeTo(L2);
+  tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_NORMAL_COLOR); // background
+}
+
+
+bool ArrangementRow::checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType)
+{
+  if ( (xPos < _geo.xPos) || (xPos > _geo.xPos + _geo.width) || (yPos < _geo.yPos) || (yPos > _geo.yPos + _geo.height) ) return false;
+  else
+  {
+    if (cb) cb(id);
+    return true;
+  }
+}
+
+// --- ARRANGEMENT VIEW CLASS ---
+
+void ArrangementView::layout()
 {
   decoLeft.layout("BAR", relX(0.00), relY(0), relW(0.2), relH(1/17.0), DECO_TOPROW_FILL_COLOR, DECO_TOPROW_TEXT_COLOR, relW(0.05));
   decoLeft.draw();
@@ -419,16 +473,50 @@ void Arrangement::layout()
   decoRight.layout("MUTE", relX(0.85), relY(0), relW(0.15), relH(1/17.0), DECO_TOPROW_FILL_COLOR, DECO_TOPROW_TEXT_COLOR, relW(0.02));
   decoRight.draw();
   
-  indicator_patternLength.layout("LENGTH", relX(0.05), relY(0.9), relW(0.40), relH(1/17.0), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
+  indicator_patternLength.layout("LENGTH", relX(0.05), relY(0.93), relW(0.35), relH(1/17.0), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
   indicator_patternLength.cb = &patternLengthClick;
   indicator_patternLength.draw(4,0,0, true);
     
-  indicator_patternPosition.layout("POSITION", relX(0.55), relY(0.9), relW(0.40), relH(1/17.0), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
+  indicator_patternPosition.layout("POSITION", relX(0.48), relY(0.93), relW(0.35), relH(1/17.0), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
   indicator_patternPosition.draw(0,0,0, true);
+
+  for (uint8_t arrItemId = 0; arrItemId < NR_ARRITEMS; arrItemId++)
+  {
+    arrangementRows[arrItemId].cb = &arrangementItemSelectClick;
+    arrangementRows[arrItemId].patternName = "PATTERN01";
+    arrangementRows[arrItemId].id = arrItemId;
+    arrangementRows[arrItemId].startBars = 1;
+    arrangementRows[arrItemId].layout(relX(0), relY((arrItemId + 1) / 17.0), relW(1.0), relH(1/17.0) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  }
+  arrangementRows[0].active = true;
+  arrangementRows[0].draw(true);
+
+  button_new.layout("NEW", relX(0.02), relY(0.78), relW(0.2), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_new.draw(false);
+  button_new.cb = &newArrangeItemClick;
+
+  button_delete.layout("DEL", relX(0.23), relY(0.78), relW(0.2), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_delete.draw(false);
+  button_delete.cb = &deleteArrangeItemClick;
+
+  button_up.layout("UP", relX(0.44), relY(0.78), relW(0.2), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_up.draw(false);
+  button_up.cb = &testClick;
+
+  button_down.layout("DN", relX(0.65), relY(0.78), relW(0.2), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_down.draw(false);
+  button_down.cb = &testClick;
+  
 }
 
-bool Arrangement::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
+bool ArrangementView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 {
   if (indicator_patternLength.checkCursor(xPos, yPos, clickType)) return true;
+  if (button_new.checkCursor(xPos, yPos, clickType)) return true;
+  if (button_delete.checkCursor(xPos, yPos, clickType)) return true;
+  for (uint8_t itemIndex = 0; itemIndex < NR_ARRITEMS; itemIndex++)
+  {
+    if (arrangementRows[itemIndex].active && arrangementRows[itemIndex].checkCursor(xPos, yPos, clickType)) return true;
+  }
   return false;
 }

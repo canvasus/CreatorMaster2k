@@ -28,6 +28,8 @@ extern MouseController mouse1;
 extern RA8875 tft;
 
 void setupUI();
+void setChannelIndicators();
+
 void updateUI();
 void updateMouse();
 void updateCursor(int deltaX, int deltaY);
@@ -44,6 +46,11 @@ void clearClick(uint8_t clickType);
 void patternLengthClick(uint8_t clickType);
 void transposeClick(uint8_t clickType);
 void loopClick(uint8_t clickType);
+void patternSelectClick(uint8_t clickType);
+void newArrangeItemClick(uint8_t clickType);
+void arrangementItemSelectClick(uint8_t id);
+void deleteArrangeItemClick(uint8_t id);
+void arrangementOnClick(uint8_t clickType);
 
 void testClick(uint8_t clickType);
 void testClickIndicator(uint8_t clickType);
@@ -51,3 +58,7 @@ void testClickIndicator(uint8_t clickType);
 void uiUpdateTransport();
 void uiUpdateControls();
 void uiUpdateActivity();
+
+void uiRedrawArrangeView();
+void uiRedrawPatternView();
+void uiRedrawTrackDetailsView();

@@ -2,6 +2,7 @@
 
 #include "track.h"
 #include "pattern.h"
+#include "arrangement.h"
 #include "ui.h"
 #include "peripherals.h"
 #include "x_globals.h"
@@ -12,20 +13,23 @@
 
 extern uint8_t currentTrack;
 extern uint8_t currentPattern;
+extern uint8_t currentArrangementPosition;
 extern Pattern patterns[NR_PATTERNS];
+extern Arrangement arrangement;
 
 struct Transport
 {
-  uint8_t bpm = 120;
-  uint8_t state = SEQ_STOPPED;
-  bool recording = false;
-  bool metronomeOn = true;
-  uint16_t trp_bar = 0;
-  uint16_t trp_4th = 0;
-  uint16_t trp_16th = 0;
-  uint16_t trp_768th = 0;
-  uint16_t freeMemory = MEMORY_MAX;
-  uint8_t preCount = 0;
+  uint8_t   bpm         = 120;
+  uint8_t   state       = SEQ_STOPPED;
+  bool      recording   = false;
+  bool      metronomeOn = true;
+  uint16_t  trp_bar     = 0;
+  uint16_t  trp_4th     = 0;
+  uint16_t  trp_16th    = 0;
+  uint16_t  trp_768th   = 0;
+  uint16_t  freeMemory  = MEMORY_MAX;
+  uint8_t   preCount    = 0;
+  bool      arrangementOn = false;
 };
 
 extern Transport transport;
