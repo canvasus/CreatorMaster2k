@@ -3,8 +3,7 @@
 Track::Track()
 {
   events = nullptr;
-  noteOn_cb = nullptr;
-  noteOff_cb = nullptr;
+  midi_cb = nullptr;
   channel = 1;
   name = "<empty>";
 }
@@ -14,6 +13,7 @@ void Track::_initBuffer()
   events = (event*)malloc(NR_EVENTS * sizeof(event));
   memset(events, 0, NR_EVENTS * sizeof(event));
   memUsage = NR_EVENTS;
+  memBlocks = 1;
 }
 
 void Track::_releaseBuffer()
@@ -21,22 +21,35 @@ void Track::_releaseBuffer()
   free(events);
   events = nullptr;
   memUsage = 0;
+  memBlocks = 0;
 }
 
-void Track::setHandleNoteOn(MIDIcallback cb) { noteOn_cb = cb; }
-void Track::setHandleNoteOff(MIDIcallback cb) { noteOff_cb = cb; }
+void Track::_expandBuffer()
+{
+  event * eventsNew = (event*)malloc((memBlocks + 1) * NR_EVENTS * sizeof(event));
+  memcpy(eventsNew, events, memBlocks * NR_EVENTS * sizeof(event));
+  free(events);
+  events = eventsNew;
+  memBlocks++;
+  memUsage = memBlocks * NR_EVENTS;
+}
+
+void Track::setMidiCb(MIDIcallbackGeneric cb) { midi_cb = cb; }
 
 void Track::triggerEvent(uint16_t eventIndex)
 {
   if (events != nullptr && eventIndex < _nrEvents)
   {
-    switch (events[eventIndex].type)
+    uint8_t type = events[eventIndex].type;
+    uint8_t data1 = events[eventIndex].data1;
+    uint8_t data2 = events[eventIndex].data2;
+    switch (type)
     {
       case usbMIDI.NoteOn:
-        if (noteOn_cb) noteOn_cb(channel, events[eventIndex].data1 + transpose, events[eventIndex].data2);
-        break;
       case usbMIDI.NoteOff:
-        if (noteOff_cb) noteOff_cb(channel, events[eventIndex].data1 + transpose, events[eventIndex].data2);
+         data1 = data1 + transpose;
+      default:
+        if (midi_cb) midi_cb(channel, type, data1, data2);
         break;
     }
   }
@@ -64,7 +77,7 @@ void Track::triggerEvent(uint16_t eventIndex)
       
       if ( (eventType == usbMIDI.NoteOn) && (_quantizeTimestamp(eventTimestamp) <= timestamp)) trigger = true;
       if ( (eventType != usbMIDI.NoteOn) && (eventTimestamp <= timestamp)) trigger = true;
-  
+ 
       if (trigger)
       {
         triggerEvent(nextEventId++);
@@ -76,7 +89,7 @@ void Track::triggerEvent(uint16_t eventIndex)
    return eventCounter;
 }
 
-uint32_t Track::_quantizeTimestamp(uint32_t timestamp) { return ((timestamp + (quantize>>1)) / quantize) * quantize; }
+uint32_t Track::_quantizeTimestamp(uint32_t timestamp) { return ((timestamp + (quantize>>1)) / quantize) * quantize; } // returns nearest
 
 void Track::reset()
 {
@@ -91,14 +104,17 @@ void Track::_convertTempEvents()
   {
     if (events[eventId].type == TYPE_NOTEON_TEMP) events[eventId].type = usbMIDI.NoteOn;
     if (events[eventId].type == TYPE_NOTEOFF_TEMP) events[eventId].type = usbMIDI.NoteOff;
+    if (events[eventId].type == TYPE_CONTROLCHANGE_TEMP) events[eventId].type = usbMIDI.ControlChange;
+    if (events[eventId].type == TYPE_PITCHBEND_TEMP) events[eventId].type = usbMIDI.PitchBend;
   }
 }
 
 uint16_t Track::addEvent(uint32_t timestamp, uint8_t type, uint8_t data1, uint8_t data2)
 {
   if (_nrEvents == 0 || events == nullptr) _initBuffer();
+  if (_nrEvents >= (memBlocks * NR_EVENTS - 1)) _expandBuffer();
   
-  if (_nrEvents < NR_EVENTS - 1)
+  if (_nrEvents < (memBlocks * NR_EVENTS - 1))
   {
     events[_nrEvents].timestamp = timestamp;
     events[_nrEvents].type = type - 1;

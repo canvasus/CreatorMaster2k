@@ -37,8 +37,12 @@ uint16_t cursorYpos = 0;
 
 elapsedMillis uiTimer = 0;
 const uint8_t uiInterval = 35;
+elapsedMillis uiTimerSlow = 0;
+const uint8_t uiSlowInterval = 100;
 elapsedMillis uiResetTimer = 0;
 const uint8_t uiResetInterval = 250;
+
+uint8_t viewMode = VIEW_NORMAL;
 
 void setupUI()
 {
@@ -91,6 +95,11 @@ void updateUI()
     uiUpdateActivity();
     drawCursor();
   }
+  if (uiTimerSlow > uiSlowInterval)
+  {
+    uiTimerSlow = 0;
+    uiUpdateSlowItems();
+  }
   if (uiResetTimer > uiResetInterval)
   {
     uiResetTimer = 0;
@@ -113,11 +122,16 @@ void uiRedrawArrangeView()
     }
     else arrangementView.arrangementRows[arrItemIndex].clear();
   }
+  for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++)
+  {
+    if (arrangement.arrangementItems_a[currentArrangementPosition].muteArray[trackId]) arrangementView.indicator_muteArray[trackId].draw("M");
+    else arrangementView.indicator_muteArray[trackId].draw("-");
+  }
 
   uint16_t currentLengthBeats = patterns[currentPattern].lengthBeats;
   uint16_t startBars = arrangement.arrangementItems_a[currentArrangementPosition].startBars;
   arrangementView.indicator_patternLength.draw(currentLengthBeats / 4, currentLengthBeats % 4, 0, false);
-  arrangementView.indicator_patternPosition.draw(startBars / 4, startBars % 4, 0, false);
+  arrangementView.indicator_patternPosition.draw(startBars + 1, startBars % 4 + 1, 0, false);
 }
 
 void uiRedrawPatternView()
@@ -214,7 +228,7 @@ void uiUpdateActivity()
   }
 }
 
-void uiUpdateControls()
+void uiUpdateSlowItems()
 {
   // react to arrangement/pattern/track index changes
   static uint8_t lastArrangementItem = 0;
@@ -239,7 +253,10 @@ void uiUpdateControls()
     lastTrackIndex = currentTrack;
     uiRedrawTrackDetailsView();
   }
-  
+}
+
+void uiUpdateControls()
+{
   // reset non-latching buttons etc
   if (controlsView.button_stop.state && !controlsView.button_stop.latch) controlsView.button_stop.set(false);
   if (trackDetailsView.button_clear.state && !trackDetailsView.button_clear.latch) trackDetailsView.button_clear.set(false);
@@ -326,12 +343,17 @@ void loopClick(uint8_t clickType)
   trackDetailsView.indicator_loop.draw(loop);
 }
 
-void clearClick(uint8_t clickType)
+void clearTrackClick(uint8_t clickType)
 {
   clearTrack(currentTrack);
   patterns[currentPattern].tracks[currentTrack].name = "<empty>";
   patternView.trackRows[currentTrack].trackName = patterns[currentPattern].tracks[currentTrack].name;
   patternView.trackRows[currentTrack].draw(true);
+}
+
+void editTrackClick(uint8_t clickType)
+{
+  
 }
 
 void patternLengthClick(uint8_t clickType)
@@ -356,11 +378,6 @@ void patternSelectClick(uint8_t clickType)
   // update arrangement view
   uiRedrawArrangeView();
 
-  // update pattern view
-  //uiRedrawPatternView();
-  
-  // update track detail view
-  //uiRedrawTrackDetailsView();
 }
 
 void newArrangeItemClick(uint8_t clickType)
@@ -387,6 +404,9 @@ void arrangementItemSelectClick(uint8_t id)
   uiRedrawArrangeView();
   uiRedrawPatternView();
   uiRedrawTrackDetailsView();
+
+  // update track mute status
+  setMuteStatus();
 }
 
 void arrangementOnClick(uint8_t clickType)
@@ -396,7 +416,25 @@ void arrangementOnClick(uint8_t clickType)
   else headerView.indicator_arrOn.draw("OFF");
 }
 
+void muteArrayClick(uint8_t id)
+{
+  bool muteStatus = !arrangement.arrangementItems_a[currentArrangementPosition].muteArray[id];
+  patterns[currentPattern].tracks[id].hidden = muteStatus;
+  arrangement.arrangementItems_a[currentArrangementPosition].muteArray[id] = muteStatus;
+  if (muteStatus) arrangementView.indicator_muteArray[id].draw("M");
+  else arrangementView.indicator_muteArray[id].draw("-");
+}
 
+
+void uiSetNormalViewMode()
+{
+  // draw all normal elements
+}
+
+void uiSetListEditorViewMode()
+{
+  // replace arrangement and pattern view with list editor  
+}
 
 void testClick(uint8_t clickType)
 {

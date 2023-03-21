@@ -6,6 +6,7 @@ ArrangementItem::ArrangementItem()
   lengthBars = 4;
   patternIndex = 0;
   status = ARRITEM_INACTIVE;
+  memset(muteArray, 0, NR_TRACKS);
 }
 
 Arrangement::Arrangement()
@@ -41,7 +42,6 @@ uint8_t Arrangement::newArrangementItem()
     {
       arrangementItems_a[itemId].status = ARRITEM_ACTIVE;
       updateArrangementStartPositions();
-      printItemArray(NR_ARRITEMS-1);
       return itemId;
     }
   }
@@ -53,7 +53,6 @@ uint8_t Arrangement::deleteArrangementItem(uint8_t itemId)
   arrangementItems_a[itemId].status = ARRITEM_INACTIVE;
   _sortItems();
   updateArrangementStartPositions();
-  printItemArray(NR_ARRITEMS-1);
   return 0; 
 }
 
@@ -61,6 +60,7 @@ void Arrangement::updateArrangementStartPositions()
 {
   for (uint8_t itemId = 0; itemId < NR_ARRITEMS; itemId++)
   {
+    if (itemId == 0) arrangementItems_a[itemId].startBars = 1;
     if (arrangementItems_a[itemId].status == ARRITEM_ACTIVE && itemId > 0)
     {
       uint16_t previousArrItemStart = arrangementItems_a[itemId - 1].startBars;
@@ -72,40 +72,40 @@ void Arrangement::updateArrangementStartPositions()
 
 void Arrangement::_sortItems() { qsort(arrangementItems_a, NR_ARRITEMS, sizeof(ArrangementItem), compareArrItems); }
 
-void Arrangement::printItemArray(uint8_t lastIndex)
-{
-  Serial.print("Status: ");
-  for (uint8_t i = 0; i < lastIndex; i++)
-  {
-    Serial.print(arrangementItems_a[i].status);
-    Serial.print(", ");
-  }
-  Serial.println("END");
-  
-  Serial.print("Start: ");
-  for (uint8_t i = 0; i < lastIndex; i++)
-  {
-    Serial.print(arrangementItems_a[i].startBars);
-    Serial.print(", ");
-  }
-  Serial.println("END");
-
-  Serial.print("Length: ");
-  for (uint8_t i = 0; i < lastIndex; i++)
-  {
-    Serial.print(arrangementItems_a[i].lengthBars);
-    Serial.print(", ");
-  }
-  Serial.println("END");
-
-  Serial.print("Pattern: ");
-  for (uint8_t i = 0; i < lastIndex; i++)
-  {
-    Serial.print(arrangementItems_a[i].patternIndex);
-    Serial.print(", ");
-  }
-  Serial.println("END");
-}
+//void Arrangement::printItemArray(uint8_t lastIndex)
+//{
+//  Serial.print("Status: ");
+//  for (uint8_t i = 0; i < lastIndex; i++)
+//  {
+//    Serial.print(arrangementItems_a[i].status);
+//    Serial.print(", ");
+//  }
+//  Serial.println("END");
+//  
+//  Serial.print("Start: ");
+//  for (uint8_t i = 0; i < lastIndex; i++)
+//  {
+//    Serial.print(arrangementItems_a[i].startBars);
+//    Serial.print(", ");
+//  }
+//  Serial.println("END");
+//
+//  Serial.print("Length: ");
+//  for (uint8_t i = 0; i < lastIndex; i++)
+//  {
+//    Serial.print(arrangementItems_a[i].lengthBars);
+//    Serial.print(", ");
+//  }
+//  Serial.println("END");
+//
+//  Serial.print("Pattern: ");
+//  for (uint8_t i = 0; i < lastIndex; i++)
+//  {
+//    Serial.print(arrangementItems_a[i].patternIndex);
+//    Serial.print(", ");
+//  }
+//  Serial.println("END");
+//}
 
 int compareArrItems(const void *s1, const void *s2)
 {

@@ -6,12 +6,7 @@
 void setupPeripherals();
 void updateMidi();
 
-void input_noteOn(uint8_t channel, uint8_t note, uint8_t velocity);
-void input_noteOff(uint8_t channel, uint8_t note, uint8_t velocity);
-void input_controlChange(uint8_t channel, uint8_t control, uint8_t value);
-
-void serialMidiNoteOn(uint8_t channel, uint8_t note, uint8_t velocity);
-void serialMidiNoteOff(uint8_t channel, uint8_t note, uint8_t velocity);
+void serialMidiSend(uint8_t channel, uint8_t type, uint8_t data1, uint8_t data2);
 
 void clearUsbMidi();
 void allNotesOff();

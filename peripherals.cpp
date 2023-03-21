@@ -17,46 +17,29 @@ void setupPeripherals()
   myusb.begin();
   delay(200);
   clearUsbMidi();
-  midi1.setHandleNoteOn(input_noteOn);
-  midi1.setHandleNoteOff(input_noteOff);
   MIDI.begin(MIDI_CHANNEL_OMNI);
 }
 
 void updateMidi()
 {
   myusb.Task();
-  midi1.read();
+  if (midi1.read()) processInput(midi1.getChannel(),midi1.getType(), midi1.getData1(), midi1.getData2());
 }
 
-void input_noteOn(uint8_t channel, uint8_t note, uint8_t velocity)
+void serialMidiSend(uint8_t channel, uint8_t type, uint8_t data1, uint8_t data2)
 {
-  processNoteOn(channel, note, velocity);
+  midi::MidiType mtype = (midi::MidiType)type;
+  MIDI.send(mtype, data1, data2, channel);
 }
-
-void input_noteOff(uint8_t channel, uint8_t note, uint8_t velocity)
-{
-  processNoteOff(channel, note, velocity);
-}
-
-void input_controlChange(uint8_t channel, uint8_t control, uint8_t value)
-{
-  Serial.printf("CC, ch: %d, control: %d, value: %d\n", channel, control, value);
-}
-
-void serialMidiNoteOn(uint8_t channel, uint8_t note, uint8_t velocity) { MIDI.sendNoteOn(note, velocity, channel); }
-void serialMidiNoteOff(uint8_t channel, uint8_t note, uint8_t velocity) { MIDI.sendNoteOff(note, velocity, channel); }
 
 void allNotesOff()
 {
   for (uint8_t channel = 1; channel < 17; channel++)
   {
-    //for (uint8_t note = 0; note <= 127; note++) MIDI.sendNoteOff(note, 0, channel);
-    //delay(1);
     MIDI.sendControlChange(120, 0, channel);
     MIDI.sendControlChange(123, 0, channel);
   }
 }
-
 
 void clearUsbMidi()
 {

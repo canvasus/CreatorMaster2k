@@ -174,11 +174,11 @@ void Indicator::draw(uint16_t trp_bar, uint16_t trp_4th, uint16_t trp_16th, bool
   if (drawStatics) _drawCommon();
   else tft.fillRect(_geo.xPos + 1, _geo.yPos + 1 , _geo.width - 2, _geo.height - 2, INDICATOR_BG_COLOR);
   tft.setTextColor(INDICATOR_TEXT_COLOR);
-  tft.setCursor(_geo.xPos + _geo.width * 0.2, _geo.yPos + 2);
+  tft.setCursor(_geo.xPos + _geo.width * 0.1, _geo.yPos + 2);
   tft.print(trp_bar);
   tft.setCursor(_geo.xPos + _geo.width * 0.5, _geo.yPos + 2);
   tft.print(trp_4th);
-  tft.setCursor(_geo.xPos + _geo.width * 0.80, _geo.yPos + 2);
+  tft.setCursor(_geo.xPos + _geo.width * 0.8, _geo.yPos + 2);
   tft.print(trp_16th);
 }
 
@@ -308,8 +308,12 @@ void TrackDetailsView::layout()
   indicator_loop.setLabelOffset(-74, 2);
   indicator_loop.draw("");
 
+  button_edit.layout("CLEAR", relX(0.1), relY(0.9), relW(0.6), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL);
+  button_edit.cb = &editTrackClick;
+  button_edit.draw(false);
+
   button_clear.layout("CLEAR", relX(0.1), relY(0.9), relW(0.6), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL);
-  button_clear.cb = &clearClick;
+  button_clear.cb = &clearTrackClick;
   button_clear.draw(false);
 }
 
@@ -486,7 +490,7 @@ void ArrangementView::layout()
     arrangementRows[arrItemId].patternName = "PATTERN01";
     arrangementRows[arrItemId].id = arrItemId;
     arrangementRows[arrItemId].startBars = 1;
-    arrangementRows[arrItemId].layout(relX(0), relY((arrItemId + 1) / 17.0), relW(1.0), relH(1/17.0) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+    arrangementRows[arrItemId].layout(relX(0), relY((arrItemId + 1) / 17.0), relW(0.85), relH(1/17.0) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
   }
   arrangementRows[0].active = true;
   arrangementRows[0].draw(true);
@@ -506,7 +510,13 @@ void ArrangementView::layout()
   button_down.layout("DN", relX(0.65), relY(0.78), relW(0.2), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
   button_down.draw(false);
   button_down.cb = &testClick;
-  
+
+  for (uint8_t trackIndex = 0; trackIndex < NR_TRACKS; trackIndex++)
+  {
+    indicator_muteArray[trackIndex].layout("", relX(0.92), relY((trackIndex + 1)/17.0), relW(0.08), relH(1/17.0), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
+    indicator_muteArray[trackIndex].draw("-");
+    //indicator_muteArray[trackIndex].cb = &muteArrayClick;
+  }
 }
 
 bool ArrangementView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
@@ -514,9 +524,14 @@ bool ArrangementView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickT
   if (indicator_patternLength.checkCursor(xPos, yPos, clickType)) return true;
   if (button_new.checkCursor(xPos, yPos, clickType)) return true;
   if (button_delete.checkCursor(xPos, yPos, clickType)) return true;
-  for (uint8_t itemIndex = 0; itemIndex < NR_ARRITEMS; itemIndex++)
+  for (uint8_t itemIndex = 0; itemIndex < NR_ARRITEMS; itemIndex++) if (arrangementRows[itemIndex].active && arrangementRows[itemIndex].checkCursor(xPos, yPos, clickType)) return true;
+  for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++)
   {
-    if (arrangementRows[itemIndex].active && arrangementRows[itemIndex].checkCursor(xPos, yPos, clickType)) return true;
+    if (indicator_muteArray[trackId].checkCursor(xPos, yPos, clickType))
+    {
+      muteArrayClick(trackId);
+      return true;
+    }
   }
   return false;
 }

@@ -43,8 +43,9 @@ void reset();
 void panic();
 void record(bool record);
 void handlePrecount();
-void processNoteOn(uint8_t channel, uint8_t note, uint8_t velocity);
-void processNoteOff(uint8_t channel, uint8_t note, uint8_t velocity);
+
+void processInput(uint8_t channel, uint8_t type, uint8_t data1, uint8_t data2);
+
 void setBpm(uint8_t bpm);
 void updateTransport(uint32_t tick);
 void updateMetronome();
@@ -52,3 +53,4 @@ void updateFreeMemory();
 void clearTrack(uint8_t trackId);
 void setQuantize(uint8_t quantize);
 uint8_t getQuantize();
+void setMuteStatus();

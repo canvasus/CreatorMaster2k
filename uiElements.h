@@ -167,6 +167,7 @@ class ArrangementView :  public Container
     Button button_delete;
     Button button_up;
     Button button_down;
+    Indicator indicator_muteArray[NR_TRACKS];
     Indicator indicator_patternLength;
     Indicator indicator_patternPosition;
     bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);
@@ -199,6 +200,7 @@ class TrackDetailsView :  public Container
     Indicator indicator_quantize;
     Indicator indicator_transpose;
     Indicator indicator_loop;
+    Button button_edit;
     Button button_clear;
     bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);
     void layout();

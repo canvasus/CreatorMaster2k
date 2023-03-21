@@ -6,8 +6,11 @@
 #define NONE 0
 #define TYPE_NOTEON_TEMP  usbMIDI.NoteOn - 1
 #define TYPE_NOTEOFF_TEMP usbMIDI.NoteOff -1
+#define TYPE_CONTROLCHANGE_TEMP usbMIDI.ControlChange -1
+#define TYPE_PITCHBEND_TEMP usbMIDI.PitchBend -1
 
-typedef void (*MIDIcallback)(uint8_t channel, uint8_t note, uint8_t velocity);
+typedef void (*MIDIcallback)(uint8_t channel, uint8_t data1, uint8_t data2);
+typedef void (*MIDIcallbackGeneric)(uint8_t channel, uint8_t type, uint8_t data1, uint8_t data2);
 
 struct event
 {
@@ -26,6 +29,7 @@ class Track
     void      _convertTempEvents();
     void      _initBuffer();
     void      _releaseBuffer();
+    void      _expandBuffer();
     uint32_t  _quantizeTimestamp(uint32_t timestamp);
   public:
     Track();
@@ -36,12 +40,11 @@ class Track
     int       transpose = 0;
     uint8_t   loop = 0;
     uint16_t  memUsage = 0;
+    uint8_t   memBlocks = 0;
     bool      hidden = false;
 
-    MIDIcallback  noteOn_cb;
-    MIDIcallback  noteOff_cb;
-    void setHandleNoteOn(MIDIcallback cb);
-    void setHandleNoteOff(MIDIcallback cb);
+    MIDIcallbackGeneric  midi_cb;
+    void setMidiCb(MIDIcallbackGeneric cb);
 
     uint16_t nextEventId;
     event * events;

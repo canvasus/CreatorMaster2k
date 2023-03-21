@@ -14,6 +14,7 @@ class ArrangementItem
     uint16_t lengthBars;
     uint8_t patternIndex;
     uint8_t status;
+    bool muteArray[NR_TRACKS];
 };
 
 class Arrangement
@@ -31,7 +32,8 @@ class Arrangement
     void setArrangementPosition(uint8_t positionId, uint16_t startBars, uint8_t patternIndex);
     void updateArrangementStartPositions();
     void printItemArray(uint8_t lastIndex);
-    
+
+    // For later:
     //ArrangementItem arrangementItems_b[NR_ARRITEMS];
     //ArrangementItem arrangementItems_c[NR_ARRITEMS];
     //ArrangementItem arrangementItems_d[NR_ARRITEMS];
