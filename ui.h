@@ -8,9 +8,11 @@
 
 #define RA8875_CS 10   // ER-TFTM070 pin 5
 #define RA8875_RESET 9 // ER-TFTM070 pin 11
-// MOSI=11,  ER-TFTM070 pin 7
-// MISO=12,  ER-TFTM070 pin 6
-// SCK=13,   ER-TFTM070 pin 8
+#define RA8875_MOSI 11  //ER-TFTM070 pin 7
+#define RA8875_MISO 12  //ER-TFTM070 pin 6
+#define RA8875_SCLK 13   //ER-TFTM070 pin 8
+
+#define PADCONFIG ((1 << 0) | (1 << 3) | (1 << 6))
 
 #define SCREEN_XRES 800
 #define SCREEN_YRES 480
@@ -56,6 +58,8 @@ void arrangementItemSelectClick(uint8_t id);
 void deleteArrangeItemClick(uint8_t id);
 void arrangementOnClick(uint8_t clickType);
 void muteArrayClick(uint8_t id);
+void signatureClick(uint8_t clickType);
+void exitEditorClick(uint8_t clickType);
 
 void testClick(uint8_t clickType);
 void testClickIndicator(uint8_t clickType);

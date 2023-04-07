@@ -15,6 +15,9 @@ uint8_t metronomeNote1 = 76;
 uint8_t metronomeNote2 = 77;
 
 String patternNames[NR_PATTERNS] = {"PATTERN01", "PATTERN02", "PATTERN03", "PATTERN04", "PATTERN05", "PATTERN06", "PATTERN07", "PATTERN08"};
+String signatureNames[NR_SIGNATURES] = {"4/4", "2/4"};
+uint16_t ticksPerBar[NR_SIGNATURES] = {RESOLUTION * 4, RESOLUTION * 2};
+uint16_t ticksPerBeat[NR_SIGNATURES] = {RESOLUTION, RESOLUTION};
 
 void setupSequencer()
 {
@@ -27,7 +30,7 @@ void updateSequencer()
 {
   if (transport.arrangementOn) updateTransport(arrangement.arrangementTick);
   else updateTransport(patterns[currentPattern].patternTick);
-  if (transport.metronomeOn && transport.recording) updateMetronome();
+  if (transport.metronomeOn && transport.recording) updateMetronome(false);
 }
 
 void tickPattern()
@@ -42,6 +45,7 @@ void tickPattern()
       lastArrPosition = currentArrangementPosition;
       patterns[currentPattern].reset();
       setMuteStatus();
+      //allNotesOff(); // temporary fix
     }
     currentPattern = arrangement.arrangementItems_a[currentArrangementPosition].patternIndex;
   }
@@ -63,14 +67,18 @@ void play()
   else transport.state = SEQ_PLAYING;
 }
 
-void stop() { transport.state = SEQ_STOPPED;}
+void stop()
+{
+  transport.state = SEQ_STOPPED;
+  updateMetronome(true);
+}
 
 void reset()
 { 
   if (transport.arrangementOn)
   {
     arrangement.arrangementTick = 0;
-    for (uint8_t patternId = 0; patternId < NR_TRACKS; patternId++) patterns[patternId].reset();
+    for (uint8_t patternId = 0; patternId < NR_PATTERNS; patternId++) patterns[patternId].reset();
   }
   else patterns[currentPattern].reset();
 }
@@ -129,19 +137,31 @@ void processInput(uint8_t channel, uint8_t type, uint8_t data1, uint8_t data2)
 
 void updateTransport(uint32_t tick)
 {
-  transport.trp_bar = (uint16_t)(tick / (RESOLUTION * 4));
-  tick = tick - transport.trp_bar * RESOLUTION * 4;
-  transport.trp_4th = (uint16_t)(tick / RESOLUTION);
-  tick = tick - transport.trp_4th * RESOLUTION;
+  transport.trp_bar = (uint16_t)(tick / transport.ticksPerBar);
+  tick = (uint16_t)(tick % transport.ticksPerBar);
+  transport.trp_4th = (uint16_t)(tick / transport.ticksPerBeat);
+  tick = (uint16_t)(tick % transport.ticksPerBeat);
   transport.trp_16th = (uint16_t)(tick / (RESOLUTION / 4));
+  
+//  transport.trp_bar = (uint16_t)(tick / (RESOLUTION * 4));
+//  tick = tick - transport.trp_bar * RESOLUTION * 4;
+//  transport.trp_4th = (uint16_t)(tick / RESOLUTION);
+//  tick = tick - transport.trp_4th * RESOLUTION;
+//  transport.trp_16th = (uint16_t)(tick / (RESOLUTION / 4));
 }
 
-void updateMetronome()
+void updateMetronome(bool reset)
 {
   static int last_4th = -1;
   uint8_t note = 64;
   elapsedMillis timer = 0;
   bool played = false;
+
+  if (reset)
+  {
+    timer = 51;
+    last_4th = -1;
+  }
   
   if (last_4th != transport.trp_4th)
   {
@@ -181,3 +201,11 @@ void clearTrack(uint8_t trackId)
 
 void setQuantize(uint8_t quantize) { patterns[currentPattern].tracks[currentTrack].quantize = quantize; }
 uint8_t getQuantize() { return patterns[currentPattern].tracks[currentTrack].quantize;}
+
+void setSignature(uint8_t signatureId)
+{
+  transport.signature = signatureNames[signatureId];
+  transport.ticksPerBar= ticksPerBar[signatureId];
+  transport.ticksPerBeat= ticksPerBeat[signatureId];
+
+}

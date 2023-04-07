@@ -2,8 +2,10 @@
 
 ArrangementItem::ArrangementItem()
 {
-  startBars = 1;
-  lengthBars = 4;
+  startTick = 0;
+  lengthTicks = 4 * 4 * RESOLUTION;
+  //startBars = 1;
+  //lengthBars = 4;
   patternIndex = 0;
   status = ARRITEM_INACTIVE;
   memset(muteArray, 0, NR_TRACKS);
@@ -23,13 +25,17 @@ uint8_t Arrangement::tick()
 
 uint8_t Arrangement::getCurrentArrItem()
 {
-  uint16_t currentBar = (arrangementTick / (4 * RESOLUTION - 1)) + 1;
+  //uint16_t currentBar = (arrangementTick / (4 * RESOLUTION - 1)) + 1;
   for (uint8_t itemId = 0; itemId < NR_ARRITEMS; itemId++)
   {
     if ( (arrangementItems_a[itemId].status == ARRITEM_ACTIVE) && 
-         (arrangementItems_a[itemId].startBars <= currentBar) &&
-         ((arrangementItems_a[itemId].startBars + arrangementItems_a[itemId].lengthBars) > currentBar) 
+         (arrangementItems_a[itemId].startTick <= arrangementTick) &&
+         ((arrangementItems_a[itemId].startTick + arrangementItems_a[itemId].lengthTicks) > arrangementTick) 
           ) return itemId;
+//    if ( (arrangementItems_a[itemId].status == ARRITEM_ACTIVE) && 
+//         (arrangementItems_a[itemId].startBars <= currentBar) &&
+//         ((arrangementItems_a[itemId].startBars + arrangementItems_a[itemId].lengthBars) > currentBar) 
+//          ) return itemId;
   }
   return 0;
 }
@@ -60,12 +66,19 @@ void Arrangement::updateArrangementStartPositions()
 {
   for (uint8_t itemId = 0; itemId < NR_ARRITEMS; itemId++)
   {
-    if (itemId == 0) arrangementItems_a[itemId].startBars = 1;
+    if (itemId == 0) arrangementItems_a[itemId].startTick = 0;
     if (arrangementItems_a[itemId].status == ARRITEM_ACTIVE && itemId > 0)
     {
-      uint16_t previousArrItemStart = arrangementItems_a[itemId - 1].startBars;
-      uint16_t previousArrItemLength = arrangementItems_a[itemId - 1].lengthBars;
-      arrangementItems_a[itemId].startBars = previousArrItemStart + previousArrItemLength;
+      uint16_t previousArrItemStart = arrangementItems_a[itemId - 1].startTick;
+      uint16_t previousArrItemLength = arrangementItems_a[itemId - 1].lengthTicks;
+      arrangementItems_a[itemId].startTick = previousArrItemStart + previousArrItemLength;
+
+//    if (itemId == 0) arrangementItems_a[itemId].startBars = 1;
+//    if (arrangementItems_a[itemId].status == ARRITEM_ACTIVE && itemId > 0)
+//    {
+//      uint16_t previousArrItemStart = arrangementItems_a[itemId - 1].startBars;
+//      uint16_t previousArrItemLength = arrangementItems_a[itemId - 1].lengthBars;
+//      arrangementItems_a[itemId].startBars = previousArrItemStart + previousArrItemLength;
     }
   }
 }

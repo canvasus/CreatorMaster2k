@@ -9,7 +9,7 @@ class Pattern
   public:
     Pattern();
     String name;
-    uint16_t lengthBeats;
+    uint16_t lengthBeats; // REMOVE?
     uint16_t patternTick;
     Track tracks[NR_TRACKS];
     void tick();

@@ -23,6 +23,10 @@ struct Transport
   uint8_t   state       = SEQ_STOPPED;
   bool      recording   = false;
   bool      metronomeOn = true;
+  uint8_t   signatureId = 0;
+  String    signature   = "4/4";
+  uint16_t  ticksPerBar = RESOLUTION * 4;
+  uint16_t  ticksPerBeat = RESOLUTION;
   uint16_t  trp_bar     = 0;
   uint16_t  trp_4th     = 0;
   uint16_t  trp_16th    = 0;
@@ -48,9 +52,10 @@ void processInput(uint8_t channel, uint8_t type, uint8_t data1, uint8_t data2);
 
 void setBpm(uint8_t bpm);
 void updateTransport(uint32_t tick);
-void updateMetronome();
+void updateMetronome(bool reset);
 void updateFreeMemory();
 void clearTrack(uint8_t trackId);
 void setQuantize(uint8_t quantize);
 uint8_t getQuantize();
 void setMuteStatus();
+void setSignature(uint8_t signatureId);

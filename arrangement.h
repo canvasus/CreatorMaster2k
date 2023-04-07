@@ -10,8 +10,10 @@ class ArrangementItem
 {
   public:
     ArrangementItem();
-    uint16_t startBars;
-    uint16_t lengthBars;
+    //uint16_t startBars;
+    //uint16_t lengthBars;
+    uint32_t startTick;
+    uint32_t lengthTicks;
     uint8_t patternIndex;
     uint8_t status;
     bool muteArray[NR_TRACKS];

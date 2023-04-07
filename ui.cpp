@@ -9,6 +9,7 @@ ArrangementView arrangementView = ArrangementView("ARRANGE", 0, HEADER_H + PADDI
 PatternView patternView = PatternView("PATTERN", ARRANGE_W + PADDING, HEADER_H + PADDING, PATTERN_W, MAIN_H, RA8875_WHITE, RA8875_WHITE);
 TrackDetailsView trackDetailsView = TrackDetailsView("TRACK", ARRANGE_W + PATTERN_W + 2 * PADDING, HEADER_H + PADDING, TRACKDETAILS_W, MAIN_H,  RA8875_WHITE, RA8875_WHITE);
 ControlsView controlsView = ControlsView("CONTROL", ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 3 * PADDING, HEADER_H + PADDING, CONTROLS_W, MAIN_H,  MAIN_BG_COLOR, RA8875_WHITE);
+ListEditor listEditorView = ListEditor("LISTEDITOR", 0, HEADER_H + PADDING, ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 2 * PADDING, MAIN_H,  MAIN_BG_COLOR, RA8875_WHITE);
 
 const uint8_t cursorOn[16] = {
   0b10000000,
@@ -46,11 +47,27 @@ uint8_t viewMode = VIEW_NORMAL;
 
 void setupUI()
 {
+  Serial.print(F("UI SETUP..."));
   tft.begin(RA8875_800x480);
+  if (tft.errorCode() != 0)
+  {
+    Serial.println("Initializing error!\n");
+    uint8_t error = tft.errorCode();
+    if (bitRead(error, 0)) {
+      Serial.println("display not recognized!");
+    } else if (bitRead(error, 1)) {
+      Serial.println("MOSI or MISO or SCLK out of permitted range!");
+    } else if (bitRead(error, 2)) {
+      Serial.println("CS out of permitted range!");
+    }
+  }
+
+//tft.setRotation(2);
+
   tft.uploadUserChar(cursorOn, 0);
   tft.uploadUserChar(cursorOff, 1);
   tft.writeTo(L2);
-  tft.clearScreen(MAIN_BG_COLOR); //RA8875_GRAYSCALE * 20);
+  tft.clearScreen(MAIN_BG_COLOR);
   
   headerView.draw();
   headerView.layout();
@@ -70,11 +87,14 @@ void setupUI()
   
   controlsView.draw();
   controlsView.layout();
+
+  listEditorView.drawBorder = true;
   
   tft.writeTo(L1);
   tft.clearScreen(RA8875_MAGENTA);
   tft.setTransparentColor(RA8875_MAGENTA);
   tft.layerEffect(TRANSPARENT);
+  Serial.println(F("DONE"));
 }
 
 void setChannelIndicators()
@@ -92,7 +112,7 @@ void updateUI()
   {
     uiTimer = 0;
     uiUpdateTransport();
-    uiUpdateActivity();
+    if (viewMode == VIEW_NORMAL) uiUpdateActivity();
     drawCursor();
   }
   if (uiTimerSlow > uiSlowInterval)
@@ -116,7 +136,7 @@ void uiRedrawArrangeView()
     {
       uint8_t patternIndex = arrangement.arrangementItems_a[arrItemIndex].patternIndex;
       arrangementView.arrangementRows[arrItemIndex].patternName = patterns[patternIndex].name;
-      arrangementView.arrangementRows[arrItemIndex].startBars = arrangement.arrangementItems_a[arrItemIndex].startBars;
+      arrangementView.arrangementRows[arrItemIndex].startBars = arrangement.arrangementItems_a[arrItemIndex].startTick / transport.ticksPerBar;
       arrangementView.arrangementRows[arrItemIndex].active = (arrangement.arrangementItems_a[arrItemIndex].status == ARRITEM_ACTIVE);
       arrangementView.arrangementRows[arrItemIndex].draw(arrItemIndex == currentArrangementPosition);
     }
@@ -128,10 +148,10 @@ void uiRedrawArrangeView()
     else arrangementView.indicator_muteArray[trackId].draw("-");
   }
 
-  uint16_t currentLengthBeats = patterns[currentPattern].lengthBeats;
-  uint16_t startBars = arrangement.arrangementItems_a[currentArrangementPosition].startBars;
+  uint16_t currentLengthBeats = arrangement.arrangementItems_a[currentArrangementPosition].lengthTicks / transport.ticksPerBeat;
+  uint16_t startBars = arrangement.arrangementItems_a[currentArrangementPosition].startTick  / transport.ticksPerBeat;
   arrangementView.indicator_patternLength.draw(currentLengthBeats / 4, currentLengthBeats % 4, 0, false);
-  arrangementView.indicator_patternPosition.draw(startBars + 1, startBars % 4 + 1, 0, false);
+  arrangementView.indicator_patternPosition.draw(startBars / 4, startBars % 4, 0, false);
 }
 
 void uiRedrawPatternView()
@@ -176,13 +196,20 @@ void updateMouse()
     if (mouseWheel == 255 && mouseButtons == 0) mouseButtons = 2;
     if (mouseWheel == 1 && mouseButtons == 0) mouseButtons = 1;
     
-    if (mouseButtons != 0)
+    if (mouseButtons != 0 && viewMode == VIEW_NORMAL)
     {
       headerView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
       arrangementView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
       patternView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
       trackDetailsView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
       controlsView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
+    }
+    
+    if (mouseButtons != 0 && viewMode == VIEW_LISTEDITOR)
+    {
+      headerView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
+      controlsView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
+      listEditorView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
     }
     mouse1.mouseDataClear();
   }
@@ -262,6 +289,7 @@ void uiUpdateControls()
   if (trackDetailsView.button_clear.state && !trackDetailsView.button_clear.latch) trackDetailsView.button_clear.set(false);
   if (arrangementView.button_new.state) arrangementView.button_new.set(false);
   if (arrangementView.button_delete.state) arrangementView.button_delete.set(false);
+  //if (listEditorView.button_exit.state) listEditorView.button_exit.set(false);
   headerView.indicator_freeMem.draw(transport.freeMemory);
 }
 
@@ -351,19 +379,15 @@ void clearTrackClick(uint8_t clickType)
   patternView.trackRows[currentTrack].draw(true);
 }
 
-void editTrackClick(uint8_t clickType)
-{
-  
-}
-
 void patternLengthClick(uint8_t clickType)
 {
-  uint16_t currentLengthBeats = patterns[currentPattern].lengthBeats;
+  uint16_t currentLengthBeats = arrangement.arrangementItems_a[currentArrangementPosition].lengthTicks / transport.ticksPerBeat;
   if (clickType == 1) currentLengthBeats++;
   if (clickType == 2 && currentLengthBeats > 0) currentLengthBeats--;
-  patterns[currentPattern].lengthBeats = currentLengthBeats;
-  arrangement.arrangementItems_a[currentArrangementPosition].lengthBars = currentLengthBeats / 4;
+  arrangement.arrangementItems_a[currentArrangementPosition].lengthTicks = currentLengthBeats * transport.ticksPerBeat;
   arrangementView.indicator_patternLength.draw(currentLengthBeats / 4, currentLengthBeats % 4, 0, false);
+  arrangement.updateArrangementStartPositions();
+  uiRedrawArrangeView();
   Serial.printf("Pattern %d set to length %d beats %d bars\n", currentPattern, currentLengthBeats, currentLengthBeats/4);
 }
 
@@ -384,7 +408,7 @@ void newArrangeItemClick(uint8_t clickType)
 {
   uint8_t id = arrangement.newArrangementItem();
   arrangement.arrangementItems_a[id].patternIndex = currentPattern;
-  arrangement.arrangementItems_a[id].lengthBars = patterns[currentPattern].lengthBeats / 4;
+  arrangement.arrangementItems_a[id].lengthTicks = 4 * RESOLUTION;
   uiRedrawArrangeView();
 }
 
@@ -425,15 +449,56 @@ void muteArrayClick(uint8_t id)
   else arrangementView.indicator_muteArray[id].draw("-");
 }
 
+void signatureClick(uint8_t clickType)
+{
+  if (clickType == 1 && transport.signatureId < (NR_SIGNATURES - 1) ) setSignature(++transport.signatureId);
+  if (clickType == 2 && transport.signatureId > 0) setSignature(--transport.signatureId);
+  headerView.indicator_signature.draw(transport.signature);
+}
+
+void editTrackClick(uint8_t clickType)
+{
+  Serial.println("Set edit view");
+  uiSetListEditorViewMode();
+}
+
+void exitEditorClick(uint8_t clickType)
+{
+  Serial.println("Set normal view");
+  uiSetNormalViewMode();
+}
 
 void uiSetNormalViewMode()
 {
+  tft.writeTo(L2);
+  tft.fillRect(0, HEADER_H + PADDING, ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 2 * PADDING, MAIN_H,  MAIN_BG_COLOR);
   // draw all normal elements
+  viewMode = VIEW_NORMAL;
+  
+  arrangementView.draw();
+  arrangementView.layout();
+
+  setChannelIndicators();
+  patternView.draw();
+  patternView.layout();
+  
+  trackDetailsView.draw();
+  trackDetailsView.layout();
+
+  uiRedrawArrangeView();
+  uiRedrawPatternView();
+  uiRedrawTrackDetailsView();
 }
 
 void uiSetListEditorViewMode()
 {
-  // replace arrangement and pattern view with list editor  
+  tft.writeTo(L2);
+  tft.fillRect(0, HEADER_H + PADDING, ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 2 * PADDING, MAIN_H,  MAIN_BG_COLOR);
+  // replace arrangement and pattern view with list editor
+  viewMode = VIEW_LISTEDITOR;
+  
+  listEditorView.draw();
+  listEditorView.layout();
 }
 
 void testClick(uint8_t clickType)

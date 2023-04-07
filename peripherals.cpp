@@ -12,12 +12,13 @@ MIDI_CREATE_INSTANCE(HardwareSerial, Serial1, MIDI);
 
 void setupPeripherals()
 {
-  Serial.println(F("MIDI SETUP"));
+  Serial.print(F("MIDI SETUP..."));
   delay(100);
   myusb.begin();
   delay(200);
   clearUsbMidi();
   MIDI.begin(MIDI_CHANNEL_OMNI);
+  Serial.println(F("DONE"));
 }
 
 void updateMidi()
@@ -43,6 +44,6 @@ void allNotesOff()
 
 void clearUsbMidi()
 {
-  for (uint8_t i = 0; i < 25; i++) midi1.read();
-  delay(10);
+  //for (uint8_t i = 0; i < 25; i++) midi1.read();
+  //delay(10);
 }

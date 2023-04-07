@@ -99,8 +99,8 @@ bool Button::checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType)
   else
   {
     state = !state;
-    if (cb) cb(clickType);
     draw(state);
+    if (cb) cb(clickType);
     return true;
   }
 }
@@ -308,13 +308,13 @@ void TrackDetailsView::layout()
   indicator_loop.setLabelOffset(-74, 2);
   indicator_loop.draw("");
 
-  button_edit.layout("CLEAR", relX(0.1), relY(0.9), relW(0.6), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL);
-  button_edit.cb = &editTrackClick;
-  button_edit.draw(false);
-
-  button_clear.layout("CLEAR", relX(0.1), relY(0.9), relW(0.6), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL);
+  button_clear.layout("CLEAR", relX(0.1), relY(0.78), relW(0.6), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL);
   button_clear.cb = &clearTrackClick;
   button_clear.draw(false);
+
+  button_edit.layout("EDIT", relX(0.1), relY(0.9), relW(0.6), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL);
+  button_edit.cb = &editTrackClick;
+  button_edit.draw(false);
 }
 
 bool TrackDetailsView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
@@ -323,6 +323,7 @@ bool TrackDetailsView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t click
   if (indicator_quantize.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_transpose.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_loop.checkCursor(xPos, yPos, clickType)) return true;
+  if (button_edit.checkCursor(xPos, yPos, clickType)) return true;
   if (button_clear.checkCursor(xPos, yPos, clickType)) return true;
   return false;
 }
@@ -405,9 +406,13 @@ void HeaderView::layout()
   indicator_transport.layout("bar 4  16", relX(0.80), relY(0.5), relW(0.10), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
   indicator_transport.draw(0,0,0, true);
 
-  indicator_bpm.layout("BPM", relX(0.40), relY(0.5), relW(0.08), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
+  indicator_bpm.layout("BPM", relX(0.4), relY(0.5), relW(0.06), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
   indicator_bpm.cb = &bpmClick;
   indicator_bpm.draw(transport.bpm);
+
+  indicator_signature.layout("SIGN", relX(0.5), relY(0.5), relW(0.06), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
+  indicator_signature.cb = &signatureClick;
+  indicator_signature.draw(transport.signature);
 }
 
 bool HeaderView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
@@ -415,6 +420,7 @@ bool HeaderView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
   if (indicator_freeMem.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_bpm.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_arrOn.checkCursor(xPos, yPos, clickType)) return true;
+  if (indicator_signature.checkCursor(xPos, yPos, clickType)) return true;
   return false;
 }
 
@@ -533,5 +539,55 @@ bool ArrangementView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickT
       return true;
     }
   }
+  return false;
+}
+
+ListEditorRow::ListEditorRow()
+{
+
+}
+
+void ListEditorRow::layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2)
+{
+  _geo.xPos = xPos;
+  _geo.yPos = yPos;
+  _geo.width = width;
+  _geo.height = height;
+  _geo.color1 = color1;
+  _geo.color2 = color2;
+}
+
+void ListEditorRow::draw(bool selected)
+{
+  tft.writeTo(L2);
+  tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_NORMAL_COLOR); // background
+  tft.setCursor(_geo.xPos + 20, _geo.yPos + 5);
+  tft.setTextColor(INDICATOR_TEXT_COLOR);
+  tft.printf("%2d", id);
+//  tft.setCursor(_geo.xPos + 50, _geo.yPos + 5);
+//  tft.print(trackName);
+//  tft.setCursor(_geo.xPos + _geo.width - 20, _geo.yPos + 5);
+//  tft.print(channel); 
+}
+
+void ListEditor::layout()
+{
+  button_exit.layout("EXIT", relX(0.9), relY(0.9), relW(0.1), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_exit.draw(false);
+  button_exit.cb = &exitEditorClick;
+
+  for (uint8_t listItemRow = 0; listItemRow < NR_LIST_ROWS; listItemRow++)
+  {
+    //listEditorRows[listItemRow].cb = &arrangementItemSelectClick;
+    //arrangementRows[arrItemId].patternName = "PATTERN01";
+    listEditorRows[listItemRow].id = listItemRow;
+    listEditorRows[listItemRow].layout(relX(0), relY((listItemRow + 1) / NR_LIST_ROWS), relW(0.85), relH(1/NR_LIST_ROWS) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  }
+  listEditorRows[0].draw(true);
+}
+
+bool ListEditor::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
+{
+  if (button_exit.checkCursor(xPos, yPos, clickType)) return true;
   return false;
 }
