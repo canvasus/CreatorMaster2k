@@ -31,6 +31,8 @@ class Track
     void      _releaseBuffer();
     void      _expandBuffer();
     uint32_t  _quantizeTimestamp(uint32_t timestamp);
+    bool      _noteStatus[128];
+    uint8_t   _notesPlaying;
   public:
     Track();
     String    name;
@@ -50,8 +52,15 @@ class Track
     event * events;
     uint16_t addEvent(uint32_t timestamp, uint8_t type, uint8_t data1, uint8_t data2);
     void clear();
+    void paste(event * eventClipboard, uint16_t nrEvents);
+    event * copy();
+    uint16_t getNrEvents();
     uint32_t getEventTimestamp(uint16_t eventIndex);
+    uint8_t getEventType(uint16_t eventIndex);
+    uint8_t getEventData1(uint16_t eventIndex);
+    uint8_t getEventData2(uint16_t eventIndex);
     void reset();
+    void cleanupNoteOff();
     void triggerEvent(uint16_t eventIndex);
     uint16_t triggerEvents(uint32_t timestamp);
     void printEventArray(uint8_t lastIndex);

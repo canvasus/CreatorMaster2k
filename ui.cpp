@@ -49,20 +49,6 @@ void setupUI()
 {
   Serial.print(F("UI SETUP..."));
   tft.begin(RA8875_800x480);
-  if (tft.errorCode() != 0)
-  {
-    Serial.println("Initializing error!\n");
-    uint8_t error = tft.errorCode();
-    if (bitRead(error, 0)) {
-      Serial.println("display not recognized!");
-    } else if (bitRead(error, 1)) {
-      Serial.println("MOSI or MISO or SCLK out of permitted range!");
-    } else if (bitRead(error, 2)) {
-      Serial.println("CS out of permitted range!");
-    }
-  }
-
-//tft.setRotation(2);
 
   tft.uploadUserChar(cursorOn, 0);
   tft.uploadUserChar(cursorOff, 1);
@@ -181,7 +167,8 @@ void uiRedrawTrackDetailsView()
 void updateMouse()
 {
   static elapsedMillis debounceTimer = 0;
-  const uint8_t debounceTime = 50;
+  const uint8_t debounceTime = 100;
+  static uint8_t lastMouseButtons = 0;
    if (mouse1.available())
    {
     int mouseX = mouse1.getMouseX();
@@ -189,8 +176,16 @@ void updateMouse()
     if ( (abs(mouseX) > 0) || (abs(mouseY) > 0)) updateCursor(mouseX, mouseY);
    
     uint8_t mouseButtons = mouse1.getButtons();
-    if (debounceTimer < debounceTime) mouseButtons = 0;
-    if (mouseButtons != 0 && debounceTimer > debounceTime) debounceTimer = 0;
+    if (mouseButtons != lastMouseButtons)
+    {
+      if (debounceTimer < debounceTime) mouseButtons = 0;
+      else
+      {
+        debounceTimer = 0;
+        lastMouseButtons = mouseButtons;
+      }
+      //if (mouseButtons != 0 && debounceTimer > debounceTime) debounceTimer = 0;
+    }
     
     uint8_t mouseWheel = mouse1.getWheel();
     if (mouseWheel == 255 && mouseButtons == 0) mouseButtons = 2;
@@ -235,6 +230,29 @@ void drawCursor()
   oldCursorXpos = cursorXpos;
   oldCursorYpos = cursorYpos;
 }
+
+//void uiDrawPrecount(uint8_t count)
+//{
+//  static uint8_t lastCount = 0;
+//  if(count != lastCount)
+//  {
+//    tft.writeTo(L1);
+//    tft.setCursor(SCREEN_XRES >> 1, SCREEN_YRES >> 1);
+//    tft.setFontScale(2);
+//    lastCount = count;
+//    if (count > 0 && count < 5)
+//    {
+//      tft.setTextColor(RA8875_RED, RA8875_MAGENTA);  
+//      tft.print(count);
+//    }
+//    else
+//    {
+//      tft.setTextColor(RA8875_MAGENTA, RA8875_MAGENTA);  
+//      tft.print(0);
+//    }
+//    tft.setFontScale(0);
+//  }
+//}
 
 void uiUpdateTransport()
 {
@@ -291,6 +309,9 @@ void uiUpdateControls()
   if (arrangementView.button_delete.state) arrangementView.button_delete.set(false);
   //if (listEditorView.button_exit.state) listEditorView.button_exit.set(false);
   headerView.indicator_freeMem.draw(transport.freeMemory);
+  if (headerView.button_load.state) headerView.button_load.set(false);
+  if (headerView.button_save.state) headerView.button_save.set(false);
+  if (headerView.button_new.state) headerView.button_new.set(false);
 }
 
 void recordClick(uint8_t clickType)
@@ -322,7 +343,6 @@ void trackSelectClick(uint8_t id)
   patternView.trackRows[currentTrack].draw(false);
   currentTrack = id;
   patternView.trackRows[currentTrack].draw(true);
-  //uiRedrawTrackDetailsView();
 }
 
 void bpmClick(uint8_t clickType)
@@ -388,20 +408,14 @@ void patternLengthClick(uint8_t clickType)
   arrangementView.indicator_patternLength.draw(currentLengthBeats / 4, currentLengthBeats % 4, 0, false);
   arrangement.updateArrangementStartPositions();
   uiRedrawArrangeView();
-  Serial.printf("Pattern %d set to length %d beats %d bars\n", currentPattern, currentLengthBeats, currentLengthBeats/4);
 }
 
 void patternSelectClick(uint8_t clickType)
 {
   if (clickType == 1 && currentPattern < (NR_PATTERNS - 1) ) currentPattern++;
   if (clickType == 2 && currentPattern > 0) currentPattern--;
-
-  // update arrangement data
-  arrangement.arrangementItems_a[currentArrangementPosition].patternIndex = currentPattern;
- 
-  // update arrangement view
-  uiRedrawArrangeView();
-
+  arrangement.arrangementItems_a[currentArrangementPosition].patternIndex = currentPattern; // update arrangement data
+  uiRedrawArrangeView(); // update arrangement view
 }
 
 void newArrangeItemClick(uint8_t clickType)
@@ -428,8 +442,6 @@ void arrangementItemSelectClick(uint8_t id)
   uiRedrawArrangeView();
   uiRedrawPatternView();
   uiRedrawTrackDetailsView();
-
-  // update track mute status
   setMuteStatus();
 }
 
@@ -459,13 +471,40 @@ void signatureClick(uint8_t clickType)
 void editTrackClick(uint8_t clickType)
 {
   Serial.println("Set edit view");
-  uiSetListEditorViewMode();
+  if (clickType == 1) uiSetListEditorViewMode();
 }
 
 void exitEditorClick(uint8_t clickType)
 {
   Serial.println("Set normal view");
-  uiSetNormalViewMode();
+  if (clickType == 1) uiSetNormalViewMode();
+}
+
+void loadClick(uint8_t clickType)
+{
+  
+}
+
+void saveClick(uint8_t clickType)
+{
+  
+}
+
+void newClick(uint8_t clickType)
+{
+  clearArrangement();
+  clearPatterns();
+  uiRedrawArrangeView();
+  uiRedrawPatternView();
+  uiRedrawTrackDetailsView();
+}
+
+void copyTrackClick(uint8_t clickType) { copyTrack(); }
+
+void pasteTrackClick(uint8_t clickType)
+{
+  pasteTrack();
+  // redraw something
 }
 
 void uiSetNormalViewMode()

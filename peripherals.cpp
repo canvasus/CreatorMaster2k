@@ -18,6 +18,7 @@ void setupPeripherals()
   delay(200);
   clearUsbMidi();
   MIDI.begin(MIDI_CHANNEL_OMNI);
+  MIDI.turnThruOff();
   Serial.println(F("DONE"));
 }
 
@@ -25,6 +26,7 @@ void updateMidi()
 {
   myusb.Task();
   if (midi1.read()) processInput(midi1.getChannel(),midi1.getType(), midi1.getData1(), midi1.getData2());
+  if (MIDI.read()) processInput(MIDI.getChannel(),MIDI.getType(), MIDI.getData1(), MIDI.getData2());
 }
 
 void serialMidiSend(uint8_t channel, uint8_t type, uint8_t data1, uint8_t data2)

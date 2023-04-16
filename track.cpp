@@ -6,6 +6,8 @@ Track::Track()
   midi_cb = nullptr;
   channel = 1;
   name = "<empty>";
+  memset(_noteStatus, 0, 128);
+  _notesPlaying = 0;
 }
 
 void Track::_initBuffer()
@@ -34,6 +36,18 @@ void Track::_expandBuffer()
   memUsage = memBlocks * NR_EVENTS;
 }
 
+void Track::paste(event * eventClipboard, uint16_t nrEvents)
+{
+  free(events);
+  memBlocks = (nrEvents / NR_EVENTS) + 1;
+  memUsage = memBlocks * NR_EVENTS;
+  events = (event*)malloc(memBlocks * NR_EVENTS * sizeof(event));
+  memcpy(events, eventClipboard, nrEvents * sizeof(event));
+  _nrEvents = nrEvents;
+}
+
+event * Track::copy() { return events; }
+
 void Track::setMidiCb(MIDIcallbackGeneric cb) { midi_cb = cb; }
 
 void Track::triggerEvent(uint16_t eventIndex)
@@ -46,8 +60,17 @@ void Track::triggerEvent(uint16_t eventIndex)
     switch (type)
     {
       case usbMIDI.NoteOn:
+        data1 = data1 + transpose;
+        _noteStatus[data1] = true;
+        _notesPlaying++;
+        if (midi_cb) midi_cb(channel, type, data1, data2);
+        break;
       case usbMIDI.NoteOff:
-         data1 = data1 + transpose;
+        data1 = data1 + transpose;
+        _noteStatus[data1] = false;
+        _notesPlaying--;
+        if (midi_cb) midi_cb(channel, type, data1, data2);
+        break;
       default:
         if (midi_cb) midi_cb(channel, type, data1, data2);
         break;
@@ -64,7 +87,11 @@ void Track::triggerEvent(uint16_t eventIndex)
   if(loop > 0)
   {
     timestamp = timestamp % (loop * 192); // loop is set in 1/4ths
-    if (timestamp == 0) nextEventId = 0;
+    if (timestamp == 0)
+    {
+      cleanupNoteOff();
+      nextEventId = 0;
+    }
   }
   
   if (events != nullptr)
@@ -95,7 +122,19 @@ void Track::reset()
 {
   if (events != nullptr) _convertTempEvents(); 
   nextEventId = 0;
-  _loopCounter = 0;
+  cleanupNoteOff();
+}
+
+void Track::cleanupNoteOff()
+{
+  for (uint8_t note = 0; note < 128; note++)
+  {
+    if (_noteStatus[note] && midi_cb)
+    {
+      midi_cb(channel, usbMIDI.NoteOff, note, 0);
+      _notesPlaying--;
+    }
+  }
 }
 
 void Track::_convertTempEvents()
@@ -142,6 +181,26 @@ uint32_t Track::getEventTimestamp(uint16_t eventIndex)
   else return 4294967295;
 }
 
+uint8_t Track::getEventType(uint16_t eventIndex)
+{
+  if ( (events != nullptr) && (eventIndex < _nrEvents)) return events[eventIndex].type;
+  else return NONE;
+}
+
+uint8_t Track::getEventData1(uint16_t eventIndex)
+{
+  if ( (events != nullptr) && (eventIndex < _nrEvents)) return events[eventIndex].data1;
+  else return 0;
+}
+
+uint8_t Track::getEventData2(uint16_t eventIndex)
+{
+  if ( (events != nullptr) && (eventIndex < _nrEvents)) return events[eventIndex].data2;
+  else return 0;
+}
+
+uint16_t Track::getNrEvents() { return _nrEvents; }
+
 void Track::printEventArray(uint8_t lastIndex)
 {
   Serial.print("_nrEvents: ");
@@ -171,7 +230,6 @@ void Track::printEventArray(uint8_t lastIndex)
   }
   Serial.println("END");
 }
-
 
 int compareEvents(const void *s1, const void *s2)
 {

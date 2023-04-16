@@ -39,6 +39,7 @@ void updateUI();
 void updateMouse();
 void updateCursor(int deltaX, int deltaY);
 void drawCursor();
+//void uiDrawPrecount(uint8_t count);
 
 void recordClick(uint8_t clickType);
 void startClick(uint8_t clickType);
@@ -60,6 +61,12 @@ void arrangementOnClick(uint8_t clickType);
 void muteArrayClick(uint8_t id);
 void signatureClick(uint8_t clickType);
 void exitEditorClick(uint8_t clickType);
+void copyTrackClick(uint8_t clickType);
+void pasteTrackClick(uint8_t clickType);
+
+void loadClick(uint8_t clickType);
+void saveClick(uint8_t clickType);
+void newClick(uint8_t clickType);
 
 void testClick(uint8_t clickType);
 void testClickIndicator(uint8_t clickType);

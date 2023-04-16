@@ -34,3 +34,8 @@ uint16_t Pattern::getActivity(uint8_t trackId)
 }
 
 void Pattern::setMuteStatus(uint8_t trackId, bool muteOn) { tracks[trackId].hidden = muteOn; }
+
+void Pattern::clear()
+{
+  for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++) tracks[trackId].clear();
+}

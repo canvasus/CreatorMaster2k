@@ -19,6 +19,9 @@ String signatureNames[NR_SIGNATURES] = {"4/4", "2/4"};
 uint16_t ticksPerBar[NR_SIGNATURES] = {RESOLUTION * 4, RESOLUTION * 2};
 uint16_t ticksPerBeat[NR_SIGNATURES] = {RESOLUTION, RESOLUTION};
 
+event * eventClipboard = nullptr;
+uint16_t clipboardNrEvents = 0;
+
 void setupSequencer()
 {
   setBpm(transport.bpm);
@@ -95,17 +98,17 @@ void handlePrecount()
 {
   static uint16_t ticks = 0;
   static uint8_t beatsPrecounted = 0;
-  uint8_t note = 76;
+  //uint8_t note = 76;
   ticks++;
   if (ticks / RESOLUTION > beatsPrecounted)
   {
     beatsPrecounted++;
-    metronome_midi_cb(metronomeChannel, usbMIDI.NoteOn, note, 80);
+    metronome_midi_cb(metronomeChannel, usbMIDI.NoteOn, metronomeNote1, 80);
   }
-  if (ticks % RESOLUTION > RESOLUTION >> 1 ) metronome_midi_cb(metronomeChannel, usbMIDI.NoteOff, metronomeNote1, 80);
+  if (ticks % RESOLUTION > RESOLUTION >> 1 ) metronome_midi_cb(metronomeChannel, usbMIDI.NoteOff, metronomeNote1, 0);
   if (beatsPrecounted > 4)
   {
-    metronome_midi_cb(metronomeChannel, usbMIDI.NoteOff, metronomeNote1, 80);
+    metronome_midi_cb(metronomeChannel, usbMIDI.NoteOff, metronomeNote1, 0);
     beatsPrecounted = 0;
     ticks = 0;
     transport.state = SEQ_PLAYING;
@@ -191,12 +194,22 @@ void updateFreeMemory()
     }
   }
   transport.freeMemory = freeMemory;
-
 }
 
-void clearTrack(uint8_t trackId)
+void clearTrack(uint8_t trackId) { patterns[currentPattern].tracks[trackId].clear(); }
+void clearTracks() { for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++) patterns[currentPattern].tracks[trackId].clear(); }
+void clearPatterns() { for (uint8_t patternId = 0; patternId < NR_PATTERNS; patternId++) patterns[patternId].clear(); }
+void clearArrangement() { arrangement.clear(); }
+
+void copyTrack()
 {
-  patterns[currentPattern].tracks[trackId].clear();
+  eventClipboard = patterns[currentPattern].tracks[currentTrack].copy();
+  clipboardNrEvents = patterns[currentPattern].tracks[currentTrack].getNrEvents();
+}
+
+void pasteTrack()
+{
+  if (eventClipboard && (clipboardNrEvents > 0)) patterns[currentPattern].tracks[currentTrack].paste(eventClipboard, clipboardNrEvents);
 }
 
 void setQuantize(uint8_t quantize) { patterns[currentPattern].tracks[currentTrack].quantize = quantize; }

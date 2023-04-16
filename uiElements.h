@@ -132,6 +132,9 @@ class HeaderView : public Container
 {
   using Container :: Container;
   public:
+    Button button_load;
+    Button button_save;
+    Button button_new;
     Indicator indicator_freeMem;
     Indicator indicator_arrOn;
     Indicator indicator_transport;
@@ -203,6 +206,8 @@ class TrackDetailsView :  public Container
     Indicator indicator_quantize;
     Indicator indicator_transpose;
     Indicator indicator_loop;
+    Button button_copy;
+    Button button_paste;
     Button button_edit;
     Button button_clear;
     bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);

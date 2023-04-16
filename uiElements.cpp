@@ -18,6 +18,7 @@ void Deco::layout(String label, uint16_t xPos, uint16_t yPos, uint16_t width, ui
 void Deco::draw()
 {
   tft.writeTo(L2);
+  tft.setFontScale(0);
   tft.fillRect(_geo.xPos, _geo.yPos , _geo.width, _geo.height, _geo.color1);
   tft.setTextColor(_geo.color2);
   tft.setCursor(_geo.xPos + _textRelXposition , _geo.yPos + 2);
@@ -88,6 +89,7 @@ void Button::draw(bool state)
     tft.drawRect(_geo.xPos + 5, _geo.yPos + 5 , _geo.width - 10, _geo.height - 10, BUTTON_BORDER_COLOR); // main button border
   }
 
+  tft.setFontScale(0);
   tft.setTextColor(BUTTON_TEXT_COLOR);
   tft.setCursor(_geo.xPos + 10, _geo.yPos + 10);
   tft.print(_geo.label);
@@ -148,6 +150,7 @@ void Indicator::_drawCommon()
   }
   tft.setCursor(_geo.xPos + 5, _geo.yPos + 2); // set position for main text
   tft.setTextColor(INDICATOR_TEXT_COLOR);
+  tft.setFontScale(0);
 }
 
 void Indicator::draw(int value)
@@ -174,6 +177,7 @@ void Indicator::draw(uint16_t trp_bar, uint16_t trp_4th, uint16_t trp_16th, bool
   if (drawStatics) _drawCommon();
   else tft.fillRect(_geo.xPos + 1, _geo.yPos + 1 , _geo.width - 2, _geo.height - 2, INDICATOR_BG_COLOR);
   tft.setTextColor(INDICATOR_TEXT_COLOR);
+  tft.setFontScale(0);
   tft.setCursor(_geo.xPos + _geo.width * 0.1, _geo.yPos + 2);
   tft.print(trp_bar);
   tft.setCursor(_geo.xPos + _geo.width * 0.5, _geo.yPos + 2);
@@ -208,6 +212,7 @@ void TrackRow::layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t hei
 void TrackRow::draw(bool selected)
 {
   tft.writeTo(L2);
+  tft.setFontScale(0);
   if (selected) tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_SELECTED_COLOR); // background
   else tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_NORMAL_COLOR); // background
   tft.setCursor(_geo.xPos + 20, _geo.yPos + 5);
@@ -308,11 +313,19 @@ void TrackDetailsView::layout()
   indicator_loop.setLabelOffset(-74, 2);
   indicator_loop.draw("");
 
-  button_clear.layout("CLEAR", relX(0.1), relY(0.78), relW(0.6), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL);
+  button_copy.layout("COPY", relX(0.02), relY(0.6), relW(0.6), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL);
+  button_copy.cb = &copyTrackClick;
+  button_copy.draw(false);
+
+  button_paste.layout("PASTE", relX(0.02), relY(0.7), relW(0.6), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL);
+  button_paste.cb = &pasteTrackClick;
+  button_paste.draw(false);
+
+  button_clear.layout("CLEAR", relX(0.02), relY(0.8), relW(0.6), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL);
   button_clear.cb = &clearTrackClick;
   button_clear.draw(false);
 
-  button_edit.layout("EDIT", relX(0.1), relY(0.9), relW(0.6), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL);
+  button_edit.layout("EDIT", relX(0.52), relY(0.9), relW(0.48), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL);
   button_edit.cb = &editTrackClick;
   button_edit.draw(false);
 }
@@ -323,6 +336,8 @@ bool TrackDetailsView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t click
   if (indicator_quantize.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_transpose.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_loop.checkCursor(xPos, yPos, clickType)) return true;
+  if (button_copy.checkCursor(xPos, yPos, clickType)) return true;
+  if (button_paste.checkCursor(xPos, yPos, clickType)) return true;
   if (button_edit.checkCursor(xPos, yPos, clickType)) return true;
   if (button_clear.checkCursor(xPos, yPos, clickType)) return true;
   return false;
@@ -396,28 +411,47 @@ bool ControlsView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType
 
 void HeaderView::layout()
 {
-  indicator_freeMem.layout("MEM", relX(0.01), relY(0.5), relW(0.08), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR,INDICATOR_LABEL_TOP);
+  const float button_w = 0.07;
+  const float button_h = 0.8;
+  const float button_y = 0.18;
+  const float button_xPpad = 0.01;
+    
+  button_load.layout("LOAD", relX(button_xPpad), relY(button_y), relW(button_w), relH(button_h) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_load.draw(false);
+  //button_load.cb = &loadClick;
+
+  button_save.layout("SAVE", relX(button_w + 2 * button_xPpad), relY(button_y), relW(button_w), relH(button_h) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_save.draw(false);
+  //button_load.cb = &saveClick;
+
+  button_new.layout("NEW", relX(2 * button_w + 3 * button_xPpad), relY(button_y), relW(button_w), relH(button_h) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_new.draw(false);
+  button_new.cb = &newClick;
+  
+  indicator_freeMem.layout("MEM", relX(0.3), relY(0.5), relW(0.08), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR,INDICATOR_LABEL_TOP);
   indicator_freeMem.draw(MEMORY_MAX);
 
-  indicator_arrOn.layout("ARRANGE", relX(0.12), relY(0.5), relW(0.05), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR,INDICATOR_LABEL_TOP);
+  indicator_arrOn.layout("ARRANGE", relX(0.4), relY(0.5), relW(0.05), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR,INDICATOR_LABEL_TOP);
   indicator_arrOn.cb = &arrangementOnClick;
   indicator_arrOn.draw("OFF");
 
-  indicator_transport.layout("bar 4  16", relX(0.80), relY(0.5), relW(0.10), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
-  indicator_transport.draw(0,0,0, true);
-
-  indicator_bpm.layout("BPM", relX(0.4), relY(0.5), relW(0.06), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
+  indicator_bpm.layout("BPM", relX(0.5), relY(0.5), relW(0.06), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
   indicator_bpm.cb = &bpmClick;
   indicator_bpm.draw(transport.bpm);
 
-  indicator_signature.layout("SIGN", relX(0.5), relY(0.5), relW(0.06), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
+  indicator_signature.layout("SIGN", relX(0.6), relY(0.5), relW(0.06), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
   indicator_signature.cb = &signatureClick;
   indicator_signature.draw(transport.signature);
+
+  indicator_transport.layout("bar  4  16", relX(0.85), relY(0.5), relW(0.10), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
+  indicator_transport.draw(0,0,0, true);
+ 
 }
 
 bool HeaderView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 {
-  if (indicator_freeMem.checkCursor(xPos, yPos, clickType)) return true;
+  if (button_new.checkCursor(xPos, yPos, clickType)) return true;
+  //if (indicator_freeMem.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_bpm.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_arrOn.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_signature.checkCursor(xPos, yPos, clickType)) return true;
@@ -444,6 +478,7 @@ void ArrangementRow::layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16
 void ArrangementRow::draw(bool selected)
 {
   tft.writeTo(L2);
+  tft.setFontScale(0);
   if (selected) tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_SELECTED_COLOR); // background
   else tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_NORMAL_COLOR); // background
   tft.setCursor(_geo.xPos + 20, _geo.yPos + 5);
@@ -560,6 +595,7 @@ void ListEditorRow::layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_
 void ListEditorRow::draw(bool selected)
 {
   tft.writeTo(L2);
+  tft.setFontScale(0);
   tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_NORMAL_COLOR); // background
   tft.setCursor(_geo.xPos + 20, _geo.yPos + 5);
   tft.setTextColor(INDICATOR_TEXT_COLOR);
