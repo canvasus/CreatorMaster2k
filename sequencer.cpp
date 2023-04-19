@@ -14,7 +14,7 @@ uint8_t metronomeChannel = 10;
 uint8_t metronomeNote1 = 76;
 uint8_t metronomeNote2 = 77;
 
-String patternNames[NR_PATTERNS] = {"PATTERN01", "PATTERN02", "PATTERN03", "PATTERN04", "PATTERN05", "PATTERN06", "PATTERN07", "PATTERN08"};
+String patternNames[NR_PATTERNS] = {"PATRN01", "PATRN02", "PATRN03", "PATRN04", "PATRN05", "PATRN06", "PATRN07", "PATRN08"};
 String signatureNames[NR_SIGNATURES] = {"4/4", "2/4"};
 uint16_t ticksPerBar[NR_SIGNATURES] = {RESOLUTION * 4, RESOLUTION * 2};
 uint16_t ticksPerBeat[NR_SIGNATURES] = {RESOLUTION, RESOLUTION};
@@ -26,7 +26,11 @@ void setupSequencer()
 {
   setBpm(transport.bpm);
   metronome_midi_cb = serialMidiSend;
-  for (uint8_t patternId = 0; patternId < NR_PATTERNS; patternId++) patterns[patternId].name = patternNames[patternId];
+  for (uint8_t patternId = 0; patternId < NR_PATTERNS; patternId++)
+  {
+    String name = patternNames[patternId];
+    name.toCharArray(patterns[patternId].name, 8);
+  }
 }
 
 void updateSequencer()
@@ -76,6 +80,18 @@ void stop()
   updateMetronome(true);
 }
 
+void seq_continue()
+{
+  if (transport.arrangementOn)
+  {
+    // continue from selected/current arr item
+    arrangement.arrangementTick = arrangement.arrangementItems_a[currentArrangementPosition].startTick; 
+    if (transport.recording) transport.state = SEQ_PRECOUNT;
+    else transport.state = SEQ_PLAYING;
+  }
+  else play();
+}
+
 void reset()
 { 
   if (transport.arrangementOn)
@@ -84,6 +100,7 @@ void reset()
     for (uint8_t patternId = 0; patternId < NR_PATTERNS; patternId++) patterns[patternId].reset();
   }
   else patterns[currentPattern].reset();
+  setMuteStatus();
 }
 
 void panic() { allNotesOff(); }

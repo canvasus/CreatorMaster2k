@@ -43,6 +43,7 @@ void updateSequencer();
 void tickPattern();
 void play();
 void stop();
+void seq_continue();
 void reset();
 void panic();
 void record(bool record);

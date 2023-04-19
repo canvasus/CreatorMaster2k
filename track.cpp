@@ -1,11 +1,14 @@
 #include "track.h"
 
+String emptyName = "<empty>";
+String usedName = "In use";
+
 Track::Track()
 {
   events = nullptr;
   midi_cb = nullptr;
   channel = 1;
-  name = "<empty>";
+  emptyName.toCharArray(name, 8);
   memset(_noteStatus, 0, 128);
   _notesPlaying = 0;
 }
@@ -44,6 +47,8 @@ void Track::paste(event * eventClipboard, uint16_t nrEvents)
   events = (event*)malloc(memBlocks * NR_EVENTS * sizeof(event));
   memcpy(events, eventClipboard, nrEvents * sizeof(event));
   _nrEvents = nrEvents;
+  if (nrEvents > 0) usedName.toCharArray(name, 8);
+  else emptyName.toCharArray(name, 8);
 }
 
 event * Track::copy() { return events; }

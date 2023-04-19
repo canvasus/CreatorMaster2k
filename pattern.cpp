@@ -10,13 +10,11 @@ Pattern::Pattern()
     tracks[trackId].channel = trackId + 1;
     tracks[trackId].setMidiCb(serialMidiSend);
   }
-  lengthBeats = 16;
 }
 
 void Pattern::tick()
 {
   patternTick++;
-  //if (patternTick > (lengthBeats * RESOLUTION - 1)) reset();
   for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++) trackActivity[trackId] = trackActivity[trackId] + tracks[trackId].triggerEvents(patternTick);
 }
 

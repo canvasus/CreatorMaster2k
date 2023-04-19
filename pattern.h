@@ -8,8 +8,7 @@ class Pattern
 {
   public:
     Pattern();
-    String name;
-    uint16_t lengthBeats; // REMOVE?
+    char name[8];
     uint16_t patternTick;
     Track tracks[NR_TRACKS];
     void tick();

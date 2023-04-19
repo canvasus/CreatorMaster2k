@@ -5,6 +5,7 @@
 #include <USBHost_t36.h>
 #include "uiElements.h"
 #include "sequencer.h"
+#include "sdMgr.h"
 
 #define RA8875_CS 10   // ER-TFTM070 pin 5
 #define RA8875_RESET 9 // ER-TFTM070 pin 11

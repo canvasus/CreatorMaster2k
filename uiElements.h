@@ -97,13 +97,34 @@ class Indicator
     void draw(uint16_t trp_bar, uint16_t trp_4th, uint16_t trp_16th, bool drawStatics);
 };
 
+class Scrollbar
+{
+  private:
+    Geo      _geo;
+    uint8_t  _orientation;
+    
+  public:
+    Scrollbar();
+    void configure(uint8_t orientation, uint16_t maxValue, uint16_t minValue, uint16_t inView);
+    void layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2);
+    uint16_t rangeInView;
+    uint16_t max;
+    uint16_t min;
+    bool     isDragging;
+    Indicator indicator_up;
+    Indicator indicator_down;
+    uint16_t position;
+    void draw();
+    bool checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType);
+};
+
 class TrackRow
 {
   private:
     Geo _geo;
   public:
     TrackRow();
-    String trackName;
+    char trackName[8];
     uint8_t id;
     uint8_t channel;
     bool checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType); 
@@ -259,6 +280,7 @@ class ListEditor : public Container
   public:
     uint16_t firstRowIndex = 0;
     ListEditorRow listEditorRows[NR_LIST_ROWS];
+    Scrollbar scrollbar;
     Button button_exit;
     bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);
     void layout();

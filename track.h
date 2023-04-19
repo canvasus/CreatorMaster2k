@@ -20,6 +20,17 @@ struct event
   uint8_t   data2;
 };
 
+struct trackConfig
+{
+  char      name[8];
+  uint8_t   channel = 1;
+  uint8_t   quantizeIndex = 0;
+  int       transpose = 0;
+  uint8_t   loop = 0;
+  bool      hidden = false;
+  bool      muted = false;
+};
+
 class Track
 {
   private:
@@ -35,7 +46,7 @@ class Track
     uint8_t   _notesPlaying;
   public:
     Track();
-    String    name;
+    char      name[8];
     uint8_t   channel;
     uint16_t  quantize = 1;
     uint8_t   quantizeIndex = 0;
@@ -44,6 +55,7 @@ class Track
     uint16_t  memUsage = 0;
     uint8_t   memBlocks = 0;
     bool      hidden = false;
+    bool      muted = false;
 
     MIDIcallbackGeneric  midi_cb;
     void setMidiCb(MIDIcallbackGeneric cb);

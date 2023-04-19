@@ -148,7 +148,8 @@ void uiRedrawPatternView()
   for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++)
   {
     patternView.trackRows[trackId].id = trackId;
-    patternView.trackRows[trackId].trackName = patterns[currentPattern].tracks[trackId].name;
+    //patternView.trackRows[trackId].trackName = patterns[currentPattern].tracks[trackId].name;
+    memcpy(patternView.trackRows[trackId].trackName, patterns[currentPattern].tracks[trackId].name, 8);
     patternView.trackRows[trackId].channel = patterns[currentPattern].tracks[trackId].channel;
     patternView.trackRows[trackId].draw(trackId == currentTrack);
   }
@@ -303,8 +304,11 @@ void uiUpdateSlowItems()
 void uiUpdateControls()
 {
   // reset non-latching buttons etc
-  if (controlsView.button_stop.state && !controlsView.button_stop.latch) controlsView.button_stop.set(false);
-  if (trackDetailsView.button_clear.state && !trackDetailsView.button_clear.latch) trackDetailsView.button_clear.set(false);
+  if (controlsView.button_stop.state) controlsView.button_stop.set(false);
+  if (controlsView.button_start.state) controlsView.button_start.set(false);
+  if (trackDetailsView.button_copy.state) trackDetailsView.button_copy.set(false);
+  if (trackDetailsView.button_paste.state) trackDetailsView.button_paste.set(false);
+  if (trackDetailsView.button_clear.state) trackDetailsView.button_clear.set(false);
   if (arrangementView.button_new.state) arrangementView.button_new.set(false);
   if (arrangementView.button_delete.state) arrangementView.button_delete.set(false);
   //if (listEditorView.button_exit.state) listEditorView.button_exit.set(false);
@@ -317,10 +321,11 @@ void uiUpdateControls()
 void recordClick(uint8_t clickType)
 {
   static bool recordOn = false;
+  String inUse = "in use";
   recordOn = !recordOn;
   record(recordOn);
-  patterns[currentPattern].tracks[currentTrack].name = "in use";
-  patternView.trackRows[currentTrack].trackName = patterns[currentPattern].tracks[currentTrack].name;
+  inUse.toCharArray(patterns[currentPattern].tracks[currentTrack].name, 8);
+  memcpy(patternView.trackRows[currentTrack].trackName, patterns[currentPattern].tracks[currentTrack].name, 8);
   patternView.trackRows[currentTrack].draw(true);
 }
 
@@ -393,9 +398,10 @@ void loopClick(uint8_t clickType)
 
 void clearTrackClick(uint8_t clickType)
 {
+  String empty = "<empty>";
   clearTrack(currentTrack);
-  patterns[currentPattern].tracks[currentTrack].name = "<empty>";
-  patternView.trackRows[currentTrack].trackName = patterns[currentPattern].tracks[currentTrack].name;
+  empty.toCharArray(patterns[currentPattern].tracks[currentTrack].name, 8);
+  empty.toCharArray(patternView.trackRows[currentTrack].trackName, 8);
   patternView.trackRows[currentTrack].draw(true);
 }
 
@@ -470,24 +476,24 @@ void signatureClick(uint8_t clickType)
 
 void editTrackClick(uint8_t clickType)
 {
-  Serial.println("Set edit view");
   if (clickType == 1) uiSetListEditorViewMode();
 }
 
 void exitEditorClick(uint8_t clickType)
 {
-  Serial.println("Set normal view");
   if (clickType == 1) uiSetNormalViewMode();
 }
 
 void loadClick(uint8_t clickType)
 {
-  
+  loadTrackEvents(currentPattern);
+  uiRedrawPatternView();
+  uiRedrawTrackDetailsView();
 }
 
 void saveClick(uint8_t clickType)
 {
-  
+  saveTrackEvents(currentPattern);
 }
 
 void newClick(uint8_t clickType)
@@ -503,8 +509,11 @@ void copyTrackClick(uint8_t clickType) { copyTrack(); }
 
 void pasteTrackClick(uint8_t clickType)
 {
+  String inUse = "in use";
   pasteTrack();
-  // redraw something
+  inUse.toCharArray(patterns[currentPattern].tracks[currentTrack].name, 8);
+  inUse.toCharArray(patternView.trackRows[currentTrack].trackName, 8);
+  patternView.trackRows[currentTrack].draw(true);
 }
 
 void uiSetNormalViewMode()

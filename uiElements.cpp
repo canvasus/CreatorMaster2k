@@ -196,6 +196,37 @@ bool Indicator::checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType)
   }
 }
 
+Scrollbar::Scrollbar() { }
+
+void Scrollbar::configure(uint8_t orientation, uint16_t maxValue, uint16_t minValue, uint16_t inView)
+{
+  _orientation = orientation;
+  rangeInView = inView;
+  max = maxValue;
+  min = minValue;
+  position = min + rangeInView;
+}
+
+void Scrollbar::layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2)
+{
+  _geo.xPos = xPos;
+  _geo.yPos = yPos;
+  _geo.width = width;
+  _geo.height = height;
+  _geo.color1 = color1;
+  _geo.color2 = color2;
+}
+
+void Scrollbar::draw()
+{
+  
+}
+
+bool Scrollbar::checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType)
+{
+  return false;
+}
+
 // --- TRACK ROW CLASS ---
 TrackRow::TrackRow() { }
 
@@ -247,7 +278,7 @@ void TrackRow::activity(uint8_t level)
 void PatternView::layout()
 {
   indicator_patternName.layout("PATTERN", relX(0.2), relY(0), relW(0.6), relH(1/17.0) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL, INDICATOR_LABEL_NONE);
-  indicator_patternName.draw("PATTERN01");
+  indicator_patternName.draw("PATRN01");
   indicator_patternName.cb = &patternSelectClick;
   
   decoLeft.layout("STAT", relX(0.00), relY(0), relW(0.2), relH(1/17.0), DECO_TOPROW_FILL_COLOR, DECO_TOPROW_TEXT_COLOR, 4);
@@ -258,8 +289,9 @@ void PatternView::layout()
 
   for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++)
   {
+    String empty = "<empty>";
     trackRows[trackId].cb = &trackSelectClick;
-    trackRows[trackId].trackName = "<empty>";
+    empty.toCharArray(trackRows[trackId].trackName, 8);
     trackRows[trackId].id = trackId;
     trackRows[trackId].layout(relX(0), relY((1/17.0) * (trackId + 1)), relW(1.0), relH(1/17.0) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
     trackRows[trackId].draw(trackId == currentTrack);
@@ -325,7 +357,7 @@ void TrackDetailsView::layout()
   button_clear.cb = &clearTrackClick;
   button_clear.draw(false);
 
-  button_edit.layout("EDIT", relX(0.52), relY(0.9), relW(0.48), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL);
+  button_edit.layout("EDIT", relX(0.02), relY(0.9), relW(0.5), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL);
   button_edit.cb = &editTrackClick;
   button_edit.draw(false);
 }
@@ -418,11 +450,11 @@ void HeaderView::layout()
     
   button_load.layout("LOAD", relX(button_xPpad), relY(button_y), relW(button_w), relH(button_h) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
   button_load.draw(false);
-  //button_load.cb = &loadClick;
+  button_load.cb = &loadClick;
 
   button_save.layout("SAVE", relX(button_w + 2 * button_xPpad), relY(button_y), relW(button_w), relH(button_h) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
   button_save.draw(false);
-  //button_load.cb = &saveClick;
+  button_save.cb = &saveClick;
 
   button_new.layout("NEW", relX(2 * button_w + 3 * button_xPpad), relY(button_y), relW(button_w), relH(button_h) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
   button_new.draw(false);
@@ -455,6 +487,8 @@ bool HeaderView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
   if (indicator_bpm.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_arrOn.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_signature.checkCursor(xPos, yPos, clickType)) return true;
+  if (button_save.checkCursor(xPos, yPos, clickType)) return true;
+  if (button_load.checkCursor(xPos, yPos, clickType)) return true;
   return false;
 }
 

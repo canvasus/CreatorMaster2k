@@ -5,7 +5,7 @@
 #define NR_ARRITEMS 8
 #define NR_PATTERNS 8
 #define NR_TRACKS 10
-#define NR_EVENTS 128 // nr events * 7 bytes, per memory block
+#define NR_EVENTS 128 // nr events per memory block
 
 #define NR_SIGNATURES 2
 

@@ -1,6 +1,7 @@
 #include "ui.h"
 #include "peripherals.h"
 #include "sequencer.h"
+#include "sdMgr.h"
 
 void setup()
 {
@@ -9,6 +10,7 @@ void setup()
   setupPeripherals();
   setupUI();
   setupSequencer();
+  initSDcard();
 }
 
 void loop()
