@@ -6,6 +6,9 @@
 #define ARRITEM_INACTIVE  0
 #define ARRITEM_ACTIVE    1
 
+// SAVE:
+// All arrangementItems
+
 class ArrangementItem
 {
   public:

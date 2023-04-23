@@ -15,9 +15,9 @@ uint8_t metronomeNote1 = 76;
 uint8_t metronomeNote2 = 77;
 
 String patternNames[NR_PATTERNS] = {"PATRN01", "PATRN02", "PATRN03", "PATRN04", "PATRN05", "PATRN06", "PATRN07", "PATRN08"};
-String signatureNames[NR_SIGNATURES] = {"4/4", "2/4"};
-uint16_t ticksPerBar[NR_SIGNATURES] = {RESOLUTION * 4, RESOLUTION * 2};
-uint16_t ticksPerBeat[NR_SIGNATURES] = {RESOLUTION, RESOLUTION};
+String signatureNames[NR_SIGNATURES] = {"11/4", "7/4", "5/4", "4/4", "2/4", "1/4"};
+uint16_t ticksPerBar[NR_SIGNATURES] = {RESOLUTION * 11, RESOLUTION * 7, RESOLUTION * 5, RESOLUTION * 4, RESOLUTION * 2, RESOLUTION};
+uint16_t ticksPerBeat[NR_SIGNATURES] = {RESOLUTION, RESOLUTION, RESOLUTION, RESOLUTION, RESOLUTION, RESOLUTION};
 
 event * eventClipboard = nullptr;
 uint16_t clipboardNrEvents = 0;

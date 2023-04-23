@@ -48,8 +48,6 @@ struct Geo
   uint16_t  color2;
 };
 
-//typedef struct __Geo Geo;
-
 class Deco
 {
   private:
@@ -284,4 +282,22 @@ class ListEditor : public Container
     Button button_exit;
     bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);
     void layout();
+};
+
+class FileManagerRow
+{
+  private:
+    Geo     _geo;  
+  public:
+    
+};
+
+class FileManagerView : public Container
+{
+  using Container :: Container;
+  private:
+    Geo     _geo;  
+  public:
+    uint16_t firstRowIndex = 0;
+    FileManagerRow fileManagerRows[NR_FILE_ROWS];
 };

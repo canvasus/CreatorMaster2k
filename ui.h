@@ -83,3 +83,5 @@ void uiRedrawTrackDetailsView();
 
 void uiSetNormalViewMode();
 void uiSetListEditorViewMode();
+
+void setScreensaver(bool state);

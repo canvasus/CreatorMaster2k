@@ -167,11 +167,14 @@ void uiRedrawTrackDetailsView()
 
 void updateMouse()
 {
+  static elapsedMillis activityTimer = 0;
+  const uint16_t screenSaverTimeout = 10000;
   static elapsedMillis debounceTimer = 0;
   const uint8_t debounceTime = 100;
   static uint8_t lastMouseButtons = 0;
    if (mouse1.available())
    {
+    activityTimer = 0;
     int mouseX = mouse1.getMouseX();
     int mouseY = mouse1.getMouseY();
     if ( (abs(mouseX) > 0) || (abs(mouseY) > 0)) updateCursor(mouseX, mouseY);
@@ -179,6 +182,7 @@ void updateMouse()
     uint8_t mouseButtons = mouse1.getButtons();
     if (mouseButtons != lastMouseButtons)
     {
+      activityTimer = 0;
       if (debounceTimer < debounceTime) mouseButtons = 0;
       else
       {
@@ -194,6 +198,7 @@ void updateMouse()
     
     if (mouseButtons != 0 && viewMode == VIEW_NORMAL)
     {
+      
       headerView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
       arrangementView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
       patternView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
@@ -208,6 +213,31 @@ void updateMouse()
       listEditorView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
     }
     mouse1.mouseDataClear();
+    
+  }
+  if (activityTimer > screenSaverTimeout) setScreensaver(true);
+  else setScreensaver(false);
+}
+
+void setScreensaver(bool state)
+{
+  static bool screensaverState = false;
+  if (state != screensaverState)
+  {
+    screensaverState = state;
+    //tft.backlight(!screensaverState);
+    //tft.sleep(screensaverState);
+    Serial.printf("Screensaver: %d\n", screensaverState);
+    //if (!state) delay(10);
+//    tft.writeTo(L2);
+//    if (screensaverState)
+//    {
+//      tft.clearScreen(0x1175);
+//    }
+//    else
+//    {
+//      tft.clearScreen(RA8875_MAGENTA);
+//    }
   }
 }
 
@@ -231,29 +261,6 @@ void drawCursor()
   oldCursorXpos = cursorXpos;
   oldCursorYpos = cursorYpos;
 }
-
-//void uiDrawPrecount(uint8_t count)
-//{
-//  static uint8_t lastCount = 0;
-//  if(count != lastCount)
-//  {
-//    tft.writeTo(L1);
-//    tft.setCursor(SCREEN_XRES >> 1, SCREEN_YRES >> 1);
-//    tft.setFontScale(2);
-//    lastCount = count;
-//    if (count > 0 && count < 5)
-//    {
-//      tft.setTextColor(RA8875_RED, RA8875_MAGENTA);  
-//      tft.print(count);
-//    }
-//    else
-//    {
-//      tft.setTextColor(RA8875_MAGENTA, RA8875_MAGENTA);  
-//      tft.print(0);
-//    }
-//    tft.setFontScale(0);
-//  }
-//}
 
 void uiUpdateTransport()
 {

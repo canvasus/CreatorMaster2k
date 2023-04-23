@@ -3,6 +3,10 @@
 #include <Arduino.h>
 #include "x_globals.h"
 
+// SAVE:
+// all events (OK?)
+// trackConfig struct
+
 #define NONE 0
 #define TYPE_NOTEON_TEMP  usbMIDI.NoteOn - 1
 #define TYPE_NOTEOFF_TEMP usbMIDI.NoteOff -1
@@ -20,7 +24,7 @@ struct event
   uint8_t   data2;
 };
 
-struct trackConfig
+struct TrackConfig
 {
   char      name[8];
   uint8_t   channel = 1;
@@ -46,6 +50,7 @@ class Track
     uint8_t   _notesPlaying;
   public:
     Track();
+    TrackConfig config;
     char      name[8];
     uint8_t   channel;
     uint16_t  quantize = 1;

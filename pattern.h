@@ -4,6 +4,9 @@
 #include "peripherals.h"
 #include "x_globals.h"
 
+// SAVE:
+// name, all tracks
+
 class Pattern
 {
   public:
