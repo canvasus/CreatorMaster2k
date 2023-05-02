@@ -10,6 +10,7 @@ PatternView patternView = PatternView("PATTERN", ARRANGE_W + PADDING, HEADER_H +
 TrackDetailsView trackDetailsView = TrackDetailsView("TRACK", ARRANGE_W + PATTERN_W + 2 * PADDING, HEADER_H + PADDING, TRACKDETAILS_W, MAIN_H,  RA8875_WHITE, RA8875_WHITE);
 ControlsView controlsView = ControlsView("CONTROL", ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 3 * PADDING, HEADER_H + PADDING, CONTROLS_W, MAIN_H,  MAIN_BG_COLOR, RA8875_WHITE);
 ListEditor listEditorView = ListEditor("LISTEDITOR", 0, HEADER_H + PADDING, ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 2 * PADDING, MAIN_H,  MAIN_BG_COLOR, RA8875_WHITE);
+FileManagerView fileManagerView = FileManagerView("FILEMANAGER", 0, HEADER_H + PADDING, ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 2 * PADDING, MAIN_H,  RA8875_WHITE, RA8875_WHITE);
 
 const uint8_t cursorOn[16] = {
   0b10000000,
@@ -45,6 +46,8 @@ const uint8_t uiResetInterval = 250;
 
 uint8_t viewMode = VIEW_NORMAL;
 
+const unsigned long screenSaverTimeout = 120000; // 2min
+
 void setupUI()
 {
   Serial.print(F("UI SETUP..."));
@@ -75,6 +78,7 @@ void setupUI()
   controlsView.layout();
 
   listEditorView.drawBorder = true;
+  fileManagerView.drawBorder = true;
   
   tft.writeTo(L1);
   tft.clearScreen(RA8875_MAGENTA);
@@ -87,7 +91,7 @@ void setChannelIndicators()
 {
   for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++)
   {
-    patternView.trackRows[trackId].channel = patterns[currentPattern].tracks[trackId].channel;
+    patternView.trackRows[trackId].channel = patterns[currentPattern].tracks[trackId].config.channel;
   }
 }
 
@@ -149,8 +153,8 @@ void uiRedrawPatternView()
   {
     patternView.trackRows[trackId].id = trackId;
     //patternView.trackRows[trackId].trackName = patterns[currentPattern].tracks[trackId].name;
-    memcpy(patternView.trackRows[trackId].trackName, patterns[currentPattern].tracks[trackId].name, 8);
-    patternView.trackRows[trackId].channel = patterns[currentPattern].tracks[trackId].channel;
+    memcpy(patternView.trackRows[trackId].trackName, patterns[currentPattern].tracks[trackId].config.name, 8);
+    patternView.trackRows[trackId].channel = patterns[currentPattern].tracks[trackId].config.channel;
     patternView.trackRows[trackId].draw(trackId == currentTrack);
   }
 }
@@ -158,17 +162,17 @@ void uiRedrawPatternView()
 void uiRedrawTrackDetailsView()
 {
   // redraw track detail view using currentPattern->currentTrack
-  uint8_t channel = patterns[currentPattern].tracks[currentTrack].channel;
-  uint8_t quantizeIndex = patterns[currentPattern].tracks[currentTrack].quantizeIndex;
-  int transpose = patterns[currentPattern].tracks[currentTrack].transpose;
-  uint8_t loop = patterns[currentPattern].tracks[currentTrack].loop;
+  uint8_t channel = patterns[currentPattern].tracks[currentTrack].config.channel;
+  uint8_t quantizeIndex = patterns[currentPattern].tracks[currentTrack].config.quantizeIndex;
+  int transpose = patterns[currentPattern].tracks[currentTrack].config.transpose;
+  uint8_t loop = patterns[currentPattern].tracks[currentTrack].config.loop;
   trackDetailsView.update(currentTrack, channel, quantizeIndex, transpose, loop);
 }
 
 void updateMouse()
 {
   static elapsedMillis activityTimer = 0;
-  const uint16_t screenSaverTimeout = 10000;
+  //const uint16_t screenSaverTimeout = 30000;
   static elapsedMillis debounceTimer = 0;
   const uint8_t debounceTime = 100;
   static uint8_t lastMouseButtons = 0;
@@ -196,24 +200,22 @@ void updateMouse()
     if (mouseWheel == 255 && mouseButtons == 0) mouseButtons = 2;
     if (mouseWheel == 1 && mouseButtons == 0) mouseButtons = 1;
     
-    if (mouseButtons != 0 && viewMode == VIEW_NORMAL)
+    if (mouseButtons != 0)
     {
+      headerView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
+      controlsView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
       
-      headerView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
-      arrangementView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
-      patternView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
-      trackDetailsView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
-      controlsView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
-    }
-    
-    if (mouseButtons != 0 && viewMode == VIEW_LISTEDITOR)
-    {
-      headerView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
-      controlsView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
-      listEditorView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
+      if (viewMode == VIEW_NORMAL)
+      {
+        arrangementView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
+        patternView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
+        trackDetailsView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);        
+      }
+
+      if (viewMode == VIEW_LISTEDITOR) listEditorView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
+      if (viewMode == VIEW_FILEMANAGER) fileManagerView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
     }
     mouse1.mouseDataClear();
-    
   }
   if (activityTimer > screenSaverTimeout) setScreensaver(true);
   else setScreensaver(false);
@@ -225,19 +227,18 @@ void setScreensaver(bool state)
   if (state != screensaverState)
   {
     screensaverState = state;
-    //tft.backlight(!screensaverState);
-    //tft.sleep(screensaverState);
-    Serial.printf("Screensaver: %d\n", screensaverState);
-    //if (!state) delay(10);
-//    tft.writeTo(L2);
-//    if (screensaverState)
-//    {
-//      tft.clearScreen(0x1175);
-//    }
-//    else
-//    {
-//      tft.clearScreen(RA8875_MAGENTA);
-//    }
+    if (screensaverState)
+    {
+      tft.writeTo(L1);
+      tft.backlight(!screensaverState);
+      tft.clearScreen(0x7BEF);
+    }
+    else
+    {
+      tft.writeTo(L1);
+      tft.backlight(!screensaverState);
+      tft.clearScreen(RA8875_MAGENTA);
+    }
   }
 }
 
@@ -318,10 +319,9 @@ void uiUpdateControls()
   if (trackDetailsView.button_clear.state) trackDetailsView.button_clear.set(false);
   if (arrangementView.button_new.state) arrangementView.button_new.set(false);
   if (arrangementView.button_delete.state) arrangementView.button_delete.set(false);
-  //if (listEditorView.button_exit.state) listEditorView.button_exit.set(false);
+
   headerView.indicator_freeMem.draw(transport.freeMemory);
-  if (headerView.button_load.state) headerView.button_load.set(false);
-  if (headerView.button_save.state) headerView.button_save.set(false);
+  if (headerView.button_file.state) headerView.button_file.set(false);
   if (headerView.button_new.state) headerView.button_new.set(false);
 }
 
@@ -331,8 +331,8 @@ void recordClick(uint8_t clickType)
   String inUse = "in use";
   recordOn = !recordOn;
   record(recordOn);
-  inUse.toCharArray(patterns[currentPattern].tracks[currentTrack].name, 8);
-  memcpy(patternView.trackRows[currentTrack].trackName, patterns[currentPattern].tracks[currentTrack].name, 8);
+  inUse.toCharArray(patterns[currentPattern].tracks[currentTrack].config.name, 8);
+  memcpy(patternView.trackRows[currentTrack].trackName, patterns[currentPattern].tracks[currentTrack].config.name, 8);
   patternView.trackRows[currentTrack].draw(true);
 }
 
@@ -366,40 +366,40 @@ void bpmClick(uint8_t clickType)
 
 void channelClick(uint8_t clickType)
 {
-  uint8_t channel = patterns[currentPattern].tracks[currentTrack].channel;
+  uint8_t channel = patterns[currentPattern].tracks[currentTrack].config.channel;
   if (clickType == 1 && channel < 16) channel++;
   if (clickType == 2 && channel > 0) channel--;
   trackDetailsView.indicator_channel.draw(channel);
-  patterns[currentPattern].tracks[currentTrack].channel = channel;
+  patterns[currentPattern].tracks[currentTrack].config.channel = channel;
   patternView.trackRows[currentTrack].channel = channel;
   patternView.trackRows[currentTrack].draw(true);
 }
 
 void quantizeClick(uint8_t clickType)
 {
-  uint8_t quantizeIndex = patterns[currentPattern].tracks[currentTrack].quantizeIndex;
+  uint8_t quantizeIndex = patterns[currentPattern].tracks[currentTrack].config.quantizeIndex;
   if (clickType == 1 && quantizeIndex < (NR_QUANTIZESTEPS - 1)) quantizeIndex++;
   if (clickType == 2 && quantizeIndex > 0) quantizeIndex--;
   trackDetailsView.indicator_quantize.draw(trackDetailsView.quantizeStrings[quantizeIndex]);
-  patterns[currentPattern].tracks[currentTrack].quantizeIndex = quantizeIndex;
+  patterns[currentPattern].tracks[currentTrack].config.quantizeIndex = quantizeIndex;
   patterns[currentPattern].tracks[currentTrack].quantize = trackDetailsView.quantizeSettings[quantizeIndex];
 }
 
 void transposeClick(uint8_t clickType)
 {
-  int transpose = patterns[currentPattern].tracks[currentTrack].transpose;
+  int transpose = patterns[currentPattern].tracks[currentTrack].config.transpose;
   if (clickType == 1 && transpose < 64) transpose++;
   if (clickType == 2 && transpose > -64) transpose--;
-  patterns[currentPattern].tracks[currentTrack].transpose = transpose;
+  patterns[currentPattern].tracks[currentTrack].config.transpose = transpose;
   trackDetailsView.indicator_transpose.draw(transpose);
 }
 
 void loopClick(uint8_t clickType)
 {
-  uint8_t loop = patterns[currentPattern].tracks[currentTrack].loop;
+  uint8_t loop = patterns[currentPattern].tracks[currentTrack].config.loop;
   if (clickType == 1 && loop < 64) loop++;
   if (clickType == 2 && loop > 0) loop--;
-  patterns[currentPattern].tracks[currentTrack].loop = loop;
+  patterns[currentPattern].tracks[currentTrack].config.loop = loop;
   trackDetailsView.indicator_loop.draw(loop);
 }
 
@@ -407,7 +407,7 @@ void clearTrackClick(uint8_t clickType)
 {
   String empty = "<empty>";
   clearTrack(currentTrack);
-  empty.toCharArray(patterns[currentPattern].tracks[currentTrack].name, 8);
+  empty.toCharArray(patterns[currentPattern].tracks[currentTrack].config.name, 8);
   empty.toCharArray(patternView.trackRows[currentTrack].trackName, 8);
   patternView.trackRows[currentTrack].draw(true);
 }
@@ -468,7 +468,7 @@ void arrangementOnClick(uint8_t clickType)
 void muteArrayClick(uint8_t id)
 {
   bool muteStatus = !arrangement.arrangementItems_a[currentArrangementPosition].muteArray[id];
-  patterns[currentPattern].tracks[id].hidden = muteStatus;
+  patterns[currentPattern].tracks[id].config.hidden = muteStatus;
   arrangement.arrangementItems_a[currentArrangementPosition].muteArray[id] = muteStatus;
   if (muteStatus) arrangementView.indicator_muteArray[id].draw("M");
   else arrangementView.indicator_muteArray[id].draw("-");
@@ -486,6 +486,14 @@ void editTrackClick(uint8_t clickType)
   if (clickType == 1) uiSetListEditorViewMode();
 }
 
+void fileClick(uint8_t clickType)
+{
+  uiSetFileManagerViewMode();
+//  loadTrackEvents(currentPattern);
+//  uiRedrawPatternView();
+//  uiRedrawTrackDetailsView();
+}
+
 void exitEditorClick(uint8_t clickType)
 {
   if (clickType == 1) uiSetNormalViewMode();
@@ -493,15 +501,12 @@ void exitEditorClick(uint8_t clickType)
 
 void loadClick(uint8_t clickType)
 {
-  loadTrackEvents(currentPattern);
-  uiRedrawPatternView();
-  uiRedrawTrackDetailsView();
+  loadProject();
+  //redraw all
+  uiSetNormalViewMode();
 }
 
-void saveClick(uint8_t clickType)
-{
-  saveTrackEvents(currentPattern);
-}
+void saveClick(uint8_t clickType) { saveProject(); }
 
 void newClick(uint8_t clickType)
 {
@@ -518,7 +523,7 @@ void pasteTrackClick(uint8_t clickType)
 {
   String inUse = "in use";
   pasteTrack();
-  inUse.toCharArray(patterns[currentPattern].tracks[currentTrack].name, 8);
+  inUse.toCharArray(patterns[currentPattern].tracks[currentTrack].config.name, 8);
   inUse.toCharArray(patternView.trackRows[currentTrack].trackName, 8);
   patternView.trackRows[currentTrack].draw(true);
 }
@@ -554,6 +559,26 @@ void uiSetListEditorViewMode()
   
   listEditorView.draw();
   listEditorView.layout();
+}
+
+void uiSetFileManagerViewMode()
+{
+  tft.writeTo(L2);
+  tft.fillRect(0, HEADER_H + PADDING, ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 2 * PADDING, MAIN_H,  MAIN_BG_COLOR);
+  // replace arrangement and pattern view with list editor
+  viewMode = VIEW_FILEMANAGER;
+  fileManagerView.draw();
+  fileManagerView.layout();
+}
+
+void scrollbarUpClick(uint8_t clickType)
+{
+  
+}
+
+void scrollbarDownClick(uint8_t clickType)
+{
+  
 }
 
 void testClick(uint8_t clickType)

@@ -7,8 +7,8 @@ Track::Track()
 {
   events = nullptr;
   midi_cb = nullptr;
-  channel = 1;
-  emptyName.toCharArray(name, 8);
+  config.channel = 1;
+  emptyName.toCharArray(config.name, 8);
   memset(_noteStatus, 0, 128);
   _notesPlaying = 0;
 }
@@ -47,8 +47,8 @@ void Track::paste(event * eventClipboard, uint16_t nrEvents)
   events = (event*)malloc(memBlocks * NR_EVENTS * sizeof(event));
   memcpy(events, eventClipboard, nrEvents * sizeof(event));
   _nrEvents = nrEvents;
-  if (nrEvents > 0) usedName.toCharArray(name, 8);
-  else emptyName.toCharArray(name, 8);
+  if (nrEvents > 0) usedName.toCharArray(config.name, 8);
+  else emptyName.toCharArray(config.name, 8);
 }
 
 event * Track::copy() { return events; }
@@ -65,19 +65,19 @@ void Track::triggerEvent(uint16_t eventIndex)
     switch (type)
     {
       case usbMIDI.NoteOn:
-        data1 = data1 + transpose;
+        data1 = data1 + config.transpose;
         _noteStatus[data1] = true;
         _notesPlaying++;
-        if (midi_cb) midi_cb(channel, type, data1, data2);
+        if (midi_cb) midi_cb(config.channel, type, data1, data2);
         break;
       case usbMIDI.NoteOff:
-        data1 = data1 + transpose;
+        data1 = data1 + config.transpose;
         _noteStatus[data1] = false;
         _notesPlaying--;
-        if (midi_cb) midi_cb(channel, type, data1, data2);
+        if (midi_cb) midi_cb(config.channel, type, data1, data2);
         break;
       default:
-        if (midi_cb) midi_cb(channel, type, data1, data2);
+        if (midi_cb) midi_cb(config.channel, type, data1, data2);
         break;
     }
   }
@@ -87,11 +87,11 @@ void Track::triggerEvent(uint16_t eventIndex)
  {
   uint16_t eventCounter = 0;
 
-  if (hidden) return 0;
+  if (config.hidden) return 0;
   
-  if(loop > 0)
+  if(config.loop > 0)
   {
-    timestamp = timestamp % (loop * 192); // loop is set in 1/4ths
+    timestamp = timestamp % (config.loop * 192); // loop is set in 1/4ths
     if (timestamp == 0)
     {
       cleanupNoteOff();
@@ -136,7 +136,7 @@ void Track::cleanupNoteOff()
   {
     if (_noteStatus[note] && midi_cb)
     {
-      midi_cb(channel, usbMIDI.NoteOff, note, 0);
+      midi_cb(config.channel, usbMIDI.NoteOff, note, 0);
       _notesPlaying--;
     }
   }

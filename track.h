@@ -51,16 +51,16 @@ class Track
   public:
     Track();
     TrackConfig config;
-    char      name[8];
-    uint8_t   channel;
+//    char      name[8];
+//    uint8_t   channel;
     uint16_t  quantize = 1;
-    uint8_t   quantizeIndex = 0;
-    int       transpose = 0;
-    uint8_t   loop = 0;
+//    uint8_t   quantizeIndex = 0;
+//    int       transpose = 0;
+//    uint8_t   loop = 0;
     uint16_t  memUsage = 0;
     uint8_t   memBlocks = 0;
-    bool      hidden = false;
-    bool      muted = false;
+//    bool      hidden = false;
+//    bool      muted = false;
 
     MIDIcallbackGeneric  midi_cb;
     void setMidiCb(MIDIcallbackGeneric cb);

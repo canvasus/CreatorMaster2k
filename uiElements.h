@@ -151,8 +151,7 @@ class HeaderView : public Container
 {
   using Container :: Container;
   public:
-    Button button_load;
-    Button button_save;
+    Button button_file;
     Button button_new;
     Indicator indicator_freeMem;
     Indicator indicator_arrOn;
@@ -289,6 +288,13 @@ class FileManagerRow
   private:
     Geo     _geo;  
   public:
+    FileManagerRow();
+    uint8_t id;
+    bool isActive;
+    Indicator indicator_name;
+    void layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2);
+    void draw(bool selected);
+    bool checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType); 
     
 };
 
@@ -300,4 +306,10 @@ class FileManagerView : public Container
   public:
     uint16_t firstRowIndex = 0;
     FileManagerRow fileManagerRows[NR_FILE_ROWS];
+    Button button_exit;
+    Button button_load;
+    Button button_save;
+    Scrollbar scrollbar;
+    bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);
+    void layout();
 };

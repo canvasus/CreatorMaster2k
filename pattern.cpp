@@ -7,7 +7,7 @@ Pattern::Pattern()
 {
   for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++)
   {
-    tracks[trackId].channel = trackId + 1;
+    tracks[trackId].config.channel = trackId + 1;
     tracks[trackId].setMidiCb(serialMidiSend);
   }
 }
@@ -31,7 +31,7 @@ uint16_t Pattern::getActivity(uint8_t trackId)
   return activity;
 }
 
-void Pattern::setMuteStatus(uint8_t trackId, bool muteOn) { tracks[trackId].hidden = muteOn; }
+void Pattern::setMuteStatus(uint8_t trackId, bool muteOn) { tracks[trackId].config.hidden = muteOn; }
 
 void Pattern::clear()
 {

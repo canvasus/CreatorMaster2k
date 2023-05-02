@@ -26,8 +26,9 @@
 #define HEADER_H        (uint16_t)(SCREEN_YRES * 0.1)
 #define MAIN_H          (uint16_t)(SCREEN_YRES * 0.9 - PADDING)
 
-#define VIEW_NORMAL     0
-#define VIEW_LISTEDITOR 1
+#define VIEW_NORMAL      0
+#define VIEW_LISTEDITOR  1
+#define VIEW_FILEMANAGER 2
 
 extern KeyboardController keyboard1;
 extern MouseController mouse1;
@@ -65,9 +66,13 @@ void exitEditorClick(uint8_t clickType);
 void copyTrackClick(uint8_t clickType);
 void pasteTrackClick(uint8_t clickType);
 
+void fileClick(uint8_t clickType);
+void newClick(uint8_t clickType);
 void loadClick(uint8_t clickType);
 void saveClick(uint8_t clickType);
-void newClick(uint8_t clickType);
+
+void scrollbarUpClick(uint8_t clickType);
+void scrollbarDownClick(uint8_t clickType);
 
 void testClick(uint8_t clickType);
 void testClickIndicator(uint8_t clickType);
@@ -83,5 +88,6 @@ void uiRedrawTrackDetailsView();
 
 void uiSetNormalViewMode();
 void uiSetListEditorViewMode();
+void uiSetFileManagerViewMode();
 
 void setScreensaver(bool state);

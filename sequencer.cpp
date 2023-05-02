@@ -147,8 +147,8 @@ void processInput(uint8_t channel, uint8_t type, uint8_t data1, uint8_t data2)
   {
     // Midi through
     uint8_t _data1 = data1;
-    if (type == usbMIDI.NoteOn || type == usbMIDI.NoteOff) _data1 = _data1 + patterns[currentPattern].tracks[currentTrack].transpose;
-    patterns[currentPattern].tracks[currentTrack].midi_cb(patterns[currentPattern].tracks[currentTrack].channel, type, data1, data2);
+    if (type == usbMIDI.NoteOn || type == usbMIDI.NoteOff) _data1 = _data1 + patterns[currentPattern].tracks[currentTrack].config.transpose;
+    patterns[currentPattern].tracks[currentTrack].midi_cb(patterns[currentPattern].tracks[currentTrack].config.channel, type, data1, data2);
   }
   uint32_t timestamp = patterns[currentPattern].patternTick;
   if (transport.state == SEQ_PLAYING && transport.recording) patterns[currentPattern].tracks[currentTrack].addEvent(timestamp, type, data1, data2);

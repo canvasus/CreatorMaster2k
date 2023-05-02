@@ -78,13 +78,13 @@ void Button::draw(bool state)
   tft.drawRect(_geo.xPos, _geo.yPos , _geo.width, _geo.height, BUTTON_BORDER_COLOR); // border
   if (!state) //not pressed
   {
-    tft.fillRect(_geo.xPos + 10, _geo.yPos + 10 , _geo.width - 11, _geo.height - 11, BUTTON_SHADOW_COLOR);  //shadow
+    tft.fillRect(_geo.xPos + 10, _geo.yPos + 10 , _geo.width - 12, _geo.height - 12, BUTTON_SHADOW_COLOR);  //shadow
     tft.fillRect(_geo.xPos + 5, _geo.yPos + 5 , _geo.width - 10, _geo.height - 10, _geo.color1); // main button area (state off)
     tft.drawRect(_geo.xPos + 5, _geo.yPos + 5 , _geo.width - 10, _geo.height - 10, BUTTON_BORDER_COLOR); // main button border
   }
   else // pressed
   {
-    tft.fillRect(_geo.xPos + 10, _geo.yPos + 10 , _geo.width - 11, _geo.height - 11, BUTTON_BG_COLOR);  // clear shadow
+    tft.fillRect(_geo.xPos + 10, _geo.yPos + 10 , _geo.width - 12, _geo.height - 12, BUTTON_BG_COLOR);  // clear shadow
     tft.fillRect(_geo.xPos + 5, _geo.yPos + 5 , _geo.width - 10, _geo.height - 10, _geo.color2); // main button area (state on)
     tft.drawRect(_geo.xPos + 5, _geo.yPos + 5 , _geo.width - 10, _geo.height - 10, BUTTON_BORDER_COLOR); // main button border
   }
@@ -215,11 +215,23 @@ void Scrollbar::layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t he
   _geo.height = height;
   _geo.color1 = color1;
   _geo.color2 = color2;
+
+  indicator_up.layout("", _geo.xPos, _geo.yPos, _geo.width, _geo.height /24 , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL, INDICATOR_LABEL_NONE);
+  indicator_up.draw("A");
+  indicator_up.cb = &scrollbarUpClick;
+  
+  indicator_down.layout("", _geo.xPos, _geo.yPos + _geo.height * 23 / 24, _geo.width, _geo.height /24 , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL, INDICATOR_LABEL_NONE);
+  indicator_down.draw("V");
+  indicator_down.cb = &scrollbarDownClick;
 }
 
 void Scrollbar::draw()
 {
-  
+  tft.writeTo(L2);
+  tft.fillRect(_geo.xPos, _geo.yPos , _geo.width, _geo.height, INDICATOR_BG_COLOR); // background
+  tft.drawRect(_geo.xPos, _geo.yPos , _geo.width, _geo.height, INDICATOR_BORDER_COLOR); // border
+  indicator_up.draw("A");
+  indicator_down.draw("V");
 }
 
 bool Scrollbar::checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType)
@@ -345,19 +357,19 @@ void TrackDetailsView::layout()
   indicator_loop.setLabelOffset(-74, 2);
   indicator_loop.draw("");
 
-  button_copy.layout("COPY", relX(0.02), relY(0.6), relW(0.6), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL);
+  button_copy.layout("COPY", relX(0.03), relY(0.6), relW(0.55), relH(0.09) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL);
   button_copy.cb = &copyTrackClick;
   button_copy.draw(false);
 
-  button_paste.layout("PASTE", relX(0.02), relY(0.7), relW(0.6), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL);
+  button_paste.layout("PASTE", relX(0.03), relY(0.7), relW(0.55), relH(0.09) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL);
   button_paste.cb = &pasteTrackClick;
   button_paste.draw(false);
 
-  button_clear.layout("CLEAR", relX(0.02), relY(0.8), relW(0.6), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL);
+  button_clear.layout("CLEAR", relX(0.03), relY(0.8), relW(0.55), relH(0.09) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL);
   button_clear.cb = &clearTrackClick;
   button_clear.draw(false);
 
-  button_edit.layout("EDIT", relX(0.02), relY(0.9), relW(0.5), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL);
+  button_edit.layout("EDIT", relX(0.03), relY(0.9), relW(0.55), relH(0.09) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL);
   button_edit.cb = &editTrackClick;
   button_edit.draw(false);
 }
@@ -448,13 +460,9 @@ void HeaderView::layout()
   const float button_y = 0.18;
   const float button_xPpad = 0.01;
     
-  button_load.layout("LOAD", relX(button_xPpad), relY(button_y), relW(button_w), relH(button_h) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
-  button_load.draw(false);
-  button_load.cb = &loadClick;
-
-  button_save.layout("SAVE", relX(button_w + 2 * button_xPpad), relY(button_y), relW(button_w), relH(button_h) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
-  button_save.draw(false);
-  button_save.cb = &saveClick;
+  button_file.layout("FILE", relX(button_xPpad), relY(button_y), relW(button_w), relH(button_h) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_file.draw(false);
+  button_file.cb = &fileClick;
 
   button_new.layout("NEW", relX(2 * button_w + 3 * button_xPpad), relY(button_y), relW(button_w), relH(button_h) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
   button_new.draw(false);
@@ -487,8 +495,8 @@ bool HeaderView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
   if (indicator_bpm.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_arrOn.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_signature.checkCursor(xPos, yPos, clickType)) return true;
-  if (button_save.checkCursor(xPos, yPos, clickType)) return true;
-  if (button_load.checkCursor(xPos, yPos, clickType)) return true;
+  if (button_file.checkCursor(xPos, yPos, clickType)) return true;
+  //if (button_load.checkCursor(xPos, yPos, clickType)) return true;
   return false;
 }
 
@@ -660,4 +668,60 @@ bool ListEditor::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 {
   if (button_exit.checkCursor(xPos, yPos, clickType)) return true;
   return false;
+}
+
+void FileManagerView::layout()
+{
+  button_exit.layout("EXIT", relX(0.9), relY(0.9), relW(0.1), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_exit.draw(false);
+  button_exit.cb = &exitEditorClick;
+
+  button_load.layout("LOAD", relX(0.9), relY(0.7), relW(0.1), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_load.draw(false);
+  button_load.cb = &loadClick;
+
+  button_save.layout("SAVE", relX(0.9), relY(0.8), relW(0.1), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_save.draw(false);
+  button_save.cb = &saveClick;
+
+  for (uint8_t row = 0; row < NR_FILE_ROWS; row++)
+  {
+    fileManagerRows[row].id = row;
+  }
+}
+
+bool FileManagerView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
+{
+  if (button_exit.checkCursor(xPos, yPos, clickType)) return true;
+  if (button_load.checkCursor(xPos, yPos, clickType)) return true;
+  if (button_save.checkCursor(xPos, yPos, clickType)) return true;
+  return false;
+}
+
+FileManagerRow::FileManagerRow()
+{
+  isActive = false;
+}
+
+void FileManagerRow::layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2)
+{
+  _geo.xPos = xPos;
+  _geo.yPos = yPos;
+  _geo.width = width;
+  _geo.height = height;
+  _geo.color1 = color1;
+  _geo.color2 = color2;
+}
+
+void FileManagerRow::draw(bool selected)
+{
+  tft.writeTo(L2);
+  tft.setFontScale(0);
+  if (selected) tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_SELECTED_COLOR); // background
+  else tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_NORMAL_COLOR); // background
+  tft.setCursor(_geo.xPos + 20, _geo.yPos + 5);
+  tft.setTextColor(INDICATOR_TEXT_COLOR);
+//  tft.printf("%d", startBars);
+//  tft.setCursor(_geo.xPos + 50, _geo.yPos + 5);
+//  tft.print(patternName);
 }

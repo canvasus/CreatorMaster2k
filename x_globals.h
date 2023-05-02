@@ -15,4 +15,6 @@
 
 #define NR_FILE_ROWS 24
 
-#define MEMORY_MAX 40000 // in events (7 bytes each)
+#define NR_PROJECTS 8
+
+#define MEMORY_MAX 50000 // in events (7 bytes each)
