@@ -486,27 +486,21 @@ void editTrackClick(uint8_t clickType)
   if (clickType == 1) uiSetListEditorViewMode();
 }
 
-void fileClick(uint8_t clickType)
-{
-  uiSetFileManagerViewMode();
-//  loadTrackEvents(currentPattern);
-//  uiRedrawPatternView();
-//  uiRedrawTrackDetailsView();
-}
+void fileClick(uint8_t clickType) { uiSetFileManagerViewMode(); }
 
-void exitEditorClick(uint8_t clickType)
-{
-  if (clickType == 1) uiSetNormalViewMode();
-}
+void exitEditorClick(uint8_t clickType) { if (clickType == 1) uiSetNormalViewMode(); }
 
 void loadClick(uint8_t clickType)
 {
   loadProject();
-  //redraw all
   uiSetNormalViewMode();
 }
 
-void saveClick(uint8_t clickType) { saveProject(); }
+void saveClick(uint8_t clickType)
+{
+  saveProject();
+  uiSetNormalViewMode();
+}
 
 void newClick(uint8_t clickType)
 {

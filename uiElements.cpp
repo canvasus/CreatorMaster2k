@@ -74,24 +74,37 @@ void Button::layout(String label, uint16_t xPos, uint16_t yPos, uint16_t width, 
 void Button::draw(bool state)
 {
   tft.writeTo(L2);
-  tft.fillRect(_geo.xPos, _geo.yPos , _geo.width, _geo.height, BUTTON_BG_COLOR); // background
-  tft.drawRect(_geo.xPos, _geo.yPos , _geo.width, _geo.height, BUTTON_BORDER_COLOR); // border
-  if (!state) //not pressed
+  if (type == TYPE_BUTTON)
   {
-    tft.fillRect(_geo.xPos + 10, _geo.yPos + 10 , _geo.width - 12, _geo.height - 12, BUTTON_SHADOW_COLOR);  //shadow
-    tft.fillRect(_geo.xPos + 5, _geo.yPos + 5 , _geo.width - 10, _geo.height - 10, _geo.color1); // main button area (state off)
-    tft.drawRect(_geo.xPos + 5, _geo.yPos + 5 , _geo.width - 10, _geo.height - 10, BUTTON_BORDER_COLOR); // main button border
+    tft.fillRect(_geo.xPos, _geo.yPos , _geo.width, _geo.height, BUTTON_BG_COLOR); // background
+    if (drawBorder) tft.drawRect(_geo.xPos, _geo.yPos , _geo.width, _geo.height, BUTTON_BORDER_COLOR); // border
+    if (!state) //not pressed
+    {
+      tft.fillRect(_geo.xPos + 10, _geo.yPos + 10 , _geo.width - 12, _geo.height - 12, BUTTON_SHADOW_COLOR);  //shadow
+      tft.fillRect(_geo.xPos + 5, _geo.yPos + 5 , _geo.width - 10, _geo.height - 10, _geo.color1); // main button area (state off)
+      tft.drawRect(_geo.xPos + 5, _geo.yPos + 5 , _geo.width - 10, _geo.height - 10, BUTTON_BORDER_COLOR); // main button border
+    }
+    else // pressed
+    {
+      tft.fillRect(_geo.xPos + 10, _geo.yPos + 10 , _geo.width - 12, _geo.height - 12, BUTTON_BG_COLOR);  // clear shadow
+      tft.fillRect(_geo.xPos + 5, _geo.yPos + 5 , _geo.width - 10, _geo.height - 10, _geo.color2); // main button area (state on)
+      tft.drawRect(_geo.xPos + 5, _geo.yPos + 5 , _geo.width - 10, _geo.height - 10, BUTTON_BORDER_COLOR); // main button border
+    }
   }
-  else // pressed
+  if (type == TYPE_CHECKBOX)
   {
-    tft.fillRect(_geo.xPos + 10, _geo.yPos + 10 , _geo.width - 12, _geo.height - 12, BUTTON_BG_COLOR);  // clear shadow
-    tft.fillRect(_geo.xPos + 5, _geo.yPos + 5 , _geo.width - 10, _geo.height - 10, _geo.color2); // main button area (state on)
-    tft.drawRect(_geo.xPos + 5, _geo.yPos + 5 , _geo.width - 10, _geo.height - 10, BUTTON_BORDER_COLOR); // main button border
+    uint8_t checkbox_side =  _geo.height - 10;
+    uint16_t checkbox_x =  _geo.xPos + _geo.width - 2 * checkbox_side;
+    uint16_t checkbox_y =  _geo.yPos + 5;
+    tft.fillRect(_geo.xPos, _geo.yPos , _geo.width, _geo.height, BUTTON_BG_COLOR); // background
+    if (drawBorder) tft.drawRect(_geo.xPos, _geo.yPos , _geo.width, _geo.height, BUTTON_BORDER_COLOR); // border
+    tft.drawRect(checkbox_x, checkbox_y , checkbox_side, checkbox_side, BUTTON_BORDER_COLOR); // checkbox border
+    if (state) tft.fillRect(checkbox_x + 2, checkbox_y + 2 , checkbox_side - 4, checkbox_side - 4, BUTTON_BORDER_COLOR); // checkbox ON
+    else tft.fillRect(checkbox_x + 2, checkbox_y + 2 , checkbox_side - 4, checkbox_side - 4, BUTTON_BG_COLOR); // checkbox OFF
   }
-
   tft.setFontScale(0);
   tft.setTextColor(BUTTON_TEXT_COLOR);
-  tft.setCursor(_geo.xPos + 10, _geo.yPos + 10);
+  tft.setCursor(_geo.xPos + _labelXoffset, _geo.yPos + _labelYoffset);
   tft.print(_geo.label);
 }
 
@@ -111,6 +124,12 @@ void Button::set(bool newState)
 {
   state = newState;
   draw(state);
+}
+
+void Button::setLabelOffset(int xOffset, int yOffset)
+{
+  _labelXoffset = xOffset;
+  _labelYoffset = yOffset;
 }
 
 // --- INDICATOR CLASS ---
@@ -260,7 +279,7 @@ void TrackRow::draw(bool selected)
   else tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_NORMAL_COLOR); // background
   tft.setCursor(_geo.xPos + 20, _geo.yPos + 5);
   tft.setTextColor(INDICATOR_TEXT_COLOR);
-  tft.printf("%2d", id);
+  tft.printf("%2d", id + 1);
   tft.setCursor(_geo.xPos + 50, _geo.yPos + 5);
   tft.print(trackName);
   tft.setCursor(_geo.xPos + _geo.width - 20, _geo.yPos + 5);
@@ -282,7 +301,7 @@ void TrackRow::activity(uint8_t level)
   const uint8_t a_width = 18;
   level = constrain(level, 0, 20);
   tft.fillRect(_geo.xPos + 3, _geo.yPos + 1, a_width , _geo.height - 2, ACTIVITY_BG_COLOR);
-  if (level > 0) tft.fillRect(_geo.xPos + 3, _geo.yPos + 3, (uint16_t)( (level/20.0) * a_width) , _geo.height - 6, ACTIVITY_FILL_COLOR);
+  if (level > 0) tft.fillRect(_geo.xPos + 3, _geo.yPos + 4, (uint16_t)( (level/20.0) * a_width) , _geo.height - 8, ACTIVITY_FILL_COLOR);
 }
 
 // --- PATTERN VIEW CLASS ---
@@ -684,6 +703,13 @@ void FileManagerView::layout()
   button_save.draw(false);
   button_save.cb = &saveClick;
 
+  button_test.layout("TEST", relX(0.8), relY(0.6), relW(0.18), relH(0.06) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_test.type = TYPE_CHECKBOX;
+  button_test.setLabelOffset(10, 3);
+  button_test.drawBorder = false;
+  button_test.draw(false);
+  button_test.cb = &testClick;
+
   for (uint8_t row = 0; row < NR_FILE_ROWS; row++)
   {
     fileManagerRows[row].id = row;
@@ -695,6 +721,7 @@ bool FileManagerView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickT
   if (button_exit.checkCursor(xPos, yPos, clickType)) return true;
   if (button_load.checkCursor(xPos, yPos, clickType)) return true;
   if (button_save.checkCursor(xPos, yPos, clickType)) return true;
+  if (button_test.checkCursor(xPos, yPos, clickType)) return true;
   return false;
 }
 

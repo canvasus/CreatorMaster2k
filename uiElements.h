@@ -16,6 +16,9 @@
 #define BUTTON_FILL_PRESSED   0xA55B // medium blue
 #define BUTTON_TEXT_COLOR     0x1175 // dark blue
 
+#define TYPE_BUTTON   0
+#define TYPE_CHECKBOX 1
+
 #define INDICATOR_BG_COLOR      RA8875_WHITE
 #define INDICATOR_BORDER_COLOR  0x1175 // dark blue
 #define INDICATOR_TEXT_COLOR    0x1175
@@ -63,15 +66,20 @@ class Button
 {
   private:
     Geo     _geo;
+    int _labelXoffset = 10;
+    int _labelYoffset = 10;
   public:
     Button();
     bool state = false;
     bool latch = false;
+    bool drawBorder = true;
+    uint8_t type = TYPE_BUTTON;
     void set(bool newState);
     void layout(String label, uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t bgColor, uint16_t selectedColor);
     buttonCallback cb;
     bool checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType); 
     void draw(bool state);
+    void setLabelOffset(int xOffset, int yOffset);
 };
 
 class Indicator
@@ -309,6 +317,9 @@ class FileManagerView : public Container
     Button button_exit;
     Button button_load;
     Button button_save;
+
+    Button button_test;
+    
     Scrollbar scrollbar;
     bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);
     void layout();
