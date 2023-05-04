@@ -225,6 +225,11 @@ class TrackDetailsView :  public Container
   public:
     const String quantizeStrings[NR_QUANTIZESTEPS] = {"OFF ", "1/4 " ,"1/8 ", "1/16", "1/3 "};
     const uint16_t quantizeSettings[NR_QUANTIZESTEPS] = {1, 192, 96, 48, 64};
+    const String compressStrings[NR_COMPRESSTEPS] = {"OFF", "1:2" ,"1:4", "1:8", "fix"};
+    const uint16_t compressSettings[NR_COMPRESSTEPS] = {0, 1, 2, 3, 4};  // 63 + abs(velocity - 64) / C
+    const String lengthStrings[NR_QUANTIZESTEPS] = {"OFF ", "1/4 " ,"1/8 ", "1/16", "1/3 "};
+    const uint16_t lengthSettings[NR_QUANTIZESTEPS] = {0, 192, 96, 48, 64};
+    
     Deco decoLeft;
     Deco decoRight;
     Indicator indicator_trackNr;
@@ -232,13 +237,16 @@ class TrackDetailsView :  public Container
     Indicator indicator_quantize;
     Indicator indicator_transpose;
     Indicator indicator_loop;
+    Indicator indicator_velocity;
+    Indicator indicator_compress;
+    Indicator indicator_length;
     Button button_copy;
     Button button_paste;
     Button button_edit;
     Button button_clear;
     bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);
     void layout();
-    void update(uint8_t trackNr, uint8_t channel, uint8_t quantizeIndex, int transpose, uint8_t loop);
+    void update(uint8_t trackNr, uint8_t channel, uint8_t quantizeIndex, int transpose, uint8_t loop, int velocity, uint8_t compressIndex,  uint8_t lengthIndex);
 };
 
 class ControlsView :  public Container

@@ -77,6 +77,8 @@ void play()
 void stop()
 {
   transport.state = SEQ_STOPPED;
+  transport.precountBars = 0;
+  transport.precountTicks = 0;
   updateMetronome(true);
 }
 
@@ -113,21 +115,24 @@ void record(bool record)
 
 void handlePrecount()
 {
-  static uint16_t ticks = 0;
-  static uint8_t beatsPrecounted = 0;
+  //static uint16_t ticks = 0;
+  //static uint8_t beatsPrecounted = 0;
   //uint8_t note = 76;
-  ticks++;
-  if (ticks / RESOLUTION > beatsPrecounted)
+  //ticks++;
+  transport.precountTicks++;
+  if (transport.precountTicks / RESOLUTION > transport.precountBars) //beatsPrecounted)
   {
-    beatsPrecounted++;
+    //beatsPrecounted++;
+    transport.precountBars++;
     metronome_midi_cb(metronomeChannel, usbMIDI.NoteOn, metronomeNote1, 80);
   }
-  if (ticks % RESOLUTION > RESOLUTION >> 1 ) metronome_midi_cb(metronomeChannel, usbMIDI.NoteOff, metronomeNote1, 0);
-  if (beatsPrecounted > 4)
+  if (transport.precountTicks % RESOLUTION > RESOLUTION >> 1 ) metronome_midi_cb(metronomeChannel, usbMIDI.NoteOff, metronomeNote1, 0);
+  if (transport.precountBars > 4) // beatsPrecounted > 4)
   {
     metronome_midi_cb(metronomeChannel, usbMIDI.NoteOff, metronomeNote1, 0);
-    beatsPrecounted = 0;
-    ticks = 0;
+    //beatsPrecounted = 0;
+    transport.precountBars = 0;
+    transport.precountTicks = 0;
     transport.state = SEQ_PLAYING;
   }
 }
@@ -162,12 +167,6 @@ void updateTransport(uint32_t tick)
   transport.trp_4th = (uint16_t)(tick / transport.ticksPerBeat);
   tick = (uint16_t)(tick % transport.ticksPerBeat);
   transport.trp_16th = (uint16_t)(tick / (RESOLUTION / 4));
-  
-//  transport.trp_bar = (uint16_t)(tick / (RESOLUTION * 4));
-//  tick = tick - transport.trp_bar * RESOLUTION * 4;
-//  transport.trp_4th = (uint16_t)(tick / RESOLUTION);
-//  tick = tick - transport.trp_4th * RESOLUTION;
-//  transport.trp_16th = (uint16_t)(tick / (RESOLUTION / 4));
 }
 
 void updateMetronome(bool reset)

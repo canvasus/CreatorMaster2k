@@ -65,6 +65,9 @@ void signatureClick(uint8_t clickType);
 void exitEditorClick(uint8_t clickType);
 void copyTrackClick(uint8_t clickType);
 void pasteTrackClick(uint8_t clickType);
+void velocityClick(uint8_t clickType);
+void compressClick(uint8_t clickType);
+void lengthClick(uint8_t clickType);
 
 void fileClick(uint8_t clickType);
 void newClick(uint8_t clickType);

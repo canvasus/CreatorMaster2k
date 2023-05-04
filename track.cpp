@@ -66,6 +66,7 @@ void Track::triggerEvent(uint16_t eventIndex)
     {
       case usbMIDI.NoteOn:
         data1 = data1 + config.transpose;
+        if ( (config.compressIndex > 0) || (config.velocity != 0) ) data2 = _processVelocity(data2);
         _noteStatus[data1] = true;
         _notesPlaying++;
         if (midi_cb) midi_cb(config.channel, type, data1, data2);
@@ -122,6 +123,16 @@ void Track::triggerEvent(uint16_t eventIndex)
 }
 
 uint32_t Track::_quantizeTimestamp(uint32_t timestamp) { return ((timestamp + (quantize>>1)) / quantize) * quantize; } // returns nearest
+
+uint8_t Track::_processVelocity(uint8_t velocityIn)
+{
+  int16_t velocity_temp = velocityIn;
+  if (config.compressIndex > 0 && config.compressIndex < 4) velocity_temp = 63 + (velocityIn - 63) / compress;
+  if (config.compressIndex == 4) velocity_temp = 63; // fix
+  if (config.velocity != 0) velocity_temp = velocity_temp + config.velocity;
+  uint8_t velocityOut = constrain(velocity_temp, 0, 127);
+  return velocityOut;
+}
 
 void Track::reset()
 {

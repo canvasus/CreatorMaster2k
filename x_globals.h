@@ -10,6 +10,8 @@
 #define NR_SIGNATURES 6
 
 #define NR_QUANTIZESTEPS 5
+#define NR_COMPRESSTEPS 5
+#define NR_LENGTHSTEPS 5
 
 #define NR_LIST_ROWS 24 // max rows to display
 

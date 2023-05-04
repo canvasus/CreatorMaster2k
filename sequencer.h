@@ -32,7 +32,8 @@ struct Transport
   uint16_t  trp_16th    = 0;
   uint16_t  trp_768th   = 0;
   uint16_t  freeMemory  = MEMORY_MAX;
-  uint8_t   preCount    = 0;
+  uint8_t   precountBars = 0;
+  uint16_t  precountTicks = 0;
   bool      arrangementOn = false;
 };
 

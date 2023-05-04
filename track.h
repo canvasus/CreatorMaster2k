@@ -3,10 +3,6 @@
 #include <Arduino.h>
 #include "x_globals.h"
 
-// SAVE:
-// all events (OK?)
-// trackConfig struct
-
 #define NONE 0
 #define TYPE_NOTEON_TEMP  usbMIDI.NoteOn - 1
 #define TYPE_NOTEOFF_TEMP usbMIDI.NoteOff -1
@@ -31,6 +27,9 @@ struct TrackConfig
   uint8_t   quantizeIndex = 0;
   int       transpose = 0;
   uint8_t   loop = 0;
+  int       velocity = 0;
+  uint8_t   compressIndex = 0;
+  uint8_t   lengthIndex = 0;
   bool      hidden = false;
   bool      muted = false;
 };
@@ -46,6 +45,7 @@ class Track
     void      _releaseBuffer();
     void      _expandBuffer();
     uint32_t  _quantizeTimestamp(uint32_t timestamp);
+    uint8_t   _processVelocity(uint8_t velocityIn);
     bool      _noteStatus[128];
     uint8_t   _notesPlaying;
   public:
@@ -54,6 +54,8 @@ class Track
     uint16_t  quantize = 1;
     uint16_t  memUsage = 0;
     uint8_t   memBlocks = 0;
+    uint8_t   compress = 0;
+    uint16_t  length = 0;
 
     MIDIcallbackGeneric  midi_cb;
     void setMidiCb(MIDIcallbackGeneric cb);

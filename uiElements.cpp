@@ -374,7 +374,22 @@ void TrackDetailsView::layout()
   indicator_loop.layout("LOOP", relX(0.66), relY(5/17.0), relW(0.32), relH(1/17.5) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL, INDICATOR_LABEL_CUSTOM);
   indicator_loop.cb = &loopClick;
   indicator_loop.setLabelOffset(-74, 2);
-  indicator_loop.draw("");
+  indicator_loop.draw("0");
+
+  indicator_velocity.layout("VELOCITY", relX(0.66), relY(6/17.0), relW(0.32), relH(1/17.5) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL, INDICATOR_LABEL_CUSTOM);
+  indicator_velocity.cb = &velocityClick;
+  indicator_velocity.setLabelOffset(-74, 2);
+  indicator_velocity.draw("0");
+
+  indicator_compress.layout("COMPRESS", relX(0.66), relY(7/17.0), relW(0.32), relH(1/17.5) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL, INDICATOR_LABEL_CUSTOM);
+  indicator_compress.cb = &compressClick;
+  indicator_compress.setLabelOffset(-74, 2);
+  indicator_compress.draw("OFF");
+
+  indicator_length.layout("LENGTH", relX(0.66), relY(8/17.0), relW(0.32), relH(1/17.5) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL, INDICATOR_LABEL_CUSTOM);
+  indicator_length.cb = &lengthClick;
+  indicator_length.setLabelOffset(-74, 2);
+  indicator_length.draw("OFF");
 
   button_copy.layout("COPY", relX(0.03), relY(0.6), relW(0.55), relH(0.09) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL);
   button_copy.cb = &copyTrackClick;
@@ -399,6 +414,9 @@ bool TrackDetailsView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t click
   if (indicator_quantize.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_transpose.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_loop.checkCursor(xPos, yPos, clickType)) return true;
+  if (indicator_velocity.checkCursor(xPos, yPos, clickType)) return true;
+  if (indicator_compress.checkCursor(xPos, yPos, clickType)) return true;
+  if (indicator_length.checkCursor(xPos, yPos, clickType)) return true;
   if (button_copy.checkCursor(xPos, yPos, clickType)) return true;
   if (button_paste.checkCursor(xPos, yPos, clickType)) return true;
   if (button_edit.checkCursor(xPos, yPos, clickType)) return true;
@@ -406,13 +424,16 @@ bool TrackDetailsView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t click
   return false;
 }
 
-void TrackDetailsView::update(uint8_t trackNr, uint8_t channel, uint8_t quantizeIndex, int transpose, uint8_t loop)
+void TrackDetailsView::update(uint8_t trackNr, uint8_t channel, uint8_t quantizeIndex, int transpose, uint8_t loop, int velocity, uint8_t compressIndex, uint8_t lengthIndex)
 {
   indicator_trackNr.draw(trackNr + 1);
   indicator_channel.draw(channel);
   indicator_quantize.draw(quantizeStrings[quantizeIndex]);
   indicator_transpose.draw(transpose);
   indicator_loop.draw(loop);
+  indicator_velocity.draw(velocity);
+  indicator_compress.draw(compressStrings[compressIndex]);
+  indicator_length.draw(lengthStrings[lengthIndex]);
 }
 
 // --- CONTROLS ---

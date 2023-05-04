@@ -166,13 +166,15 @@ void uiRedrawTrackDetailsView()
   uint8_t quantizeIndex = patterns[currentPattern].tracks[currentTrack].config.quantizeIndex;
   int transpose = patterns[currentPattern].tracks[currentTrack].config.transpose;
   uint8_t loop = patterns[currentPattern].tracks[currentTrack].config.loop;
-  trackDetailsView.update(currentTrack, channel, quantizeIndex, transpose, loop);
+  int velocity = patterns[currentPattern].tracks[currentTrack].config.velocity;
+  uint8_t compress = patterns[currentPattern].tracks[currentTrack].config.compressIndex;
+  uint8_t length = patterns[currentPattern].tracks[currentTrack].config.lengthIndex;
+  trackDetailsView.update(currentTrack, channel, quantizeIndex, transpose, loop, velocity, compress, length);
 }
 
 void updateMouse()
 {
   static elapsedMillis activityTimer = 0;
-  //const uint16_t screenSaverTimeout = 30000;
   static elapsedMillis debounceTimer = 0;
   const uint8_t debounceTime = 100;
   static uint8_t lastMouseButtons = 0;
@@ -401,6 +403,35 @@ void loopClick(uint8_t clickType)
   if (clickType == 2 && loop > 0) loop--;
   patterns[currentPattern].tracks[currentTrack].config.loop = loop;
   trackDetailsView.indicator_loop.draw(loop);
+}
+
+void velocityClick(uint8_t clickType)
+{
+  int velocity = patterns[currentPattern].tracks[currentTrack].config.velocity;
+  if (clickType == 1 && velocity < 127) velocity++;
+  if (clickType == 2 && velocity > -127) velocity--;
+  patterns[currentPattern].tracks[currentTrack].config.velocity = velocity;
+  trackDetailsView.indicator_velocity.draw(velocity);
+}
+
+void compressClick(uint8_t clickType)
+{
+  uint8_t compressIndex = patterns[currentPattern].tracks[currentTrack].config.compressIndex;
+  if (clickType == 1 && compressIndex < (NR_COMPRESSTEPS - 1)) compressIndex++;
+  if (clickType == 2 && compressIndex > 0) compressIndex--;
+  trackDetailsView.indicator_compress.draw(trackDetailsView.compressStrings[compressIndex]);
+  patterns[currentPattern].tracks[currentTrack].config.compressIndex = compressIndex;
+  patterns[currentPattern].tracks[currentTrack].compress = trackDetailsView.compressSettings[compressIndex];
+}
+
+void lengthClick(uint8_t clickType)
+{
+  uint8_t lengthIndex = patterns[currentPattern].tracks[currentTrack].config.lengthIndex;
+  if (clickType == 1 && lengthIndex < (NR_LENGTHSTEPS - 1)) lengthIndex++;
+  if (clickType == 2 && lengthIndex > 0) lengthIndex--;
+  trackDetailsView.indicator_length.draw(trackDetailsView.lengthStrings[lengthIndex]);
+  patterns[currentPattern].tracks[currentTrack].config.lengthIndex = lengthIndex;
+  patterns[currentPattern].tracks[currentTrack].length = trackDetailsView.lengthSettings[lengthIndex];
 }
 
 void clearTrackClick(uint8_t clickType)
