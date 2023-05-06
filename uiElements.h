@@ -253,6 +253,9 @@ class ControlsView :  public Container
 {
   using Container::Container;
   public:
+    Indicator indicator_leftLocator;
+    Indicator indicator_rightLocator;
+    Indicator indicator_cycle;
     Button button_start;
     Button button_continue;
     Button button_stop;

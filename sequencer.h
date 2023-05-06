@@ -35,6 +35,9 @@ struct Transport
   uint8_t   precountBars = 0;
   uint16_t  precountTicks = 0;
   bool      arrangementOn = false;
+  uint32_t  leftLocatorTick = 0;
+  uint32_t  rightLocatorTick = 0;
+  bool      cycle = false;
 };
 
 extern Transport transport;

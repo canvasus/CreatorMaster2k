@@ -68,6 +68,9 @@ void pasteTrackClick(uint8_t clickType);
 void velocityClick(uint8_t clickType);
 void compressClick(uint8_t clickType);
 void lengthClick(uint8_t clickType);
+void leftLocatorClick(uint8_t clickType);
+void rightLocatorClick(uint8_t clickType);
+void cycleOnClick(uint8_t clickType);
 
 void fileClick(uint8_t clickType);
 void newClick(uint8_t clickType);

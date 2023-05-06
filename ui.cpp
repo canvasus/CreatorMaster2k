@@ -352,6 +352,30 @@ void stopClick(uint8_t clickType)
   controlsView.button_start.set(false);
 }
 
+void leftLocatorClick(uint8_t clickType)
+{
+  if (clickType == 1) transport.leftLocatorTick = transport.leftLocatorTick + transport.ticksPerBar;
+  if (clickType == 2 && (transport.leftLocatorTick > transport.ticksPerBar) ) transport.leftLocatorTick = transport.leftLocatorTick - transport.ticksPerBar;
+  uint16_t bar = (uint16_t)(transport.leftLocatorTick / transport.ticksPerBar);
+  controlsView.indicator_leftLocator.draw(bar, 0, 0, false);
+}
+
+void rightLocatorClick(uint8_t clickType)
+{
+  if (clickType == 1) transport.rightLocatorTick = transport.rightLocatorTick + transport.ticksPerBar;
+  if (clickType == 2 && (transport.rightLocatorTick > transport.ticksPerBar) ) transport.rightLocatorTick = transport.rightLocatorTick - transport.ticksPerBar;
+  transport.rightLocatorTick = max(transport.leftLocatorTick + transport.ticksPerBar, transport.rightLocatorTick);
+  uint16_t bar = (uint16_t)(transport.rightLocatorTick / transport.ticksPerBar);
+  controlsView.indicator_rightLocator.draw(bar, 0, 0, false);
+}
+
+void cycleOnClick(uint8_t clickType)
+{
+  transport.cycle = !transport.cycle;
+  if (transport.cycle) controlsView.indicator_cycle.draw("ON");
+  else controlsView.indicator_cycle.draw("OFF");
+}
+
 void trackSelectClick(uint8_t id)
 {
   patternView.trackRows[currentTrack].draw(false);

@@ -440,6 +440,18 @@ void TrackDetailsView::update(uint8_t trackNr, uint8_t channel, uint8_t quantize
 
 void ControlsView::layout()
 {
+  indicator_leftLocator.layout("LEFT LOCATOR", relX(0.24), relY(0.05), relW(0.50), relH(0.06), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
+  indicator_leftLocator.draw(1,0,0, true);
+  indicator_leftLocator.cb = &leftLocatorClick;
+
+  indicator_rightLocator.layout("RIGHT LOCATOR", relX(0.24), relY(0.15), relW(0.50), relH(0.06), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
+  indicator_rightLocator.draw(1,0,0, true);
+  indicator_rightLocator.cb = &rightLocatorClick;
+
+  indicator_cycle.layout("CYCLE", relX(0.6), relY(0.25), relW(0.2), relH(0.06), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR,INDICATOR_LABEL_LEFT40);
+  indicator_cycle.cb = &cycleOnClick;
+  indicator_cycle.draw("OFF");
+   
   button_start.layout("START", relX(0.02), relY(0.9), relW(0.56), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
   button_start.draw(false);
   button_start.cb = &startClick;
@@ -488,6 +500,11 @@ bool ControlsView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType
   if (button_fastForward.checkCursor(xPos, yPos, clickType)) return true;
   if (button_punch.checkCursor(xPos, yPos, clickType)) return true;
   if (button_record.checkCursor(xPos, yPos, clickType)) return true;
+
+  if (indicator_leftLocator.checkCursor(xPos, yPos, clickType)) return true;
+  if (indicator_rightLocator.checkCursor(xPos, yPos, clickType)) return true;
+  if (indicator_cycle.checkCursor(xPos, yPos, clickType)) return true;
+  
   return false;
 }
 
@@ -531,12 +548,10 @@ void HeaderView::layout()
 bool HeaderView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 {
   if (button_new.checkCursor(xPos, yPos, clickType)) return true;
-  //if (indicator_freeMem.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_bpm.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_arrOn.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_signature.checkCursor(xPos, yPos, clickType)) return true;
   if (button_file.checkCursor(xPos, yPos, clickType)) return true;
-  //if (button_load.checkCursor(xPos, yPos, clickType)) return true;
   return false;
 }
 

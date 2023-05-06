@@ -13,7 +13,8 @@ void initSDcard()
     sdStatus = true;
     listContent();
   }
- 
+
+
 }
 
 void loadProject()
@@ -64,7 +65,7 @@ void saveTrackEvents(uint8_t patternNr)
   Serial.printf("SAVE data for pattern %d\n", patternNr);
   // save all event data from used tracks
   char fileName[18];
-  sprintf(fileName, "CM2K_PATTERN_%02d", patternNr);
+  sprintf(fileName, "CM2K_PATTERN_%03d", patternNr);
   SD.remove(fileName);
   File dataFile = SD.open(fileName, FILE_WRITE);
   for (uint8_t trackNr = 0; trackNr < NR_TRACKS; trackNr++)
@@ -85,8 +86,8 @@ bool loadSystemSettings()
 
 void loadTrackSettings(uint8_t patternNr)
 {
-  char fileName[18];
-  sprintf(fileName, "CM2K_PATTERNSET_%02d", patternNr);
+  char fileName[20];
+  sprintf(fileName, "CM2K_PATTERNSET_%03d", patternNr);
   File dataFile = SD.open(fileName, FILE_READ);
   for (uint8_t trackNr = 0; trackNr < NR_TRACKS; trackNr++)
   {
@@ -97,8 +98,8 @@ void loadTrackSettings(uint8_t patternNr)
 
 void saveTrackSettings(uint8_t patternNr)
 {
-  char fileName[18];
-  sprintf(fileName, "CM2K_PATTERNSET_%02d", patternNr);
+  char fileName[20];
+  sprintf(fileName, "CM2K_PATTERNSET_%03d", patternNr);
   SD.remove(fileName);
   File dataFile = SD.open(fileName, FILE_WRITE);
   for (uint8_t trackNr = 0; trackNr < NR_TRACKS; trackNr++)
@@ -129,8 +130,8 @@ void saveArrangementSettings()
 void setProjectfolder(uint8_t projectId)
 {
   SD.sdfs.chdir("/");
-  char fileName[15];
-  sprintf(fileName, "CM2K_PROJECT_%02d", projectId);
+  char fileName[17];
+  sprintf(fileName, "CM2K_PROJECT_%03d", projectId);
   if (!SD.exists(fileName)) SD.mkdir(fileName);
   SD.sdfs.chdir(fileName);
   //currentProjectFolder = fileName;

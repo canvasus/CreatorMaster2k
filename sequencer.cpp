@@ -144,8 +144,6 @@ void setBpm(uint8_t bpm)
   sequencerUpdateTimer.begin(tickPattern, oneTickUs); 
 }
 
-// TODO: all input/output processing could be done in common functions, no need for one per type
-
 void processInput(uint8_t channel, uint8_t type, uint8_t data1, uint8_t data2)
 {
   if (patterns[currentPattern].tracks[currentTrack].midi_cb && midiThrough)
@@ -156,8 +154,12 @@ void processInput(uint8_t channel, uint8_t type, uint8_t data1, uint8_t data2)
     patterns[currentPattern].tracks[currentTrack].midi_cb(patterns[currentPattern].tracks[currentTrack].config.channel, type, data1, data2);
   }
   uint32_t timestamp = patterns[currentPattern].patternTick;
-  if (transport.state == SEQ_PLAYING && transport.recording) patterns[currentPattern].tracks[currentTrack].addEvent(timestamp, type, data1, data2);
-  if (transport.state == SEQ_PRECOUNT && transport.recording) patterns[currentPattern].tracks[currentTrack].addEvent(0, type, data1, data2);
+  if (transport.recording)
+  {
+    if (transport.state == SEQ_PLAYING) patterns[currentPattern].tracks[currentTrack].addEvent(timestamp, type, data1, data2);
+    if (transport.state == SEQ_PRECOUNT) patterns[currentPattern].tracks[currentTrack].addEvent(0, type, data1, data2);  
+  }
+  patterns[currentPattern].setActivity(currentTrack, 20);
 }
 
 void updateTransport(uint32_t tick)
