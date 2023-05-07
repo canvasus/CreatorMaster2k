@@ -278,7 +278,8 @@ void TrackRow::draw(bool selected)
   if (selected) tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_SELECTED_COLOR); // background
   else tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_NORMAL_COLOR); // background
   tft.setCursor(_geo.xPos + 20, _geo.yPos + 5);
-  tft.setTextColor(INDICATOR_TEXT_COLOR);
+  if (selected) tft.setTextColor(RA8875_WHITE);
+  else tft.setTextColor(INDICATOR_TEXT_COLOR);
   tft.printf("%2d", id + 1);
   tft.setCursor(_geo.xPos + 50, _geo.yPos + 5);
   tft.print(trackName);
@@ -579,7 +580,8 @@ void ArrangementRow::draw(bool selected)
   if (selected) tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_SELECTED_COLOR); // background
   else tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_NORMAL_COLOR); // background
   tft.setCursor(_geo.xPos + 20, _geo.yPos + 5);
-  tft.setTextColor(INDICATOR_TEXT_COLOR);
+  if (selected) tft.setTextColor(RA8875_WHITE);
+  else tft.setTextColor(INDICATOR_TEXT_COLOR);
   tft.printf("%d", startBars);
   tft.setCursor(_geo.xPos + 50, _geo.yPos + 5);
   tft.print(patternName);
