@@ -6,6 +6,7 @@
 #include "uiElements.h"
 #include "sequencer.h"
 #include "sdMgr.h"
+#include "peripherals.h"
 
 #define RA8875_CS 10   // ER-TFTM070 pin 5
 #define RA8875_RESET 9 // ER-TFTM070 pin 11
@@ -41,7 +42,6 @@ void updateUI();
 void updateMouse();
 void updateCursor(int deltaX, int deltaY);
 void drawCursor();
-//void uiDrawPrecount(uint8_t count);
 
 void recordClick(uint8_t clickType);
 void startClick(uint8_t clickType);
@@ -76,6 +76,7 @@ void fileClick(uint8_t clickType);
 void newClick(uint8_t clickType);
 void loadClick(uint8_t clickType);
 void saveClick(uint8_t clickType);
+void fileManagerRowClick(uint8_t id);
 
 void scrollbarUpClick(uint8_t clickType);
 void scrollbarDownClick(uint8_t clickType);

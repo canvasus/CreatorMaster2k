@@ -68,9 +68,10 @@ class Track
     event * copy();
     uint16_t getNrEvents();
     uint32_t getEventTimestamp(uint16_t eventIndex);
-    uint8_t getEventType(uint16_t eventIndex);
-    uint8_t getEventData1(uint16_t eventIndex);
-    uint8_t getEventData2(uint16_t eventIndex);
+    void setPosition(uint32_t timestamp);
+    //uint8_t getEventType(uint16_t eventIndex);
+    //uint8_t getEventData1(uint16_t eventIndex);
+    //uint8_t getEventData2(uint16_t eventIndex);
     void reset();
     void cleanupNoteOff();
     void triggerEvent(uint16_t eventIndex);

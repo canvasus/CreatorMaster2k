@@ -11,6 +11,7 @@
 #define SEQ_PLAYING  1
 #define SEQ_PRECOUNT 2
 
+extern uint8_t currentProject;
 extern uint8_t currentTrack;
 extern uint8_t currentPattern;
 extern uint8_t currentArrangementPosition;
@@ -23,6 +24,9 @@ struct Transport
   uint8_t   state       = SEQ_STOPPED;
   bool      recording   = false;
   bool      metronomeOn = true;
+  uint8_t   metronomeChannel = 10;
+  uint8_t   metronomeNote1 = 76;
+  uint8_t   metronomeNote2 = 77;
   uint8_t   signatureId = 0;
   String    signature   = "4/4";
   uint16_t  ticksPerBar = RESOLUTION * 4;
@@ -36,7 +40,7 @@ struct Transport
   uint16_t  precountTicks = 0;
   bool      arrangementOn = false;
   uint32_t  leftLocatorTick = 0;
-  uint32_t  rightLocatorTick = 0;
+  uint32_t  rightLocatorTick = 4 * RESOLUTION * 4;
   bool      cycle = false;
 };
 

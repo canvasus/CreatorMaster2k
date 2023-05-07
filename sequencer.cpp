@@ -2,6 +2,8 @@
 
 Transport transport;
 IntervalTimer sequencerUpdateTimer;
+
+uint8_t currentProject = 0;
 uint8_t currentTrack = 0;
 uint8_t currentPattern = 0;
 uint8_t currentArrangementPosition = 0;
@@ -52,7 +54,6 @@ void tickPattern()
       lastArrPosition = currentArrangementPosition;
       patterns[currentPattern].reset();
       setMuteStatus();
-      //allNotesOff(); // temporary fix
     }
     currentPattern = arrangement.arrangementItems_a[currentArrangementPosition].patternIndex;
   }
@@ -115,14 +116,9 @@ void record(bool record)
 
 void handlePrecount()
 {
-  //static uint16_t ticks = 0;
-  //static uint8_t beatsPrecounted = 0;
-  //uint8_t note = 76;
-  //ticks++;
   transport.precountTicks++;
   if (transport.precountTicks / RESOLUTION > transport.precountBars) //beatsPrecounted)
   {
-    //beatsPrecounted++;
     transport.precountBars++;
     metronome_midi_cb(metronomeChannel, usbMIDI.NoteOn, metronomeNote1, 80);
   }
@@ -130,7 +126,6 @@ void handlePrecount()
   if (transport.precountBars > 4) // beatsPrecounted > 4)
   {
     metronome_midi_cb(metronomeChannel, usbMIDI.NoteOff, metronomeNote1, 0);
-    //beatsPrecounted = 0;
     transport.precountBars = 0;
     transport.precountTicks = 0;
     transport.state = SEQ_PLAYING;

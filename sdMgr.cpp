@@ -13,8 +13,6 @@ void initSDcard()
     sdStatus = true;
     listContent();
   }
-
-
 }
 
 void loadProject()
@@ -24,6 +22,7 @@ void loadProject()
     loadTrackEvents(patternId);
     loadTrackSettings(patternId);
   }
+  loadArrangementSettings();
 }
 
 void saveProject()
@@ -33,15 +32,14 @@ void saveProject()
     saveTrackEvents(patternId);
     saveTrackSettings(patternId);
   }
+  saveArrangementSettings();
 }
 
 void loadTrackEvents(uint8_t patternNr)
 {
-  Serial.printf("LOAD data for pattern %d\n", patternNr);
   char fileName[18];
-  //uint8_t trackNr = 0;
   uint16_t memBlocks = 0;
-  sprintf(fileName, "CM2K_PATTERN_%02d", patternNr);
+  sprintf(fileName, "CM2K_PATTERN_%03d", patternNr);
   if (SD.exists(fileName))
   {
     File dataFile = SD.open(fileName, FILE_READ);
@@ -56,14 +54,13 @@ void loadTrackEvents(uint8_t patternNr)
         patterns[patternNr].tracks[trackNr].paste(loadedEvents, memBlocks * NR_EVENTS);
         free(loadedEvents);
       }
+      else patterns[patternNr].tracks[trackNr].clear();
     }
   }
 }
 
 void saveTrackEvents(uint8_t patternNr)
 {
-  Serial.printf("SAVE data for pattern %d\n", patternNr);
-  // save all event data from used tracks
   char fileName[18];
   sprintf(fileName, "CM2K_PATTERN_%03d", patternNr);
   SD.remove(fileName);
@@ -88,12 +85,15 @@ void loadTrackSettings(uint8_t patternNr)
 {
   char fileName[20];
   sprintf(fileName, "CM2K_PATTERNSET_%03d", patternNr);
-  File dataFile = SD.open(fileName, FILE_READ);
-  for (uint8_t trackNr = 0; trackNr < NR_TRACKS; trackNr++)
+  if (SD.exists(fileName))
   {
-    dataFile.read((uint8_t *)&patterns[patternNr].tracks[trackNr].config, sizeof(TrackConfig));
+    File dataFile = SD.open(fileName, FILE_READ);
+    for (uint8_t trackNr = 0; trackNr < NR_TRACKS; trackNr++)
+    {
+      dataFile.read((uint8_t *)&patterns[patternNr].tracks[trackNr].config, sizeof(TrackConfig));
+    }
+    dataFile.close();
   }
-  dataFile.close();
 }
 
 void saveTrackSettings(uint8_t patternNr)
@@ -111,13 +111,20 @@ void saveTrackSettings(uint8_t patternNr)
 
 void loadArrangementSettings()
 {
-  
+  const char fileName[9] = "CM2K_ARR";
+  if (SD.exists(fileName))
+  {
+    File dataFile = SD.open(fileName, FILE_READ);
+    for (uint8_t arrItem = 0; arrItem < NR_ARRITEMS; arrItem++)
+    {
+      dataFile.read((uint8_t *)&arrangement.arrangementItems_a[arrItem], sizeof(ArrangementItem));
+    }
+  }
 }
 
 void saveArrangementSettings()
 {
-  Serial.println("SAVE data for arrangement");
-  char fileName[12] = "CM2K_ARR";
+  const char fileName[9] = "CM2K_ARR";
   SD.remove(fileName);
   File dataFile = SD.open(fileName, FILE_WRITE);
   for (uint8_t arrItem = 0; arrItem < NR_ARRITEMS; arrItem++)
@@ -134,7 +141,6 @@ void setProjectfolder(uint8_t projectId)
   sprintf(fileName, "CM2K_PROJECT_%03d", projectId);
   if (!SD.exists(fileName)) SD.mkdir(fileName);
   SD.sdfs.chdir(fileName);
-  //currentProjectFolder = fileName;
   currentProjectId = projectId;
 }
 

@@ -21,5 +21,5 @@ void saveTrackEvents(uint8_t patternNr);
 void loadTrackEvents(uint8_t patternNr);
 void loadTrackSettings(uint8_t patternNr);
 void saveTrackSettings(uint8_t patternNr);
-void loadArrangementSettings(uint8_t arrNr);
-void saveArrangementSettings(uint8_t arrNr);
+void loadArrangementSettings();
+void saveArrangementSettings();

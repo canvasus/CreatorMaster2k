@@ -1,6 +1,4 @@
 #include "ui.h"
-#include "peripherals.h"
-#include "sequencer.h"
 
 RA8875 tft = RA8875(RA8875_CS,RA8875_RESET);
 
@@ -42,7 +40,7 @@ const uint8_t uiInterval = 35;
 elapsedMillis uiTimerSlow = 0;
 const uint8_t uiSlowInterval = 100;
 elapsedMillis uiResetTimer = 0;
-const uint8_t uiResetInterval = 250;
+const uint16_t uiResetInterval = 400;
 
 uint8_t viewMode = VIEW_NORMAL;
 
@@ -176,7 +174,7 @@ void updateMouse()
 {
   static elapsedMillis activityTimer = 0;
   static elapsedMillis debounceTimer = 0;
-  const uint8_t debounceTime = 100;
+  const uint8_t debounceTime = 250;
   static uint8_t lastMouseButtons = 0;
    if (mouse1.available())
    {
@@ -195,7 +193,6 @@ void updateMouse()
         debounceTimer = 0;
         lastMouseButtons = mouseButtons;
       }
-      //if (mouseButtons != 0 && debounceTimer > debounceTime) debounceTimer = 0;
     }
     
     uint8_t mouseWheel = mouse1.getWheel();
@@ -330,43 +327,55 @@ void uiUpdateControls()
 void recordClick(uint8_t clickType)
 {
   static bool recordOn = false;
-  String inUse = "in use";
-  recordOn = !recordOn;
-  record(recordOn);
-  inUse.toCharArray(patterns[currentPattern].tracks[currentTrack].config.name, 8);
-  memcpy(patternView.trackRows[currentTrack].trackName, patterns[currentPattern].tracks[currentTrack].config.name, 8);
-  patternView.trackRows[currentTrack].draw(true);
+  const String inUse = "in use";
+  if (clickType == 1)
+  {
+    recordOn = !recordOn;
+    record(recordOn);
+    inUse.toCharArray(patterns[currentPattern].tracks[currentTrack].config.name, 8);
+    memcpy(patternView.trackRows[currentTrack].trackName, patterns[currentPattern].tracks[currentTrack].config.name, 8);
+    patternView.trackRows[currentTrack].draw(true);
+  }
 }
 
 void startClick(uint8_t clickType)
 {
-  if (controlsView.button_start.state) play();
-  else stop();
+  if (clickType == 1)
+  {
+    if (controlsView.button_start.state) play();
+    else stop();
+  }
 }
 
 void stopClick(uint8_t clickType)
 {
-  stop();
-  reset();
-  panic();
-  controlsView.button_start.set(false);
+  if (clickType == 1)
+  {
+    stop();
+    reset();
+    panic();
+    controlsView.button_start.set(false);
+  }
 }
 
 void leftLocatorClick(uint8_t clickType)
 {
-  if (clickType == 1) transport.leftLocatorTick = transport.leftLocatorTick + transport.ticksPerBar;
-  if (clickType == 2 && (transport.leftLocatorTick > transport.ticksPerBar) ) transport.leftLocatorTick = transport.leftLocatorTick - transport.ticksPerBar;
-  uint16_t bar = (uint16_t)(transport.leftLocatorTick / transport.ticksPerBar);
-  controlsView.indicator_leftLocator.draw(bar, 0, 0, false);
+  uint16_t barLeft = transport.leftLocatorTick / transport.ticksPerBar;
+  uint16_t barRight = transport.rightLocatorTick / transport.ticksPerBar;
+  if (clickType == 1 && (barLeft < (barRight - 1)) ) barLeft++;
+  if (clickType == 2 && (barLeft > 0) ) barLeft--;
+  transport.leftLocatorTick = barLeft * transport.ticksPerBar;
+  controlsView.indicator_leftLocator.draw(barLeft + 1, 0, 0, false);
 }
 
 void rightLocatorClick(uint8_t clickType)
 {
-  if (clickType == 1) transport.rightLocatorTick = transport.rightLocatorTick + transport.ticksPerBar;
-  if (clickType == 2 && (transport.rightLocatorTick > transport.ticksPerBar) ) transport.rightLocatorTick = transport.rightLocatorTick - transport.ticksPerBar;
-  transport.rightLocatorTick = max(transport.leftLocatorTick + transport.ticksPerBar, transport.rightLocatorTick);
-  uint16_t bar = (uint16_t)(transport.rightLocatorTick / transport.ticksPerBar);
-  controlsView.indicator_rightLocator.draw(bar, 0, 0, false);
+  uint16_t barLeft = transport.leftLocatorTick / transport.ticksPerBar;
+  uint16_t barRight = transport.rightLocatorTick / transport.ticksPerBar;
+  if (clickType == 1) barRight++;
+  if (clickType == 2 && (barRight > (barLeft + 1)) ) barRight--;
+  transport.rightLocatorTick = barRight * transport.ticksPerBar;
+  controlsView.indicator_rightLocator.draw(barRight + 1, 0, 0, false);
 }
 
 void cycleOnClick(uint8_t clickType)
@@ -488,10 +497,13 @@ void patternSelectClick(uint8_t clickType)
 
 void newArrangeItemClick(uint8_t clickType)
 {
-  uint8_t id = arrangement.newArrangementItem();
-  arrangement.arrangementItems_a[id].patternIndex = currentPattern;
-  arrangement.arrangementItems_a[id].lengthTicks = 4 * RESOLUTION;
-  uiRedrawArrangeView();
+  if (clickType == 1)
+  {
+    uint8_t id = arrangement.newArrangementItem();
+    arrangement.arrangementItems_a[id].patternIndex = currentPattern;
+    arrangement.arrangementItems_a[id].lengthTicks = 4 * RESOLUTION;
+    uiRedrawArrangeView();
+  }
 }
 
 void deleteArrangeItemClick(uint8_t id)
@@ -515,9 +527,12 @@ void arrangementItemSelectClick(uint8_t id)
 
 void arrangementOnClick(uint8_t clickType)
 {
-  transport.arrangementOn = !transport.arrangementOn;
-  if (transport.arrangementOn) headerView.indicator_arrOn.draw("ON");
-  else headerView.indicator_arrOn.draw("OFF");
+  if (clickType == 1)
+  {
+    transport.arrangementOn = !transport.arrangementOn;
+    if (transport.arrangementOn) headerView.indicator_arrOn.draw("ON");
+    else headerView.indicator_arrOn.draw("OFF");
+  }
 }
 
 void muteArrayClick(uint8_t id)
@@ -555,6 +570,15 @@ void saveClick(uint8_t clickType)
 {
   saveProject();
   uiSetNormalViewMode();
+}
+
+void fileManagerRowClick(uint8_t id)
+{
+  fileManagerView.fileManagerRows[currentProject].draw(false);
+  currentProject = id;
+  fileManagerView.selectedIndex = id;
+  setProjectfolder(id);
+  fileManagerView.fileManagerRows[currentProject].draw(true);
 }
 
 void newClick(uint8_t clickType)

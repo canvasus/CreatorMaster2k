@@ -38,6 +38,8 @@
 #define CONTAINER_TITLE_COLOR 0xADB9
 #define CONTAINER_TITLE_H 20
 
+#define TRANSPORT_W 110
+
 typedef void (*buttonCallback)(uint8_t);
 
 struct Geo
@@ -324,13 +326,11 @@ class FileManagerView : public Container
     Geo     _geo;  
   public:
     uint16_t firstRowIndex = 0;
+    uint16_t selectedIndex = 0;
     FileManagerRow fileManagerRows[NR_FILE_ROWS];
     Button button_exit;
     Button button_load;
     Button button_save;
-
-    Button button_test;
-    
     Scrollbar scrollbar;
     bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);
     void layout();

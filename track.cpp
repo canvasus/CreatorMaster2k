@@ -141,6 +141,16 @@ void Track::reset()
   cleanupNoteOff();
 }
 
+void Track::setPosition(uint32_t timestamp)
+{
+  nextEventId = 0;
+  while ( (nextEventId < _nrEvents) && (events[nextEventId].type != NONE) )
+  {
+    if (events[nextEventId].timestamp >= timestamp) break;
+    else nextEventId++;
+  }
+}
+
 void Track::cleanupNoteOff()
 {
   for (uint8_t note = 0; note < 128; note++)
@@ -197,23 +207,23 @@ uint32_t Track::getEventTimestamp(uint16_t eventIndex)
   else return 4294967295;
 }
 
-uint8_t Track::getEventType(uint16_t eventIndex)
-{
-  if ( (events != nullptr) && (eventIndex < _nrEvents)) return events[eventIndex].type;
-  else return NONE;
-}
-
-uint8_t Track::getEventData1(uint16_t eventIndex)
-{
-  if ( (events != nullptr) && (eventIndex < _nrEvents)) return events[eventIndex].data1;
-  else return 0;
-}
-
-uint8_t Track::getEventData2(uint16_t eventIndex)
-{
-  if ( (events != nullptr) && (eventIndex < _nrEvents)) return events[eventIndex].data2;
-  else return 0;
-}
+//uint8_t Track::getEventType(uint16_t eventIndex)
+//{
+//  if ( (events != nullptr) && (eventIndex < _nrEvents)) return events[eventIndex].type;
+//  else return NONE;
+//}
+//
+//uint8_t Track::getEventData1(uint16_t eventIndex)
+//{
+//  if ( (events != nullptr) && (eventIndex < _nrEvents)) return events[eventIndex].data1;
+//  else return 0;
+//}
+//
+//uint8_t Track::getEventData2(uint16_t eventIndex)
+//{
+//  if ( (events != nullptr) && (eventIndex < _nrEvents)) return events[eventIndex].data2;
+//  else return 0;
+//}
 
 uint16_t Track::getNrEvents() { return _nrEvents; }
 

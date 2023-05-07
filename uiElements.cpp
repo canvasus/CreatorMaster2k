@@ -440,15 +440,15 @@ void TrackDetailsView::update(uint8_t trackNr, uint8_t channel, uint8_t quantize
 
 void ControlsView::layout()
 {
-  indicator_leftLocator.layout("LEFT LOCATOR", relX(0.24), relY(0.05), relW(0.50), relH(0.06), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
+  indicator_leftLocator.layout("LEFT LOCATOR", relX(0.25), relY(0.05), TRANSPORT_W, relH(0.06), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
   indicator_leftLocator.draw(1,0,0, true);
   indicator_leftLocator.cb = &leftLocatorClick;
 
-  indicator_rightLocator.layout("RIGHT LOCATOR", relX(0.24), relY(0.15), relW(0.50), relH(0.06), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
-  indicator_rightLocator.draw(1,0,0, true);
+  indicator_rightLocator.layout("RIGHT LOCATOR", relX(0.25), relY(0.15), TRANSPORT_W, relH(0.06), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
+  indicator_rightLocator.draw(5,0,0, true);
   indicator_rightLocator.cb = &rightLocatorClick;
 
-  indicator_cycle.layout("CYCLE", relX(0.6), relY(0.25), relW(0.2), relH(0.06), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR,INDICATOR_LABEL_LEFT40);
+  indicator_cycle.layout("CYCLE", relX(0.7), relY(0.25), relW(0.2), relH(0.06), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR,INDICATOR_LABEL_LEFT40);
   indicator_cycle.cb = &cycleOnClick;
   indicator_cycle.draw("OFF");
    
@@ -540,7 +540,7 @@ void HeaderView::layout()
   indicator_signature.cb = &signatureClick;
   indicator_signature.draw(transport.signature);
 
-  indicator_transport.layout("bar  4  16", relX(0.85), relY(0.5), relW(0.10), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
+  indicator_transport.layout("bar    4  16", relX(0.85), relY(0.5), TRANSPORT_W, relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP); // relW(0.10)
   indicator_transport.draw(0,0,0, true);
  
 }
@@ -714,7 +714,7 @@ void ListEditor::layout()
     //listEditorRows[listItemRow].cb = &arrangementItemSelectClick;
     //arrangementRows[arrItemId].patternName = "PATTERN01";
     listEditorRows[listItemRow].id = listItemRow;
-    listEditorRows[listItemRow].layout(relX(0), relY((listItemRow + 1) / NR_LIST_ROWS), relW(0.85), relH(1/NR_LIST_ROWS) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+    listEditorRows[listItemRow].layout(relX(0), relY((listItemRow + 1) / NR_LIST_ROWS), relW(0.85), relH(1/NR_LIST_ROWS) , TRACK_NORMAL_COLOR, TRACK_SELECTED_COLOR);
   }
   listEditorRows[0].draw(true);
 }
@@ -724,6 +724,8 @@ bool ListEditor::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
   if (button_exit.checkCursor(xPos, yPos, clickType)) return true;
   return false;
 }
+
+
 
 void FileManagerView::layout()
 {
@@ -739,16 +741,11 @@ void FileManagerView::layout()
   button_save.draw(false);
   button_save.cb = &saveClick;
 
-  button_test.layout("TEST", relX(0.8), relY(0.6), relW(0.18), relH(0.06) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
-  button_test.type = TYPE_CHECKBOX;
-  button_test.setLabelOffset(10, 3);
-  button_test.drawBorder = false;
-  button_test.draw(false);
-  button_test.cb = &testClick;
-
   for (uint8_t row = 0; row < NR_FILE_ROWS; row++)
   {
     fileManagerRows[row].id = row;
+    fileManagerRows[row].layout(relX(0.1), relY(0.02 + row * 0.96/(float)NR_FILE_ROWS), relW(0.5), relH(0.96/(float)NR_FILE_ROWS), TRACK_NORMAL_COLOR, TRACK_SELECTED_COLOR);
+    fileManagerRows[row].draw(fileManagerRows[row].id == selectedIndex);
   }
 }
 
@@ -757,7 +754,14 @@ bool FileManagerView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickT
   if (button_exit.checkCursor(xPos, yPos, clickType)) return true;
   if (button_load.checkCursor(xPos, yPos, clickType)) return true;
   if (button_save.checkCursor(xPos, yPos, clickType)) return true;
-  if (button_test.checkCursor(xPos, yPos, clickType)) return true;
+  for (uint8_t row = 0; row < NR_FILE_ROWS; row++)
+  {
+    if (fileManagerRows[row].checkCursor(xPos, yPos, clickType))
+    {
+      fileManagerRowClick(row);
+      return true;
+    }
+  }
   return false;
 }
 
@@ -784,7 +788,11 @@ void FileManagerRow::draw(bool selected)
   else tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_NORMAL_COLOR); // background
   tft.setCursor(_geo.xPos + 20, _geo.yPos + 5);
   tft.setTextColor(INDICATOR_TEXT_COLOR);
-//  tft.printf("%d", startBars);
-//  tft.setCursor(_geo.xPos + 50, _geo.yPos + 5);
-//  tft.print(patternName);
+  tft.printf("PROJECT %2d", id + 1);
+}
+
+bool FileManagerRow::checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType)
+{
+  if ( (xPos < _geo.xPos) || (xPos > _geo.xPos + _geo.width) || (yPos < _geo.yPos) || (yPos > _geo.yPos + _geo.height) ) return false;
+  else return true;
 }
