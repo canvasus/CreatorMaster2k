@@ -39,28 +39,27 @@ void saveProject()
 void loadTrackEvents(uint8_t patternNr)
 {
   char fileName[18];
-  uint16_t memBlocks = 0;
   sprintf(fileName, "CM2K_PATTERN_%03d", patternNr);
   if (SD.exists(fileName))
   {
     File dataFile = SD.open(fileName, FILE_READ);
     for (uint8_t trackNr = 0; trackNr < NR_TRACKS; trackNr++)
     {
+      uint16_t nrEvents = 0;
       dataFile.read((uint8_t *)&trackNr, sizeof(trackNr));
-      dataFile.read((uint8_t *)&memBlocks, sizeof(memBlocks));
-      if (memBlocks > 0)
+      dataFile.read((uint8_t *)&nrEvents, sizeof(nrEvents));
+      if (nrEvents > 0)
       {
-        event * loadedEvents = (event*)malloc(memBlocks * NR_EVENTS * sizeof(event));
-        memset(loadedEvents, 0, memBlocks * NR_EVENTS * sizeof(event));
-        dataFile.read((uint8_t *)loadedEvents, memBlocks * NR_EVENTS * sizeof(event));
-        uint16_t nrEvents = getNrEvents(loadedEvents, memBlocks);
-        //patterns[patternNr].tracks[trackNr].paste(loadedEvents, memBlocks * NR_EVENTS);
+        event * loadedEvents = (event*)malloc(nrEvents * sizeof(event));
+        memset(loadedEvents, 0, nrEvents * sizeof(event));
+        dataFile.read((uint8_t *)loadedEvents, nrEvents * sizeof(event));
         patterns[patternNr].tracks[trackNr].paste(loadedEvents, nrEvents);
         Serial.printf("Pattern %d, Track %d, loaded %d events\n", patternNr, trackNr, nrEvents);
         free(loadedEvents);
       }
       else patterns[patternNr].tracks[trackNr].clear();
     }
+    dataFile.close();
   }
 }
 
@@ -82,11 +81,11 @@ void saveTrackEvents(uint8_t patternNr)
   File dataFile = SD.open(fileName, FILE_WRITE);
   for (uint8_t trackNr = 0; trackNr < NR_TRACKS; trackNr++)
   {
-    uint16_t memBlocks = patterns[patternNr].tracks[trackNr].memBlocks;
+    uint16_t nrEvents = patterns[patternNr].tracks[trackNr]._nrEvents;
     event * trackEvents = patterns[patternNr].tracks[trackNr].copy();
     dataFile.write((uint8_t *)&trackNr, sizeof(trackNr));
-    dataFile.write((uint8_t *)&memBlocks, sizeof(memBlocks));
-    if (memBlocks > 0) dataFile.write((uint8_t *)trackEvents, memBlocks * NR_EVENTS * sizeof(event));
+    dataFile.write((uint8_t *)&nrEvents, sizeof(nrEvents));
+    if (nrEvents > 0) dataFile.write((uint8_t *)trackEvents, nrEvents * sizeof(event));
   }
   dataFile.close();
 }
@@ -135,6 +134,7 @@ void loadArrangementSettings()
     {
       dataFile.read((uint8_t *)&arrangement.arrangementItems_a[arrItem], sizeof(ArrangementItem));
     }
+    dataFile.close();
   }
 }
 
