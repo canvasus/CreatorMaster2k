@@ -1,18 +1,10 @@
 #include "arrangement.h"
 
-ArrangementItem::ArrangementItem()
-{
-  startTick = 0;
-  lengthTicks = 4 * 4 * RESOLUTION;
-  patternIndex = 0;
-  status = ARRITEM_INACTIVE;
-  memset(muteArray, 0, NR_TRACKS);
-}
-
 Arrangement::Arrangement()
 {
   arrangementItems_a[0].status = ARRITEM_ACTIVE;
   arrangementTick = 0;
+  for (uint8_t itemId = 0; itemId < NR_ARRITEMS; itemId++) memset(arrangementItems_a[itemId].muteArray, 0, NR_TRACKS);
 }
 
 uint8_t Arrangement::tick()

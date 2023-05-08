@@ -12,6 +12,7 @@ void initSDcard()
     for (uint8_t projectId = 0; projectId < NR_PROJECTS; projectId++) setProjectfolder(projectId);
     sdStatus = true;
     listContent();
+    setProjectfolder(0);
   }
 }
 
@@ -50,13 +51,27 @@ void loadTrackEvents(uint8_t patternNr)
       if (memBlocks > 0)
       {
         event * loadedEvents = (event*)malloc(memBlocks * NR_EVENTS * sizeof(event));
+        memset(loadedEvents, 0, memBlocks * NR_EVENTS * sizeof(event));
         dataFile.read((uint8_t *)loadedEvents, memBlocks * NR_EVENTS * sizeof(event));
-        patterns[patternNr].tracks[trackNr].paste(loadedEvents, memBlocks * NR_EVENTS);
+        uint16_t nrEvents = getNrEvents(loadedEvents, memBlocks);
+        //patterns[patternNr].tracks[trackNr].paste(loadedEvents, memBlocks * NR_EVENTS);
+        patterns[patternNr].tracks[trackNr].paste(loadedEvents, nrEvents);
+        Serial.printf("Pattern %d, Track %d, loaded %d events\n", patternNr, trackNr, nrEvents);
         free(loadedEvents);
       }
       else patterns[patternNr].tracks[trackNr].clear();
     }
   }
+}
+
+uint16_t getNrEvents(event * eventBuffer, uint16_t bufferSizeBlocks)
+{
+  uint16_t nrEvents = 0;
+  for (uint16_t eventId = 0; eventId < bufferSizeBlocks * NR_EVENTS; eventId++)
+  {
+    if (eventBuffer[eventId].type != 0) nrEvents++;
+  }
+  return nrEvents;
 }
 
 void saveTrackEvents(uint8_t patternNr)
@@ -91,6 +106,7 @@ void loadTrackSettings(uint8_t patternNr)
     for (uint8_t trackNr = 0; trackNr < NR_TRACKS; trackNr++)
     {
       dataFile.read((uint8_t *)&patterns[patternNr].tracks[trackNr].config, sizeof(TrackConfig));
+      patterns[patternNr].tracks[trackNr].syncSettings();
     }
     dataFile.close();
   }

@@ -789,7 +789,8 @@ void FileManagerRow::draw(bool selected)
   if (selected) tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_SELECTED_COLOR); // background
   else tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_NORMAL_COLOR); // background
   tft.setCursor(_geo.xPos + 20, _geo.yPos + 5);
-  tft.setTextColor(INDICATOR_TEXT_COLOR);
+  if (selected) tft.setTextColor(RA8875_WHITE);
+  else tft.setTextColor(INDICATOR_TEXT_COLOR);
   tft.printf("PROJECT %2d", id + 1);
 }
 

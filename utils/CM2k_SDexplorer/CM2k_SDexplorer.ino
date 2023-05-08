@@ -6,8 +6,8 @@
 void setup()
 {
   // mandatory to begin the MTP session.
+ 
   MTP.begin();
-
   // Add SD Card
   SD.begin(CS_SD);
   MTP.addFilesystem(SD, "SD Card");

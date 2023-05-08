@@ -3,6 +3,9 @@
 String emptyName = "<empty>";
 String usedName = "In use";
 
+const uint16_t quantizeSettingsT[NR_QUANTIZESTEPS] = {1, 192, 96, 48, 64};
+const uint16_t compressSettingsT[NR_COMPRESSTEPS] = {0, 1, 2, 3, 4};  // 63 + abs(velocity - 64) / C
+
 Track::Track()
 {
   events = nullptr;
@@ -32,6 +35,7 @@ void Track::_releaseBuffer()
 void Track::_expandBuffer()
 {
   event * eventsNew = (event*)malloc((memBlocks + 1) * NR_EVENTS * sizeof(event));
+  memset(eventsNew, 0, (memBlocks + 1) * NR_EVENTS * sizeof(event));
   memcpy(eventsNew, events, memBlocks * NR_EVENTS * sizeof(event));
   free(events);
   events = eventsNew;
@@ -207,55 +211,13 @@ uint32_t Track::getEventTimestamp(uint16_t eventIndex)
   else return 4294967295;
 }
 
-//uint8_t Track::getEventType(uint16_t eventIndex)
-//{
-//  if ( (events != nullptr) && (eventIndex < _nrEvents)) return events[eventIndex].type;
-//  else return NONE;
-//}
-//
-//uint8_t Track::getEventData1(uint16_t eventIndex)
-//{
-//  if ( (events != nullptr) && (eventIndex < _nrEvents)) return events[eventIndex].data1;
-//  else return 0;
-//}
-//
-//uint8_t Track::getEventData2(uint16_t eventIndex)
-//{
-//  if ( (events != nullptr) && (eventIndex < _nrEvents)) return events[eventIndex].data2;
-//  else return 0;
-//}
+void Track::syncSettings()
+{
+  quantize = quantizeSettingsT[config.quantizeIndex];
+  compress = compressSettingsT[config.compressIndex];
+}
 
 uint16_t Track::getNrEvents() { return _nrEvents; }
-
-void Track::printEventArray(uint8_t lastIndex)
-{
-  Serial.print("_nrEvents: ");
-  Serial.println(_nrEvents);
-  
-  Serial.print("Types: ");
-  for (uint8_t i = 0; i < lastIndex; i++)
-  {
-    Serial.print(events[i].type);
-    Serial.print(", ");
-  }
-  Serial.println("END");
-  
-  Serial.print("Times: ");
-  for (uint8_t i = 0; i < lastIndex; i++)
-  {
-    Serial.print(events[i].timestamp);
-    Serial.print(", ");
-  }
-  Serial.println("END");
-
-  Serial.print("Data1: ");
-  for (uint8_t i = 0; i < lastIndex; i++)
-  {
-    Serial.print(events[i].data1);
-    Serial.print(", ");
-  }
-  Serial.println("END");
-}
 
 int compareEvents(const void *s1, const void *s2)
 {

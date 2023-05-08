@@ -9,14 +9,12 @@
 // SAVE:
 // All arrangementItems
 
-class ArrangementItem
+struct ArrangementItem
 {
-  public:
-    ArrangementItem();
-    uint32_t startTick;
-    uint32_t lengthTicks;
-    uint8_t patternIndex;
-    uint8_t status;
+    uint32_t startTick = 0;
+    uint32_t lengthTicks = 4 * 4 * RESOLUTION;
+    uint8_t patternIndex = 0;
+    uint8_t status = ARRITEM_INACTIVE;
     bool muteArray[NR_TRACKS];
 };
 

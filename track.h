@@ -12,6 +12,8 @@
 typedef void (*MIDIcallback)(uint8_t channel, uint8_t data1, uint8_t data2);
 typedef void (*MIDIcallbackGeneric)(uint8_t channel, uint8_t type, uint8_t data1, uint8_t data2);
 
+
+
 struct event
 {
   uint32_t  timestamp;
@@ -38,7 +40,7 @@ class Track
 {
   private:
     void      _sortEvents();
-    uint16_t  _nrEvents;
+    //uint16_t  _nrEvents;
     uint8_t   _loopCounter;
     void      _convertTempEvents();
     void      _initBuffer();
@@ -51,6 +53,7 @@ class Track
   public:
     Track();
     TrackConfig config;
+    uint16_t  _nrEvents;
     uint16_t  quantize = 1;
     uint16_t  memUsage = 0;
     uint8_t   memBlocks = 0;
@@ -69,14 +72,11 @@ class Track
     uint16_t getNrEvents();
     uint32_t getEventTimestamp(uint16_t eventIndex);
     void setPosition(uint32_t timestamp);
-    //uint8_t getEventType(uint16_t eventIndex);
-    //uint8_t getEventData1(uint16_t eventIndex);
-    //uint8_t getEventData2(uint16_t eventIndex);
     void reset();
     void cleanupNoteOff();
     void triggerEvent(uint16_t eventIndex);
     uint16_t triggerEvents(uint32_t timestamp);
-    void printEventArray(uint8_t lastIndex);
+    void syncSettings();
 };
 
 int compareEvents(const void *s1, const void *s2);

@@ -33,6 +33,7 @@ void setupSequencer()
     String name = patternNames[patternId];
     name.toCharArray(patterns[patternId].name, 8);
   }
+   Serial.println(sizeof(event));
 }
 
 void updateSequencer()
