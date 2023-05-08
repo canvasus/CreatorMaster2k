@@ -133,6 +133,11 @@ void handlePrecount()
   }
 }
 
+void syncTransportSettings()
+{
+  setBpm(transport.bpm);
+}
+
 void setBpm(uint8_t bpm)
 {
   transport.bpm = bpm;
@@ -231,8 +236,8 @@ uint8_t getQuantize() { return patterns[currentPattern].tracks[currentTrack].qua
 
 void setSignature(uint8_t signatureId)
 {
-  transport.signature = signatureNames[signatureId];
-  transport.ticksPerBar= ticksPerBar[signatureId];
+  signatureNames[signatureId].toCharArray(transport.signature, 5);
+  transport.ticksPerBar = ticksPerBar[signatureId];
   transport.ticksPerBeat= ticksPerBeat[signatureId];
 
 }

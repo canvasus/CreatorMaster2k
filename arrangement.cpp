@@ -76,41 +76,6 @@ void Arrangement::updateArrangementStartPositions()
 
 void Arrangement::_sortItems() { qsort(arrangementItems_a, NR_ARRITEMS, sizeof(ArrangementItem), compareArrItems); }
 
-//void Arrangement::printItemArray(uint8_t lastIndex)
-//{
-//  Serial.print("Status: ");
-//  for (uint8_t i = 0; i < lastIndex; i++)
-//  {
-//    Serial.print(arrangementItems_a[i].status);
-//    Serial.print(", ");
-//  }
-//  Serial.println("END");
-//  
-//  Serial.print("Start: ");
-//  for (uint8_t i = 0; i < lastIndex; i++)
-//  {
-//    Serial.print(arrangementItems_a[i].startBars);
-//    Serial.print(", ");
-//  }
-//  Serial.println("END");
-//
-//  Serial.print("Length: ");
-//  for (uint8_t i = 0; i < lastIndex; i++)
-//  {
-//    Serial.print(arrangementItems_a[i].lengthBars);
-//    Serial.print(", ");
-//  }
-//  Serial.println("END");
-//
-//  Serial.print("Pattern: ");
-//  for (uint8_t i = 0; i < lastIndex; i++)
-//  {
-//    Serial.print(arrangementItems_a[i].patternIndex);
-//    Serial.print(", ");
-//  }
-//  Serial.println("END");
-//}
-
 int compareArrItems(const void *s1, const void *s2)
 {
     struct ArrangementItem *e1 = (struct ArrangementItem *)s1;

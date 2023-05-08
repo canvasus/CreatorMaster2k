@@ -622,7 +622,7 @@ void ArrangementView::layout()
   indicator_patternLength.draw(4,0,0, true);
     
   indicator_patternPosition.layout("POSITION", relX(0.48), relY(0.93), relW(0.35), relH(1/17.0), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
-  indicator_patternPosition.draw(0,0,0, true);
+  indicator_patternPosition.draw(1,0,0, true);
 
   for (uint8_t arrItemId = 0; arrItemId < NR_ARRITEMS; arrItemId++)
   {

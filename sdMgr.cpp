@@ -24,6 +24,7 @@ void loadProject()
     loadTrackSettings(patternId);
   }
   loadArrangementSettings();
+  loadTransport();
 }
 
 void saveProject()
@@ -34,6 +35,7 @@ void saveProject()
     saveTrackSettings(patternId);
   }
   saveArrangementSettings();
+  saveTransport();
 }
 
 void loadTrackEvents(uint8_t patternNr)
@@ -147,6 +149,27 @@ void saveArrangementSettings()
   {
     dataFile.write((uint8_t *)&arrangement.arrangementItems_a[arrItem], sizeof(ArrangementItem));
   }
+  dataFile.close();
+}
+
+void loadTransport()
+{
+  const char fileName[15] = "CM2K_TRANSPORT";
+  if (SD.exists(fileName))
+  {
+    File dataFile = SD.open(fileName, FILE_READ);
+    dataFile.read((uint8_t *)&transport, sizeof(Transport));
+    dataFile.close();
+  }
+  syncTransportSettings();
+}
+
+void saveTransport()
+{
+  const char fileName[15] = "CM2K_TRANSPORT";
+  SD.remove(fileName);
+  File dataFile = SD.open(fileName, FILE_WRITE);
+  dataFile.write((uint8_t *)&transport, sizeof(Transport));
   dataFile.close();
 }
 

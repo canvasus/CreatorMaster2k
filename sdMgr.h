@@ -23,5 +23,7 @@ void loadTrackSettings(uint8_t patternNr);
 void saveTrackSettings(uint8_t patternNr);
 void loadArrangementSettings();
 void saveArrangementSettings();
+void loadTransport();
+void saveTransport();
 
 uint16_t getNrEvents(event * eventBuffer, uint16_t bufferSizeBlocks);

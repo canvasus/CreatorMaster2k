@@ -115,6 +115,14 @@ void updateUI()
   }
 }
 
+void uiRedrawHeaderView()
+{
+  headerView.indicator_signature.draw(transport.signature);
+  headerView.indicator_bpm.draw(transport.bpm);
+  if (transport.arrangementOn) headerView.indicator_arrOn.draw("ON");
+  else headerView.indicator_arrOn.draw("OFF");
+}
+
 void uiRedrawArrangeView()
 {
   // redraw arrangement view (add, delete, reorder etc)
@@ -124,7 +132,7 @@ void uiRedrawArrangeView()
     {
       uint8_t patternIndex = arrangement.arrangementItems_a[arrItemIndex].patternIndex;
       arrangementView.arrangementRows[arrItemIndex].patternName = patterns[patternIndex].name;
-      arrangementView.arrangementRows[arrItemIndex].startBars = arrangement.arrangementItems_a[arrItemIndex].startTick / transport.ticksPerBar;
+      arrangementView.arrangementRows[arrItemIndex].startBars = arrangement.arrangementItems_a[arrItemIndex].startTick / transport.ticksPerBar + 1;
       arrangementView.arrangementRows[arrItemIndex].active = (arrangement.arrangementItems_a[arrItemIndex].status == ARRITEM_ACTIVE);
       arrangementView.arrangementRows[arrItemIndex].draw(arrItemIndex == currentArrangementPosition);
     }
@@ -136,10 +144,12 @@ void uiRedrawArrangeView()
     else arrangementView.indicator_muteArray[trackId].draw("-");
   }
 
-  uint16_t currentLengthBeats = arrangement.arrangementItems_a[currentArrangementPosition].lengthTicks / transport.ticksPerBeat;
-  uint16_t startBars = arrangement.arrangementItems_a[currentArrangementPosition].startTick  / transport.ticksPerBeat;
-  arrangementView.indicator_patternLength.draw(currentLengthBeats / 4, currentLengthBeats % 4, 0, false);
-  arrangementView.indicator_patternPosition.draw(startBars / 4, startBars % 4, 0, false);
+  uint16_t lengthBars = arrangement.arrangementItems_a[currentArrangementPosition].lengthTicks / transport.ticksPerBar;
+  uint16_t lengthBeats = (arrangement.arrangementItems_a[currentArrangementPosition].lengthTicks - lengthBars * transport.ticksPerBar)  / transport.ticksPerBeat;
+  uint16_t startBars = arrangement.arrangementItems_a[currentArrangementPosition].startTick  / transport.ticksPerBar + 1;
+  uint16_t startBeats = (arrangement.arrangementItems_a[currentArrangementPosition].startTick - (startBars - 1) * transport.ticksPerBar) / transport.ticksPerBeat;
+  arrangementView.indicator_patternLength.draw(lengthBars, lengthBeats, 0, false);
+  arrangementView.indicator_patternPosition.draw(startBars, startBeats, 0, false);
 }
 
 void uiRedrawPatternView()
@@ -564,6 +574,7 @@ void loadClick(uint8_t clickType)
 {
   loadProject();
   uiSetNormalViewMode();
+  uiRedrawHeaderView();
 }
 
 void saveClick(uint8_t clickType)

@@ -92,6 +92,7 @@ void uiUpdateSlowItems();
 void uiRedrawArrangeView();
 void uiRedrawPatternView();
 void uiRedrawTrackDetailsView();
+void uiRedrawHeaderView();
 
 void uiSetNormalViewMode();
 void uiSetListEditorViewMode();

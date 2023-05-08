@@ -28,7 +28,7 @@ struct Transport
   uint8_t   metronomeNote1 = 76;
   uint8_t   metronomeNote2 = 77;
   uint8_t   signatureId = 0;
-  String    signature   = "4/4";
+  char      signature[6]  = "4/4";
   uint16_t  ticksPerBar = RESOLUTION * 4;
   uint16_t  ticksPerBeat = RESOLUTION;
   uint16_t  trp_bar     = 0;
@@ -59,6 +59,7 @@ void handlePrecount();
 
 void processInput(uint8_t channel, uint8_t type, uint8_t data1, uint8_t data2);
 
+void syncTransportSettings();
 void setBpm(uint8_t bpm);
 void updateTransport(uint32_t tick);
 void updateMetronome(bool reset);
