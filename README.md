@@ -10,3 +10,5 @@ Parts used:
 - Usb mouse
 
 ![prototype1](1.jpg)
+
+![prototype1](2.jpg)
