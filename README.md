@@ -8,3 +8,5 @@ Parts used:
 - Teensy 4.1
 - 7" RA8875-based display
 - Usb mouse
+
+![prototype1](1.jpg)
