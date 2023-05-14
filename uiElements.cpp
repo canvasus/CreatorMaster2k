@@ -184,6 +184,12 @@ void Indicator::draw(uint16_t value)
   tft.print(value);
 }
 
+void Indicator::draw(uint32_t value)
+{
+  _drawCommon();
+  tft.print(value);
+}
+
 void Indicator::draw(String string)
 {
   _drawCommon();
@@ -571,6 +577,7 @@ void ArrangementRow::layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16
   _geo.height = height;
   _geo.color1 = color1;
   _geo.color2 = color2;
+
 }
 
 void ArrangementRow::draw(bool selected)
@@ -689,20 +696,40 @@ void ListEditorRow::layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_
   _geo.height = height;
   _geo.color1 = color1;
   _geo.color2 = color2;
+  uint8_t indicatorWidth = 40;
+  uint8_t xPadding = 10;
+  indicator_start_tick.layout(  "", _geo.xPos + xPadding, _geo.yPos + 1, 2 * indicatorWidth, _geo.height - 2, _geo.color1, _geo.color2, INDICATOR_LABEL_NONE);
+  indicator_start_bar.layout(   "", _geo.xPos + 2 * xPadding + 2 * indicatorWidth, _geo.yPos + 1, indicatorWidth, _geo.height - 2, _geo.color1, _geo.color2, INDICATOR_LABEL_NONE);
+  indicator_start_4th.layout(   "", _geo.xPos + 3 * xPadding + 3 * indicatorWidth, _geo.yPos + 1, indicatorWidth, _geo.height - 2, _geo.color1, _geo.color2, INDICATOR_LABEL_NONE);
+  indicator_start_16th.layout(  "", _geo.xPos + 4 * xPadding + 4 * indicatorWidth, _geo.yPos + 1, indicatorWidth, _geo.height - 2, _geo.color1, _geo.color2, INDICATOR_LABEL_NONE);
+  indicator_start_768th.layout( "", _geo.xPos + 5 * xPadding + 5 * indicatorWidth, _geo.yPos + 1, indicatorWidth, _geo.height - 2, _geo.color1, _geo.color2, INDICATOR_LABEL_NONE);
+  indicator_type.layout(        "", _geo.xPos + 6 * xPadding + 6 * indicatorWidth, _geo.yPos + 1, indicatorWidth, _geo.height - 2, _geo.color1, _geo.color2, INDICATOR_LABEL_NONE);
+  indicator_channel.layout(     "", _geo.xPos + 7 * xPadding + 7 * indicatorWidth, _geo.yPos + 1, indicatorWidth, _geo.height - 2, _geo.color1, _geo.color2, INDICATOR_LABEL_NONE);
+  indicator_data1.layout(       "", _geo.xPos + 8 * xPadding + 8 * indicatorWidth, _geo.yPos + 1, indicatorWidth, _geo.height - 2, _geo.color1, _geo.color2, INDICATOR_LABEL_NONE);
+  indicator_data2.layout(       "", _geo.xPos + 9 * xPadding + 9 * indicatorWidth, _geo.yPos + 1, indicatorWidth, _geo.height - 2, _geo.color1, _geo.color2, INDICATOR_LABEL_NONE);
 }
 
 void ListEditorRow::draw(bool selected)
 {
   tft.writeTo(L2);
   tft.setFontScale(0);
-  tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_NORMAL_COLOR); // background
+  //tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_NORMAL_COLOR); // background
+  if (selected) tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_SELECTED_COLOR); // background
+  else tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_NORMAL_COLOR); // background
   tft.setCursor(_geo.xPos + 20, _geo.yPos + 5);
-  tft.setTextColor(INDICATOR_TEXT_COLOR);
+  //tft.setTextColor(INDICATOR_TEXT_COLOR);
+  if (selected) tft.setTextColor(RA8875_WHITE);
+  else tft.setTextColor(INDICATOR_TEXT_COLOR);
   tft.printf("%2d", id);
-//  tft.setCursor(_geo.xPos + 50, _geo.yPos + 5);
-//  tft.print(trackName);
-//  tft.setCursor(_geo.xPos + _geo.width - 20, _geo.yPos + 5);
-//  tft.print(channel); 
+}
+
+void ListEditorRow::draw(bool selected, uint32_t startTick, uint8_t type, uint8_t data1, uint8_t data2)
+{
+  draw(selected);
+  indicator_start_tick.draw(startTick);
+  indicator_type.draw(type);
+  indicator_data1.draw(data1);
+  indicator_data2.draw(data2);
 }
 
 void ListEditor::layout()
@@ -710,13 +737,18 @@ void ListEditor::layout()
   button_exit.layout("EXIT", relX(0.9), relY(0.9), relW(0.1), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
   button_exit.draw(false);
   button_exit.cb = &exitEditorClick;
+  uint16_t listRowHeight = relH(1/(1.0 * NR_LIST_ROWS));
 
+  indicator_header.layout("", relX(0.0), relY(0.0), relW(1.0), relH(1.0 / (1.0 * NR_LIST_ROWS)), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_NONE);
+  indicator_header.draw(F("TICK BAR BEAT  16TH  TYPE  DATA1 DATA2"));
+  
   for (uint8_t listItemRow = 0; listItemRow < NR_LIST_ROWS; listItemRow++)
   {
+    uint16_t listRowYpos = relY((listItemRow + 1) / (1.0 * NR_LIST_ROWS));
     //listEditorRows[listItemRow].cb = &arrangementItemSelectClick;
     //arrangementRows[arrItemId].patternName = "PATTERN01";
     listEditorRows[listItemRow].id = listItemRow;
-    listEditorRows[listItemRow].layout(relX(0), relY((listItemRow + 1) / NR_LIST_ROWS), relW(0.85), relH(1/NR_LIST_ROWS) , TRACK_NORMAL_COLOR, TRACK_SELECTED_COLOR);
+    listEditorRows[listItemRow].layout(relX(0), listRowYpos, relW(0.85), listRowHeight , TRACK_NORMAL_COLOR, TRACK_SELECTED_COLOR);
   }
   listEditorRows[0].draw(true);
 }

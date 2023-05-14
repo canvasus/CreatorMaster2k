@@ -100,6 +100,7 @@ class Indicator
     void setLabelOffset(int xOffset, int yOffset);
     bool checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType); 
     void draw(uint16_t value);
+    void draw(uint32_t value);
     void draw(int value);
     void draw(String string);
     void draw(uint16_t trp_bar, uint16_t trp_4th, uint16_t trp_16th, bool drawStatics);
@@ -278,6 +279,7 @@ class ListEditorRow
   public:
     ListEditorRow();
     uint8_t id;
+    Indicator indicator_start_tick;
     Indicator indicator_start_bar;
     Indicator indicator_start_4th;
     Indicator indicator_start_16th;
@@ -288,6 +290,7 @@ class ListEditorRow
     Indicator indicator_data2;
     void layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2);
     void draw(bool selected);
+    void draw(bool selected, uint32_t startTick, uint8_t type, uint8_t data1, uint8_t data2);
 };
 
 class ListEditor : public Container
@@ -297,6 +300,8 @@ class ListEditor : public Container
     Geo     _geo;  
   public:
     uint16_t firstRowIndex = 0;
+    uint16_t selectedIndex = 0;
+    Indicator indicator_header;
     ListEditorRow listEditorRows[NR_LIST_ROWS];
     Scrollbar scrollbar;
     Button button_exit;

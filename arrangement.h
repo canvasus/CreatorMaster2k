@@ -6,9 +6,6 @@
 #define ARRITEM_INACTIVE  0
 #define ARRITEM_ACTIVE    1
 
-// SAVE:
-// All arrangementItems
-
 struct ArrangementItem
 {
     uint32_t startTick = 0;

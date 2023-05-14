@@ -7,7 +7,7 @@ ArrangementView arrangementView = ArrangementView("ARRANGE", 0, HEADER_H + PADDI
 PatternView patternView = PatternView("PATTERN", ARRANGE_W + PADDING, HEADER_H + PADDING, PATTERN_W, MAIN_H, RA8875_WHITE, RA8875_WHITE);
 TrackDetailsView trackDetailsView = TrackDetailsView("TRACK", ARRANGE_W + PATTERN_W + 2 * PADDING, HEADER_H + PADDING, TRACKDETAILS_W, MAIN_H,  RA8875_WHITE, RA8875_WHITE);
 ControlsView controlsView = ControlsView("CONTROL", ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 3 * PADDING, HEADER_H + PADDING, CONTROLS_W, MAIN_H,  MAIN_BG_COLOR, RA8875_WHITE);
-ListEditor listEditorView = ListEditor("LISTEDITOR", 0, HEADER_H + PADDING, ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 2 * PADDING, MAIN_H,  MAIN_BG_COLOR, RA8875_WHITE);
+ListEditor listEditorView = ListEditor("LISTEDITOR", 0, HEADER_H + PADDING, ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 2 * PADDING, MAIN_H,  RA8875_WHITE, RA8875_WHITE);
 FileManagerView fileManagerView = FileManagerView("FILEMANAGER", 0, HEADER_H + PADDING, ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 2 * PADDING, MAIN_H,  RA8875_WHITE, RA8875_WHITE);
 
 const uint8_t cursorOn[16] = {
@@ -321,8 +321,8 @@ void uiUpdateSlowItems()
 void uiUpdateControls()
 {
   // reset non-latching buttons etc
-  if (controlsView.button_stop.state) controlsView.button_stop.set(false);
-  if (controlsView.button_start.state) controlsView.button_start.set(false);
+  //if (controlsView.button_stop.state) controlsView.button_stop.set(false);
+  //if (controlsView.button_start.state) controlsView.button_start.set(false);
   if (trackDetailsView.button_copy.state) trackDetailsView.button_copy.set(false);
   if (trackDetailsView.button_paste.state) trackDetailsView.button_paste.set(false);
   if (trackDetailsView.button_clear.state) trackDetailsView.button_clear.set(false);
@@ -352,8 +352,10 @@ void startClick(uint8_t clickType)
 {
   if (clickType == 1)
   {
-    if (controlsView.button_start.state) play();
-    else stop();
+    //if (controlsView.button_start.state) play();
+    //else stop();
+    play();
+    controlsView.button_stop.set(false);
   }
 }
 
@@ -561,10 +563,7 @@ void signatureClick(uint8_t clickType)
   headerView.indicator_signature.draw(transport.signature);
 }
 
-void editTrackClick(uint8_t clickType)
-{
-  if (clickType == 1) uiSetListEditorViewMode();
-}
+void editTrackClick(uint8_t clickType) { if (clickType == 1) uiSetListEditorViewMode(); }
 
 void fileClick(uint8_t clickType) { uiSetFileManagerViewMode(); }
 
@@ -643,6 +642,21 @@ void uiSetListEditorViewMode()
   
   listEditorView.draw();
   listEditorView.layout();
+  uint16_t eventIndex = listEditorView.firstRowIndex;
+  if (patterns[currentPattern].tracks[currentTrack].getNrEvents() > 0)
+  {
+    for (uint8_t listRow = 0; listRow < NR_LIST_ROWS; listRow++)
+    {
+      listEditorView.listEditorRows[listRow].draw(listRow == listEditorView.selectedIndex);
+      eventIndex = eventIndex + listRow;
+      eventIndex = min(eventIndex, patterns[currentPattern].tracks[currentTrack].getNrEvents() - 1);
+      event tempEvent = patterns[currentPattern].tracks[currentTrack].events[eventIndex];
+      listEditorView.listEditorRows[listRow].indicator_start_tick.draw(tempEvent.timestamp);
+      listEditorView.listEditorRows[listRow].indicator_type.draw(tempEvent.type);
+      listEditorView.listEditorRows[listRow].indicator_data1.draw(tempEvent.data1);
+      listEditorView.listEditorRows[listRow].indicator_data2.draw(tempEvent.data2);
+    }
+  }
 }
 
 void uiSetFileManagerViewMode()

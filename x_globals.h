@@ -13,7 +13,7 @@
 #define NR_COMPRESSTEPS 5
 #define NR_LENGTHSTEPS 5
 
-#define NR_LIST_ROWS 24 // max rows to display
+#define NR_LIST_ROWS 20 // max rows to display
 
 #define NR_FILE_ROWS 16
 

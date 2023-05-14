@@ -56,7 +56,7 @@ void loadTrackEvents(uint8_t patternNr)
         memset(loadedEvents, 0, nrEvents * sizeof(event));
         dataFile.read((uint8_t *)loadedEvents, nrEvents * sizeof(event));
         patterns[patternNr].tracks[trackNr].paste(loadedEvents, nrEvents);
-        Serial.printf("Pattern %d, Track %d, loaded %d events\n", patternNr, trackNr, nrEvents);
+        //Serial.printf("Pattern %d, Track %d, loaded %d events\n", patternNr, trackNr, nrEvents);
         free(loadedEvents);
       }
       else patterns[patternNr].tracks[trackNr].clear();
