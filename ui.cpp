@@ -320,9 +320,6 @@ void uiUpdateSlowItems()
 
 void uiUpdateControls()
 {
-  // reset non-latching buttons etc
-  //if (controlsView.button_stop.state) controlsView.button_stop.set(false);
-  //if (controlsView.button_start.state) controlsView.button_start.set(false);
   if (trackDetailsView.button_copy.state) trackDetailsView.button_copy.set(false);
   if (trackDetailsView.button_paste.state) trackDetailsView.button_paste.set(false);
   if (trackDetailsView.button_clear.state) trackDetailsView.button_clear.set(false);
@@ -352,9 +349,8 @@ void startClick(uint8_t clickType)
 {
   if (clickType == 1)
   {
-    //if (controlsView.button_start.state) play();
-    //else stop();
     play();
+    controlsView.button_start.set(true);
     controlsView.button_stop.set(false);
   }
 }
@@ -367,6 +363,7 @@ void stopClick(uint8_t clickType)
     reset();
     panic();
     controlsView.button_start.set(false);
+    controlsView.button_stop.set(true);
   }
 }
 

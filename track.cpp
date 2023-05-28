@@ -14,10 +14,12 @@ Track::Track()
   emptyName.toCharArray(config.name, 8);
   memset(_noteStatus, 0, 128);
   _notesPlaying = 0;
+  _nrTempEvents = 0;
 }
 
 void Track::_initBuffer()
 {
+  if (events != nullptr) _releaseBuffer();
   events = (event*)malloc(NR_EVENTS * sizeof(event));
   memset(events, 0, NR_EVENTS * sizeof(event));
   memUsage = NR_EVENTS;
@@ -169,12 +171,17 @@ void Track::cleanupNoteOff()
 
 void Track::_convertTempEvents()
 {
-  for (uint16_t eventId = 0; eventId < _nrEvents; eventId++)
+  if (_nrTempEvents > 0)
   {
-    if (events[eventId].type == TYPE_NOTEON_TEMP) events[eventId].type = usbMIDI.NoteOn;
-    if (events[eventId].type == TYPE_NOTEOFF_TEMP) events[eventId].type = usbMIDI.NoteOff;
-    if (events[eventId].type == TYPE_CONTROLCHANGE_TEMP) events[eventId].type = usbMIDI.ControlChange;
-    if (events[eventId].type == TYPE_PITCHBEND_TEMP) events[eventId].type = usbMIDI.PitchBend;
+    for (uint16_t eventId = 0; eventId < _nrEvents; eventId++)
+    {
+      if (events[eventId].type == TYPE_NOTEON_TEMP) events[eventId].type = usbMIDI.NoteOn;
+      if (events[eventId].type == TYPE_NOTEOFF_TEMP) events[eventId].type = usbMIDI.NoteOff;
+      if (events[eventId].type == TYPE_CONTROLCHANGE_TEMP) events[eventId].type = usbMIDI.ControlChange;
+      if (events[eventId].type == TYPE_PITCHBEND_TEMP) events[eventId].type = usbMIDI.PitchBend;
+    }
+    _nrTempEvents = 0;
+    _sortEvents();
   }
 }
 
@@ -189,8 +196,9 @@ uint16_t Track::addEvent(uint32_t timestamp, uint8_t type, uint8_t data1, uint8_
     events[_nrEvents].type = type - 1;
     events[_nrEvents].data1 = data1;
     events[_nrEvents].data2 = data2;
+    _nrTempEvents++;
     _nrEvents++;
-    _sortEvents();
+    //_sortEvents();
     //printEventArray(16);
     return _nrEvents;
   }

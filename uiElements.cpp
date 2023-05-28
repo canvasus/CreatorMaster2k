@@ -1,17 +1,30 @@
 #include "uiElements.h"
 
+// --- GEO CLASS
+Geo::Geo() { }
+
+void Geo::configure(String _label, uint16_t _xPos, uint16_t _yPos, uint16_t _width, uint16_t _height, uint16_t _color1, uint16_t _color2)
+{
+  label = _label;
+  xPos = _xPos;
+  yPos = _yPos;
+  width = _width;
+  height = _height;
+  color1 = _color1;
+  color2 = _color2;
+}
+
+uint16_t Geo::relX(float fraction) { return (uint16_t)(xPos + width * fraction); }
+uint16_t Geo::relY(float fraction) { return (uint16_t)(yPos + height * fraction); }
+uint16_t Geo::relW(float fraction) { return (uint16_t)(width * fraction); }
+uint16_t Geo::relH(float fraction) { return (uint16_t)(height * fraction); }
+
 // --- DECO CLASS ---
 Deco::Deco() { }
 
 void Deco::layout(String label, uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t fillColor, uint16_t textColor, int textRelXposition)
 {
-  _geo.label = label;
-  _geo.xPos = xPos;
-  _geo.yPos = yPos;
-  _geo.width = width;
-  _geo.height = height;
-  _geo.color1 = fillColor;
-  _geo.color2 = textColor;
+  _geo.configure(label, xPos, yPos, width, height, fillColor, textColor);
   _textRelXposition = textRelXposition;
 }
 
@@ -28,13 +41,7 @@ void Deco::draw()
 // --- CONTAINER CLASS ---
 Container::Container(String label, uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t bgColor, uint16_t selectedColor)
 {
-  geo.label = label;
-  geo.xPos = xPos;
-  geo.yPos = yPos;
-  geo.width = width;
-  geo.height = height;
-  geo.color1 = bgColor;
-  geo.color2 = selectedColor;
+  geo.configure(label, xPos, yPos, width, height, bgColor, selectedColor);
 }
 
 void Container::draw()
@@ -62,13 +69,7 @@ Button::Button(){ cb = nullptr; }
 
 void Button::layout(String label, uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2)
 {
-  _geo.label = label;
-  _geo.xPos = xPos;
-  _geo.yPos = yPos;
-  _geo.width = width;
-  _geo.height = height;
-  _geo.color1 = color1;
-  _geo.color2 = color2;
+  _geo.configure(label, xPos, yPos, width, height, color1, color2);
 }
 
 void Button::draw(bool state)
@@ -113,8 +114,8 @@ bool Button::checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType)
   if ( (xPos < _geo.xPos) || (xPos > _geo.xPos + _geo.width) || (yPos < _geo.yPos) || (yPos > _geo.yPos + _geo.height) ) return false;
   else
   {
-    state = !state;
-    draw(state);
+    //state = !state;
+    //draw(state);
     if (cb) cb(clickType);
     return true;
   }
@@ -137,13 +138,7 @@ Indicator::Indicator() { cb = nullptr; }
 
 void Indicator::layout(String label, uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2, uint8_t labelPosition)
 {
-  _geo.label = label;
-  _geo.xPos = xPos;
-  _geo.yPos = yPos;
-  _geo.width = width;
-  _geo.height = height;
-  _geo.color1 = color1;
-  _geo.color2 = color2;
+  _geo.configure(label, xPos, yPos, width, height, color1, color2);
   _labelPosition = labelPosition;
 }
 
@@ -234,12 +229,7 @@ void Scrollbar::configure(uint8_t orientation, uint16_t maxValue, uint16_t minVa
 
 void Scrollbar::layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2)
 {
-  _geo.xPos = xPos;
-  _geo.yPos = yPos;
-  _geo.width = width;
-  _geo.height = height;
-  _geo.color1 = color1;
-  _geo.color2 = color2;
+  _geo.configure("", xPos, yPos, width, height, color1, color2);
 
   indicator_up.layout("", _geo.xPos, _geo.yPos, _geo.width, _geo.height /24 , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL, INDICATOR_LABEL_NONE);
   indicator_up.draw("A");
@@ -269,12 +259,7 @@ TrackRow::TrackRow() { }
 
 void TrackRow::layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2)
 {
-  _geo.xPos = xPos;
-  _geo.yPos = yPos;
-  _geo.width = width;
-  _geo.height = height;
-  _geo.color1 = color1;
-  _geo.color2 = color2;
+  _geo.configure("", xPos, yPos, width, height, color1, color2);
 }
 
 void TrackRow::draw(bool selected)
@@ -571,13 +556,7 @@ ArrangementRow::ArrangementRow()
 
 void ArrangementRow::layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2)
 {
-  _geo.xPos = xPos;
-  _geo.yPos = yPos;
-  _geo.width = width;
-  _geo.height = height;
-  _geo.color1 = color1;
-  _geo.color2 = color2;
-
+  _geo.configure("", xPos, yPos, width, height, color1, color2);
 }
 
 void ArrangementRow::draw(bool selected)
@@ -690,12 +669,8 @@ ListEditorRow::ListEditorRow()
 
 void ListEditorRow::layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2)
 {
-  _geo.xPos = xPos;
-  _geo.yPos = yPos;
-  _geo.width = width;
-  _geo.height = height;
-  _geo.color1 = color1;
-  _geo.color2 = color2;
+  _geo.configure("", xPos, yPos, width, height, color1, color2);
+
   uint8_t indicatorWidth = 40;
   uint8_t xPadding = 10;
   indicator_start_tick.layout(  "", _geo.xPos + xPadding, _geo.yPos + 1, 2 * indicatorWidth, _geo.height - 2, _geo.color1, _geo.color2, INDICATOR_LABEL_NONE);
@@ -760,7 +735,6 @@ bool ListEditor::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 }
 
 
-
 void FileManagerView::layout()
 {
   button_exit.layout("EXIT", relX(0.9), relY(0.9), relW(0.1), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
@@ -781,6 +755,8 @@ void FileManagerView::layout()
     fileManagerRows[row].layout(relX(0.1), relY(0.02 + row * 0.96/(float)NR_FILE_ROWS), relW(0.5), relH(0.96/(float)NR_FILE_ROWS), TRACK_NORMAL_COLOR, TRACK_SELECTED_COLOR);
     fileManagerRows[row].draw(fileManagerRows[row].id == selectedIndex);
   }
+
+  keyboard.layout(relX(0.6), relY(0.1), relW(0.4), relH(0.4), BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
 }
 
 bool FileManagerView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
@@ -806,12 +782,7 @@ FileManagerRow::FileManagerRow()
 
 void FileManagerRow::layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2)
 {
-  _geo.xPos = xPos;
-  _geo.yPos = yPos;
-  _geo.width = width;
-  _geo.height = height;
-  _geo.color1 = color1;
-  _geo.color2 = color2;
+  _geo.configure("", xPos, yPos, width, height, color1, color2);
 }
 
 void FileManagerRow::draw(bool selected)
@@ -830,4 +801,14 @@ bool FileManagerRow::checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType
 {
   if ( (xPos < _geo.xPos) || (xPos > _geo.xPos + _geo.width) || (yPos < _geo.yPos) || (yPos > _geo.yPos + _geo.height) ) return false;
   else return true;
+}
+
+void OnscreenKeyboard::layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2)
+{
+  _geo.configure("", xPos, yPos, width, height, color1, color2);
+}
+
+bool OnscreenKeyboard::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
+{
+  return false;
 }

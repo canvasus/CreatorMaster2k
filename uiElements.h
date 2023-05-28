@@ -42,15 +42,22 @@
 
 typedef void (*buttonCallback)(uint8_t);
 
-struct Geo
+class Geo
 {
-  String    label;
-  uint16_t  xPos;
-  uint16_t  yPos;
-  uint16_t  width;
-  uint16_t  height;
-  uint16_t  color1;
-  uint16_t  color2;
+  public:
+    Geo();
+    void configure(String _label, uint16_t _xPos, uint16_t _yPos, uint16_t _width, uint16_t _height, uint16_t _color1, uint16_t _color2);
+    uint16_t relX(float fraction);
+    uint16_t relY(float fraction);
+    uint16_t relW(float fraction);
+    uint16_t relH(float fraction);
+    String    label;
+    uint16_t  xPos;
+    uint16_t  yPos;
+    uint16_t  width;
+    uint16_t  height;
+    uint16_t  color1;
+    uint16_t  color2;
 };
 
 class Deco
@@ -309,6 +316,21 @@ class ListEditor : public Container
     void layout();
 };
 
+class OnscreenKeyboard// : public Container
+{
+  //using Container :: Container;
+  private:
+    Geo _geo;
+  public:
+    Button letters[26];
+    Button digits[10];
+    Button button_ok;
+    Button button_cancel;
+    Button button_shift;
+    bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);
+    void layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2);
+};
+
 class FileManagerRow
 {
   private:
@@ -337,6 +359,8 @@ class FileManagerView : public Container
     Button button_load;
     Button button_save;
     Scrollbar scrollbar;
+    OnscreenKeyboard keyboard;
     bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);
     void layout();
 };
+

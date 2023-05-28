@@ -19,7 +19,7 @@ uint8_t Arrangement::getCurrentArrItem()
   {
     if ( (arrangementItems_a[itemId].status == ARRITEM_ACTIVE) && 
          (arrangementItems_a[itemId].startTick <= arrangementTick) &&
-         ((arrangementItems_a[itemId].startTick + arrangementItems_a[itemId].lengthTicks) > arrangementTick) 
+         ((arrangementItems_a[itemId].startTick + arrangementItems_a[itemId].lengthTicks) > arrangementTick) // comparison?
           ) return itemId;
   }
   return 0;
@@ -72,6 +72,16 @@ void Arrangement::updateArrangementStartPositions()
       arrangementItems_a[itemId].startTick = previousArrItemStart + previousArrItemLength;
     }
   }
+}
+
+void Arrangement::moveItemUp()
+{
+
+}
+
+void Arrangement::moveItemDown()
+{
+  
 }
 
 void Arrangement::_sortItems() { qsort(arrangementItems_a, NR_ARRITEMS, sizeof(ArrangementItem), compareArrItems); }

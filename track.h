@@ -40,7 +40,7 @@ class Track
 {
   private:
     void      _sortEvents();
-    //uint16_t  _nrEvents;
+    uint16_t  _nrTempEvents;
     uint8_t   _loopCounter;
     void      _convertTempEvents();
     void      _initBuffer();

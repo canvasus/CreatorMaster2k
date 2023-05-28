@@ -54,9 +54,10 @@ void tickPattern()
     {
       lastArrPosition = currentArrangementPosition;
       patterns[currentPattern].reset();
+      currentPattern = arrangement.arrangementItems_a[currentArrangementPosition].patternIndex;
       setMuteStatus();
     }
-    currentPattern = arrangement.arrangementItems_a[currentArrangementPosition].patternIndex;
+    //currentPattern = arrangement.arrangementItems_a[currentArrangementPosition].patternIndex;
   }
   if (transport.state == SEQ_PLAYING) patterns[currentPattern].tick();
 }
