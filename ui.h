@@ -75,6 +75,7 @@ void cycleOnClick(uint8_t clickType);
 void fileClick(uint8_t clickType);
 void newClick(uint8_t clickType);
 void loadClick(uint8_t clickType);
+void loadPatternsClick(uint8_t clickType);
 void saveClick(uint8_t clickType);
 void fileManagerRowClick(uint8_t id);
 

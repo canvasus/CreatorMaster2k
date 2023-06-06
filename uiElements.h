@@ -322,7 +322,7 @@ class OnscreenKeyboard// : public Container
   private:
     Geo _geo;
   public:
-    Button letters[26];
+    Indicator letters[26];
     Button digits[10];
     Button button_ok;
     Button button_cancel;
@@ -358,6 +358,7 @@ class FileManagerView : public Container
     Button button_exit;
     Button button_load;
     Button button_save;
+    Button button_loadPatterns;
     Scrollbar scrollbar;
     OnscreenKeyboard keyboard;
     bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);

@@ -339,6 +339,7 @@ void recordClick(uint8_t clickType)
   {
     recordOn = !recordOn;
     record(recordOn);
+    controlsView.button_record.set(recordOn);
     inUse.toCharArray(patterns[currentPattern].tracks[currentTrack].config.name, 8);
     memcpy(patternView.trackRows[currentTrack].trackName, patterns[currentPattern].tracks[currentTrack].config.name, 8);
     patternView.trackRows[currentTrack].draw(true);
@@ -483,6 +484,7 @@ void clearTrackClick(uint8_t clickType)
   empty.toCharArray(patterns[currentPattern].tracks[currentTrack].config.name, 8);
   empty.toCharArray(patternView.trackRows[currentTrack].trackName, 8);
   patternView.trackRows[currentTrack].draw(true);
+  trackDetailsView.button_clear.set(true);
 }
 
 void patternLengthClick(uint8_t clickType)
@@ -566,6 +568,14 @@ void fileClick(uint8_t clickType) { uiSetFileManagerViewMode(); }
 
 void exitEditorClick(uint8_t clickType) { if (clickType == 1) uiSetNormalViewMode(); }
 
+void loadPatternsClick(uint8_t clickType)
+{
+  loadPatterns();
+  loadTransport();
+  uiSetNormalViewMode();
+  uiRedrawHeaderView();
+}
+
 void loadClick(uint8_t clickType)
 {
   loadProject();
@@ -597,7 +607,11 @@ void newClick(uint8_t clickType)
   uiRedrawTrackDetailsView();
 }
 
-void copyTrackClick(uint8_t clickType) { copyTrack(); }
+void copyTrackClick(uint8_t clickType)
+{
+  copyTrack();
+  trackDetailsView.button_copy.set(true);
+}
 
 void pasteTrackClick(uint8_t clickType)
 {
@@ -606,6 +620,7 @@ void pasteTrackClick(uint8_t clickType)
   inUse.toCharArray(patterns[currentPattern].tracks[currentTrack].config.name, 8);
   inUse.toCharArray(patternView.trackRows[currentTrack].trackName, 8);
   patternView.trackRows[currentTrack].draw(true);
+  trackDetailsView.button_paste.set(true);
 }
 
 void uiSetNormalViewMode()

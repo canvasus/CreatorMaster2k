@@ -12,8 +12,6 @@
 typedef void (*MIDIcallback)(uint8_t channel, uint8_t data1, uint8_t data2);
 typedef void (*MIDIcallbackGeneric)(uint8_t channel, uint8_t type, uint8_t data1, uint8_t data2);
 
-
-
 struct event
 {
   uint32_t  timestamp;

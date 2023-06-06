@@ -734,20 +734,23 @@ bool ListEditor::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
   return false;
 }
 
-
 void FileManagerView::layout()
 {
-  button_exit.layout("EXIT", relX(0.9), relY(0.9), relW(0.1), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
-  button_exit.draw(false);
-  button_exit.cb = &exitEditorClick;
+  button_loadPatterns.layout(F("LOAD PTRNS"), relX(0.80), relY(0.6), relW(0.19), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_loadPatterns.draw(false);
+  button_loadPatterns.cb = &loadPatternsClick;
 
-  button_load.layout("LOAD", relX(0.9), relY(0.7), relW(0.1), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_load.layout(F("LOAD ALL"), relX(0.80), relY(0.7), relW(0.19), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
   button_load.draw(false);
   button_load.cb = &loadClick;
 
-  button_save.layout("SAVE", relX(0.9), relY(0.8), relW(0.1), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_save.layout(F("SAVE"), relX(0.80), relY(0.8), relW(0.19), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
   button_save.draw(false);
   button_save.cb = &saveClick;
+
+  button_exit.layout(F("EXIT"), relX(0.80), relY(0.9), relW(0.19), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_exit.draw(false);
+  button_exit.cb = &exitEditorClick;
 
   for (uint8_t row = 0; row < NR_FILE_ROWS; row++)
   {
@@ -764,6 +767,8 @@ bool FileManagerView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickT
   if (button_exit.checkCursor(xPos, yPos, clickType)) return true;
   if (button_load.checkCursor(xPos, yPos, clickType)) return true;
   if (button_save.checkCursor(xPos, yPos, clickType)) return true;
+  if (button_loadPatterns.checkCursor(xPos, yPos, clickType)) return true;
+  
   for (uint8_t row = 0; row < NR_FILE_ROWS; row++)
   {
     if (fileManagerRows[row].checkCursor(xPos, yPos, clickType))
@@ -806,6 +811,22 @@ bool FileManagerRow::checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType
 void OnscreenKeyboard::layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2)
 {
   _geo.configure("", xPos, yPos, width, height, color1, color2);
+  Serial.printf("Keyboard outline: x %d, y %d, w %d, h %d\n", xPos, yPos, width, height);
+  for (uint8_t letterId = 0; letterId < 26; letterId++)
+  {
+    uint8_t row = letterId / 6;
+    uint8_t col = letterId % 6;
+    uint16_t xPos = _geo.relX(col * 0.15);
+    uint16_t yPos = _geo.relY(row * 0.15);
+    letters[letterId].layout(String(letterId), xPos, yPos, _geo.relW(0.12), _geo.relH(0.12), BUTTON_FILL_PRESSED, BUTTON_FILL_PRESSED, INDICATOR_LABEL_NONE);
+    letters[letterId].draw(String(letterId+65));
+    //Serial.printf("Key: %s, x %d, y %d, w %d, h %d\n", String(letterId), xPos, yPos,  _geo.relW(0.15), _geo.relH(0.15));
+  }
+
+  for (uint8_t digitId = 0; digitId < 10; digitId++)
+  {
+    // draw digit buttons
+  }
 }
 
 bool OnscreenKeyboard::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
