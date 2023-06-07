@@ -9,6 +9,7 @@
 
 #define NR_SIGNATURES 6
 
+#define NR_PORTS 1
 #define NR_QUANTIZESTEPS 5
 #define NR_COMPRESSTEPS 5
 #define NR_LENGTHSTEPS 5

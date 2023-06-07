@@ -35,6 +35,11 @@ void serialMidiSend(uint8_t channel, uint8_t type, uint8_t data1, uint8_t data2)
   MIDI.send(mtype, data1, data2, channel);
 }
 
+void usbMidiSend(uint8_t usbDeviceNr, uint8_t type, uint8_t data1, uint8_t data2)
+{
+  
+}
+
 void allNotesOff()
 {
   for (uint8_t channel = 1; channel < 17; channel++)

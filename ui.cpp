@@ -286,7 +286,7 @@ void uiUpdateActivity()
     recentActivity = patterns[currentPattern].getActivity(trackId);
     if (recentActivity > 0) smoothedActivity[trackId] = 10;
     if (recentActivity > 2) smoothedActivity[trackId] = 20;
-    else if (smoothedActivity[trackId] > 0 ) smoothedActivity[trackId]--;
+    else if (smoothedActivity[trackId] > 1 ) smoothedActivity[trackId] = smoothedActivity[trackId] - 2;
     patternView.trackRows[trackId].activity(smoothedActivity[trackId]);
   }
 }
@@ -407,6 +407,11 @@ void bpmClick(uint8_t clickType)
   if (clickType == 1) setBpm(transport.bpm + 1);
   if (clickType == 2) setBpm(transport.bpm - 1);
   headerView.indicator_bpm.draw(transport.bpm);
+}
+
+void portClick(uint8_t clickType)
+{
+
 }
 
 void channelClick(uint8_t clickType)

@@ -48,6 +48,7 @@ void startClick(uint8_t clickType);
 void stopClick(uint8_t clickType);
 void trackSelectClick(uint8_t id);
 void bpmClick(uint8_t clickType);
+void portClick(uint8_t clickType);
 void channelClick(uint8_t clickType);
 void quantizeClick(uint8_t clickType);
 void clearTrackClick(uint8_t clickType);

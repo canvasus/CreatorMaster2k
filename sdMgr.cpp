@@ -18,11 +18,6 @@ void initSDcard()
 
 void loadProject()
 {
-//  for (uint8_t patternId = 0; patternId < NR_PATTERNS; patternId++)
-//  {
-//    loadTrackEvents(patternId);
-//    loadTrackSettings(patternId);
-//  }
   loadPatterns();
   loadArrangementSettings();
   loadTransport();

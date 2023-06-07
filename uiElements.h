@@ -9,7 +9,7 @@
 #define DECO_TOPROW_FILL_COLOR  0x1175 // dark blue
 #define DECO_TOPROW_TEXT_COLOR  RA8875_WHITE
 
-#define BUTTON_BG_COLOR       RA8875_WHITE
+#define BUTTON_BG_COLOR       RA8875_WHITE // button background color =  white
 #define BUTTON_BORDER_COLOR   0x1175 // dark blue
 #define BUTTON_SHADOW_COLOR   0x7BEF // dark grey
 #define BUTTON_FILL_NORMAL    0xCEFC // light blue
@@ -233,6 +233,7 @@ class TrackDetailsView :  public Container
 {
   using Container::Container;
   public:
+    const String portStrings[NR_PORTS] = {"SER1"};
     const String quantizeStrings[NR_QUANTIZESTEPS] = {"OFF ", "1/4 " ,"1/8 ", "1/16", "1/3 "};
     const uint16_t quantizeSettings[NR_QUANTIZESTEPS] = {1, 192, 96, 48, 64};
     const String compressStrings[NR_COMPRESSTEPS] = {"OFF", "1:2" ,"1:4", "1:8", "fix"};
@@ -243,6 +244,7 @@ class TrackDetailsView :  public Container
     Deco decoLeft;
     Deco decoRight;
     Indicator indicator_trackNr;
+    Indicator indicator_port;
     Indicator indicator_channel;
     Indicator indicator_quantize;
     Indicator indicator_transpose;

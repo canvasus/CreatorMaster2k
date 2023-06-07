@@ -348,6 +348,11 @@ void TrackDetailsView::layout()
   indicator_trackNr.setLabelOffset(-48, 2);
   indicator_trackNr.draw(1);
 
+  indicator_port.layout("PORT", relX(0.66), relY(1/17.0), relW(0.32), relH(1/17.5) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL, INDICATOR_LABEL_CUSTOM);
+  indicator_port.cb = &portClick;
+  indicator_port.setLabelOffset(-74, 2);
+  indicator_port.draw(portStrings[0]);
+
   indicator_channel.layout("CHANNEL", relX(0.66), relY(2/17.0), relW(0.32), relH(1/17.5) , BUTTON_FILL_NORMAL, BUTTON_FILL_NORMAL, INDICATOR_LABEL_CUSTOM);
   indicator_channel.cb = &channelClick;
   indicator_channel.setLabelOffset(-74, 2);
@@ -426,6 +431,7 @@ void TrackDetailsView::update(uint8_t trackNr, uint8_t channel, uint8_t quantize
   indicator_velocity.draw(velocity);
   indicator_compress.draw(compressStrings[compressIndex]);
   indicator_length.draw(lengthStrings[lengthIndex]);
+  //indicator_port.draw(portStrings[portIndex]);)
 }
 
 // --- CONTROLS ---
@@ -453,7 +459,7 @@ void ControlsView::layout()
   button_continue.cb = &testClick;
   
   button_stop.layout("STOP", relX(0.6), relY(0.65), relW(0.36),relH(0.24), BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
-  button_stop.draw(false);
+  button_stop.draw(true);
   button_stop.cb = &stopClick;
   
   button_reverse.layout("<<", relX(0.02), relY(0.65), relW(0.27), relH(0.1), BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
@@ -715,7 +721,7 @@ void ListEditor::layout()
   uint16_t listRowHeight = relH(1/(1.0 * NR_LIST_ROWS));
 
   indicator_header.layout("", relX(0.0), relY(0.0), relW(1.0), relH(1.0 / (1.0 * NR_LIST_ROWS)), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_NONE);
-  indicator_header.draw(F("TICK BAR BEAT  16TH  TYPE  DATA1 DATA2"));
+  indicator_header.draw(F("TICK BAR BEAT  16TH    TYPE  DATA1 DATA2"));
   
   for (uint8_t listItemRow = 0; listItemRow < NR_LIST_ROWS; listItemRow++)
   {
