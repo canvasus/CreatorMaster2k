@@ -14,8 +14,8 @@ Pattern::Pattern()
 
 void Pattern::tick()
 {
-  patternTick++;
   for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++) trackActivity[trackId] = trackActivity[trackId] + tracks[trackId].triggerEvents(patternTick);
+  patternTick++;
 }
 
 void Pattern::reset()

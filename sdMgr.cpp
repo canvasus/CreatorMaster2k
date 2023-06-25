@@ -11,7 +11,7 @@ void initSDcard()
   {
     for (uint8_t projectId = 0; projectId < NR_PROJECTS; projectId++) setProjectfolder(projectId);
     sdStatus = true;
-    listContent();
+    //listContent();
     setProjectfolder(0);
   }
 }

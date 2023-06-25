@@ -32,7 +32,24 @@ struct TrackConfig
   uint8_t   lengthIndex = 0;
   bool      hidden = false;
   bool      muted = false;
+
+  bool      generatorOn = false;
 };
+
+class Generator
+{
+  private:
+    uint8_t _matrix[16][16];
+    uint8_t _currentStep;
+  public:
+    Generator();
+    uint16_t stepLength;
+    uint16_t sequenceLength;
+    uint16_t noteLength;
+    event getEvent(uint32_t timestamp);
+    void reset();
+};
+
 
 class Track
 {
@@ -72,7 +89,8 @@ class Track
     void setPosition(uint32_t timestamp);
     void reset();
     void cleanupNoteOff();
-    void triggerEvent(uint16_t eventIndex);
+    //void triggerEvent(uint16_t eventIndex);
+    void triggerEvent(uint8_t type, uint8_t data1, uint8_t data2);
     uint16_t triggerEvents(uint32_t timestamp);
     void syncSettings();
 };

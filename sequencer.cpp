@@ -56,6 +56,8 @@ void tickPattern()
       patterns[currentPattern].reset();
       currentPattern = arrangement.arrangementItems_a[currentArrangementPosition].patternIndex;
       setMuteStatus();
+      Serial.printf("New arr position: %d, arrTick: %d\n", currentArrangementPosition, arrangement.arrangementTick);
+      Serial.printf("Arr start tick: %d, arr length ticks: %d\n", arrangement.arrangementItems_a[currentArrangementPosition].startTick, arrangement.arrangementItems_a[currentArrangementPosition].lengthTicks);
     }
     //currentPattern = arrangement.arrangementItems_a[currentArrangementPosition].patternIndex;
   }

@@ -15,12 +15,9 @@ uint8_t Arrangement::tick()
 
 uint8_t Arrangement::getCurrentArrItem()
 {
-  for (uint8_t itemId = 0; itemId < NR_ARRITEMS; itemId++)
+  for (uint8_t itemId = NR_ARRITEMS; itemId > 0; itemId--)
   {
-    if ( (arrangementItems_a[itemId].status == ARRITEM_ACTIVE) && 
-         (arrangementItems_a[itemId].startTick <= arrangementTick) &&
-         ((arrangementItems_a[itemId].startTick + arrangementItems_a[itemId].lengthTicks) > arrangementTick) // comparison?
-          ) return itemId;
+    if ( (arrangementItems_a[itemId].status == ARRITEM_ACTIVE) && (arrangementItems_a[itemId].startTick <= arrangementTick) ) return itemId;
   }
   return 0;
 }
