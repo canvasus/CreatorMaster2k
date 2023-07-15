@@ -23,6 +23,7 @@ struct event
 struct TrackConfig
 {
   char      name[8];
+  uint8_t   portIndex = 0;
   uint8_t   channel = 1;
   uint8_t   quantizeIndex = 0;
   int       transpose = 0;

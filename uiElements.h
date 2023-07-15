@@ -233,13 +233,13 @@ class TrackDetailsView :  public Container
 {
   using Container::Container;
   public:
-    const String portStrings[NR_PORTS] = {"SER1"};
-    const String quantizeStrings[NR_QUANTIZESTEPS] = {"OFF ", "1/4 " ,"1/8 ", "1/16", "1/3 "};
-    const uint16_t quantizeSettings[NR_QUANTIZESTEPS] = {1, 192, 96, 48, 64};
+    const String portStrings[NR_PORTS] = {"SER1", "USB1", "USB2", "USB3"};
+    const String quantizeStrings[NR_QUANTIZESTEPS] = {"OFF ", "1/4 " ,"1/8 ", "1/16", "1/32", "1/3 "};
+    const uint16_t quantizeSettings[NR_QUANTIZESTEPS] = {1, 192, 96, 48, 24, 64};
     const String compressStrings[NR_COMPRESSTEPS] = {"OFF", "1:2" ,"1:4", "1:8", "fix"};
     const uint16_t compressSettings[NR_COMPRESSTEPS] = {0, 1, 2, 3, 4};  // 63 + abs(velocity - 64) / C
-    const String lengthStrings[NR_QUANTIZESTEPS] = {"OFF ", "1/4 " ,"1/8 ", "1/16", "1/3 "};
-    const uint16_t lengthSettings[NR_QUANTIZESTEPS] = {0, 192, 96, 48, 64};
+    const String lengthStrings[NR_QUANTIZESTEPS] = {"OFF ", "1/4 " ,"1/8 ", "1/16", "1/32", "1/3 "};
+    const uint16_t lengthSettings[NR_QUANTIZESTEPS] = {0, 192, 96, 48, 24, 64};
     
     Deco decoLeft;
     Deco decoRight;
@@ -258,7 +258,7 @@ class TrackDetailsView :  public Container
     Button button_clear;
     bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);
     void layout();
-    void update(uint8_t trackNr, uint8_t channel, uint8_t quantizeIndex, int transpose, uint8_t loop, int velocity, uint8_t compressIndex,  uint8_t lengthIndex);
+    void update(uint8_t portIndex, uint8_t trackNr, uint8_t channel, uint8_t quantizeIndex, int transpose, uint8_t loop, int velocity, uint8_t compressIndex,  uint8_t lengthIndex);
 };
 
 class ControlsView :  public Container

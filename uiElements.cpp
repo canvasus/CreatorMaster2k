@@ -312,7 +312,8 @@ void PatternView::layout()
 
   for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++)
   {
-    String empty = "<empty>";
+    //String empty = "<empty>";
+    String empty = "";
     trackRows[trackId].cb = &trackSelectClick;
     empty.toCharArray(trackRows[trackId].trackName, 8);
     trackRows[trackId].id = trackId;
@@ -407,6 +408,7 @@ void TrackDetailsView::layout()
 
 bool TrackDetailsView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 {
+  if (indicator_port.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_channel.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_quantize.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_transpose.checkCursor(xPos, yPos, clickType)) return true;
@@ -421,9 +423,10 @@ bool TrackDetailsView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t click
   return false;
 }
 
-void TrackDetailsView::update(uint8_t trackNr, uint8_t channel, uint8_t quantizeIndex, int transpose, uint8_t loop, int velocity, uint8_t compressIndex, uint8_t lengthIndex)
+void TrackDetailsView::update(uint8_t portIndex, uint8_t trackNr, uint8_t channel, uint8_t quantizeIndex, int transpose, uint8_t loop, int velocity, uint8_t compressIndex, uint8_t lengthIndex)
 {
   indicator_trackNr.draw(trackNr + 1);
+  indicator_port.draw(portStrings[portIndex]);
   indicator_channel.draw(channel);
   indicator_quantize.draw(quantizeStrings[quantizeIndex]);
   indicator_transpose.draw(transpose);

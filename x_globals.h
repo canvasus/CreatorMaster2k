@@ -9,10 +9,10 @@
 
 #define NR_SIGNATURES 6
 
-#define NR_PORTS 1
-#define NR_QUANTIZESTEPS 5
-#define NR_COMPRESSTEPS 5
-#define NR_LENGTHSTEPS 5
+#define NR_PORTS 4
+#define NR_QUANTIZESTEPS 6
+#define NR_COMPRESSTEPS  5
+#define NR_LENGTHSTEPS   6
 
 #define NR_LIST_ROWS 20 // max rows to display
 

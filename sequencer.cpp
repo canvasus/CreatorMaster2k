@@ -33,7 +33,6 @@ void setupSequencer()
     String name = patternNames[patternId];
     name.toCharArray(patterns[patternId].name, 8);
   }
-   Serial.println(sizeof(event));
 }
 
 void updateSequencer()
@@ -56,11 +55,10 @@ void tickPattern()
       patterns[currentPattern].reset();
       currentPattern = arrangement.arrangementItems_a[currentArrangementPosition].patternIndex;
       setMuteStatus();
-      Serial.printf("New arr position: %d, arrTick: %d\n", currentArrangementPosition, arrangement.arrangementTick);
-      Serial.printf("Arr start tick: %d, arr length ticks: %d\n", arrangement.arrangementItems_a[currentArrangementPosition].startTick, arrangement.arrangementItems_a[currentArrangementPosition].lengthTicks);
+      //Serial.printf("New arr position: %d, arrTick: %d\n", currentArrangementPosition, arrangement.arrangementTick);
+      //Serial.printf("Arr start tick: %d, arr length ticks: %d\n", arrangement.arrangementItems_a[currentArrangementPosition].startTick, arrangement.arrangementItems_a[currentArrangementPosition].lengthTicks);
     }
-    //currentPattern = arrangement.arrangementItems_a[currentArrangementPosition].patternIndex;
-  }
+   }
   if (transport.state == SEQ_PLAYING) patterns[currentPattern].tick();
 }
 
@@ -126,7 +124,7 @@ void handlePrecount()
     transport.precountBars++;
     metronome_midi_cb(metronomeChannel, usbMIDI.NoteOn, metronomeNote1, 80);
   }
-  if (transport.precountTicks % RESOLUTION > RESOLUTION >> 1 ) metronome_midi_cb(metronomeChannel, usbMIDI.NoteOff, metronomeNote1, 0);
+  //if (transport.precountTicks % RESOLUTION > RESOLUTION >> 1 ) metronome_midi_cb(metronomeChannel, usbMIDI.NoteOff, metronomeNote1, 0);
   if (transport.precountBars > 4) // beatsPrecounted > 4)
   {
     metronome_midi_cb(metronomeChannel, usbMIDI.NoteOff, metronomeNote1, 0);
@@ -150,18 +148,24 @@ void setBpm(uint8_t bpm)
 
 void processInput(uint8_t channel, uint8_t type, uint8_t data1, uint8_t data2)
 {
+  //Serial.printf("Process: type %d, data1 %d, data2 %d\n", type, data1, data2);
   if (patterns[currentPattern].tracks[currentTrack].midi_cb && midiThrough)
   {
     // Midi through
     uint8_t _data1 = data1;
     if (type == usbMIDI.NoteOn || type == usbMIDI.NoteOff) _data1 = _data1 + patterns[currentPattern].tracks[currentTrack].config.transpose;
-    patterns[currentPattern].tracks[currentTrack].midi_cb(patterns[currentPattern].tracks[currentTrack].config.channel, type, _data1, data2);
+    if (type == usbMIDI.NoteOn || type == usbMIDI.NoteOff || type == usbMIDI.ControlChange)
+    {
+      //Serial.printf("Through: type %d, data1 %d, data2 %d\n", type, data1, data2);
+      patterns[currentPattern].tracks[currentTrack].midi_cb(patterns[currentPattern].tracks[currentTrack].config.channel, type, _data1, data2);
+    }
   }
   uint32_t timestamp = patterns[currentPattern].patternTick;
   if (transport.recording)
   {
+    //Serial.printf("Add event (seq): type %d, data1 %d, data2 %d\n", type, data1, data2);
     if (transport.state == SEQ_PLAYING) patterns[currentPattern].tracks[currentTrack].addEvent(timestamp, type, data1, data2);
-    if (transport.state == SEQ_PRECOUNT) patterns[currentPattern].tracks[currentTrack].addEvent(0, type, data1, data2);  
+    if (transport.state == SEQ_PRECOUNT && type == usbMIDI.NoteOn) patterns[currentPattern].tracks[currentTrack].addEvent(0, type, data1, data2);  
   }
   patterns[currentPattern].setActivity(currentTrack, 20);
 }

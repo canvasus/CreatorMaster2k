@@ -113,6 +113,7 @@ void loadTrackSettings(uint8_t patternNr)
     {
       dataFile.read((uint8_t *)&patterns[patternNr].tracks[trackNr].config, sizeof(TrackConfig));
       patterns[patternNr].tracks[trackNr].syncSettings();
+      patterns[patternNr].syncPortSettings(trackNr);
     }
     dataFile.close();
   }

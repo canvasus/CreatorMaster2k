@@ -170,6 +170,7 @@ void uiRedrawPatternView()
 void uiRedrawTrackDetailsView()
 {
   // redraw track detail view using currentPattern->currentTrack
+  uint8_t portIndex = patterns[currentPattern].tracks[currentTrack].config.portIndex;
   uint8_t channel = patterns[currentPattern].tracks[currentTrack].config.channel;
   uint8_t quantizeIndex = patterns[currentPattern].tracks[currentTrack].config.quantizeIndex;
   int transpose = patterns[currentPattern].tracks[currentTrack].config.transpose;
@@ -177,7 +178,7 @@ void uiRedrawTrackDetailsView()
   int velocity = patterns[currentPattern].tracks[currentTrack].config.velocity;
   uint8_t compress = patterns[currentPattern].tracks[currentTrack].config.compressIndex;
   uint8_t length = patterns[currentPattern].tracks[currentTrack].config.lengthIndex;
-  trackDetailsView.update(currentTrack, channel, quantizeIndex, transpose, loop, velocity, compress, length);
+  trackDetailsView.update(portIndex, currentTrack, channel, quantizeIndex, transpose, loop, velocity, compress, length);
 }
 
 void updateMouse()
@@ -411,7 +412,13 @@ void bpmClick(uint8_t clickType)
 
 void portClick(uint8_t clickType)
 {
+  uint8_t portIndex = patterns[currentPattern].tracks[currentTrack].config.portIndex;
+  if (clickType == 1 && portIndex < (NR_PORTS - 1)) portIndex++;
+  if (clickType == 2 && portIndex > 0) portIndex--;
 
+  trackDetailsView.indicator_port.draw(trackDetailsView.portStrings[portIndex]);
+  patterns[currentPattern].tracks[currentTrack].config.portIndex = portIndex;
+  patterns[currentPattern].syncPortSettings(currentTrack);
 }
 
 void channelClick(uint8_t clickType)
@@ -484,7 +491,8 @@ void lengthClick(uint8_t clickType)
 
 void clearTrackClick(uint8_t clickType)
 {
-  String empty = "<empty>";
+  //String empty = "<empty>";
+  String empty = "";
   clearTrack(currentTrack);
   empty.toCharArray(patterns[currentPattern].tracks[currentTrack].config.name, 8);
   empty.toCharArray(patternView.trackRows[currentTrack].trackName, 8);
