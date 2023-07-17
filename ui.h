@@ -3,6 +3,7 @@
 #include <SPI.h>
 #include <RA8875.h>
 #include <USBHost_t36.h>
+
 #include "uiElements.h"
 #include "sequencer.h"
 #include "sdMgr.h"
@@ -28,7 +29,7 @@
 #define MAIN_H          (uint16_t)(SCREEN_YRES * 0.9 - PADDING)
 
 #define VIEW_NORMAL      0
-#define VIEW_LISTEDITOR  1
+#define VIEW_EDITOR      1
 #define VIEW_FILEMANAGER 2
 
 extern KeyboardController keyboard1;
@@ -97,7 +98,7 @@ void uiRedrawTrackDetailsView();
 void uiRedrawHeaderView();
 
 void uiSetNormalViewMode();
-void uiSetListEditorViewMode();
+void uiSetEditorViewMode();
 void uiSetFileManagerViewMode();
 
 void setScreensaver(bool state);

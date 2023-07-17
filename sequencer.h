@@ -21,6 +21,7 @@ extern Arrangement arrangement;
 struct Transport
 {
   uint8_t   bpm         = 120;
+  uint16_t  oneTickUs   = 1000 * 60000 / (120 * RESOLUTION);
   uint8_t   state       = SEQ_STOPPED;
   bool      recording   = false;
   bool      metronomeOn = true;

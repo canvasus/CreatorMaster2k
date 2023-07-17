@@ -44,6 +44,10 @@ void updateSequencer()
 
 void tickPattern()
 {
+  // elapsedMicros timer = 0;
+  // static uint16_t counter = 0;
+  // static uint16_t timerMax = 0;
+
   if (transport.state == SEQ_PRECOUNT) handlePrecount();
   if (transport.state == SEQ_PLAYING && transport.arrangementOn)
   {
@@ -55,11 +59,20 @@ void tickPattern()
       patterns[currentPattern].reset();
       currentPattern = arrangement.arrangementItems_a[currentArrangementPosition].patternIndex;
       setMuteStatus();
-      //Serial.printf("New arr position: %d, arrTick: %d\n", currentArrangementPosition, arrangement.arrangementTick);
-      //Serial.printf("Arr start tick: %d, arr length ticks: %d\n", arrangement.arrangementItems_a[currentArrangementPosition].startTick, arrangement.arrangementItems_a[currentArrangementPosition].lengthTicks);
     }
    }
   if (transport.state == SEQ_PLAYING) patterns[currentPattern].tick();
+
+  // RESOURCE USAGE TEST
+  // uint32_t _timer = timer;
+  // timerMax = max(_timer, timerMax);
+  // counter++;
+  // if (counter > 1000)
+  // {
+  //   counter = 0;
+  //   Serial.printf("Usage: %d / %d = %.3f\n", timerMax, transport.oneTickUs, (100.0 * timerMax / transport.oneTickUs));
+  //   timerMax = 0;
+  // }
 }
 
 void setMuteStatus()
@@ -142,8 +155,9 @@ void syncTransportSettings()
 void setBpm(uint8_t bpm)
 {
   transport.bpm = bpm;
-  uint16_t oneTickUs = 1000 * 60000 / (transport.bpm * RESOLUTION);
-  sequencerUpdateTimer.begin(tickPattern, oneTickUs); 
+  //uint16_t oneTickUs = 1000 * 60000 / (transport.bpm * RESOLUTION);
+  transport.oneTickUs = 1000 * 60000 / (transport.bpm * RESOLUTION);
+  sequencerUpdateTimer.begin(tickPattern, transport.oneTickUs); 
 }
 
 void processInput(uint8_t channel, uint8_t type, uint8_t data1, uint8_t data2)

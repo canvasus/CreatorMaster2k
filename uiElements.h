@@ -3,8 +3,9 @@
 #include <Arduino.h>
 #include "ui.h"
 #include "x_globals.h"
+#include "track.h"
 
-#define MAIN_BG_COLOR         0x9D39 //0xCEFC //light blue
+#define MAIN_BG_COLOR         0x9D39 //light blue
 
 #define DECO_TOPROW_FILL_COLOR  0x1175 // dark blue
 #define DECO_TOPROW_TEXT_COLOR  RA8875_WHITE
@@ -32,11 +33,17 @@
 #define ACTIVITY_BG_COLOR       RA8875_WHITE
 #define ACTIVITY_FILL_COLOR     0xA55B
 
-#define TRACK_SELECTED_COLOR    0x3B35 //0xCEFC // dark blue
+#define TRACK_SELECTED_COLOR    0x3B35 // dark blue
 #define TRACK_NORMAL_COLOR      RA8875_WHITE
 
 #define CONTAINER_TITLE_COLOR 0xADB9
 #define CONTAINER_TITLE_H 20
+
+#define EDITOR_BG_COLOR             RA8875_WHITE
+#define EDITOR_BORDER_COLOR         0x3B35
+#define EDITOR_BLACKKEY_COLOR       0xCEFC  
+#define EDITOR_NOTE_COLOR_DEFAULT   0x3B35
+#define EDITOR_NOTE_COLOR_SELECTED  0xf81f  
 
 #define TRANSPORT_W 110
 
@@ -281,43 +288,6 @@ class ControlsView :  public Container
     void layout();
 };
 
-class ListEditorRow
-{
-  private:
-    Geo     _geo;
-  public:
-    ListEditorRow();
-    uint8_t id;
-    Indicator indicator_start_tick;
-    Indicator indicator_start_bar;
-    Indicator indicator_start_4th;
-    Indicator indicator_start_16th;
-    Indicator indicator_start_768th; // note: this is one tick with RESOLUTION = 192
-    Indicator indicator_type;
-    Indicator indicator_channel;
-    Indicator indicator_data1;
-    Indicator indicator_data2;
-    void layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2);
-    void draw(bool selected);
-    void draw(bool selected, uint32_t startTick, uint8_t type, uint8_t data1, uint8_t data2);
-};
-
-class ListEditor : public Container
-{
-  using Container :: Container;
-  private:
-    Geo     _geo;  
-  public:
-    uint16_t firstRowIndex = 0;
-    uint16_t selectedIndex = 0;
-    Indicator indicator_header;
-    ListEditorRow listEditorRows[NR_LIST_ROWS];
-    Scrollbar scrollbar;
-    Button button_exit;
-    bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);
-    void layout();
-};
-
 class OnscreenKeyboard// : public Container
 {
   //using Container :: Container;
@@ -367,3 +337,65 @@ class FileManagerView : public Container
     void layout();
 };
 
+class NoteElement
+{
+  public:
+    uint16_t eventIndex_noteOn = 0;
+    uint16_t eventIndex_noteOff = 0;
+    uint16_t xPos = 0;
+    uint16_t yPos = 0;
+    uint16_t width = 16;
+    uint16_t height = 8;
+    void draw(bool selected);
+    void reDraw();
+    bool checkCursor(uint16_t _xPos, uint16_t _yPos, uint8_t clickType);
+};
+
+class Grid
+{
+  private:
+    Geo _geo;
+    uint16_t _timestampToXpos(uint32_t timestamp);
+    uint16_t _timestampToWidth(uint32_t timestamp);
+    uint16_t _noteToYpos(uint8_t note);
+
+  public:
+    Track * track = nullptr;
+    NoteElement noteElements[NR_EDITOR_NOTES];
+    uint16_t firstNoteIndex = 36; // C2
+    uint16_t lastNoteIndex = 60; // C4
+    uint32_t firstTick = 0;
+    uint32_t lastTick = RESOLUTION * 4 * 4; // 16 beats
+    uint16_t nrVisibleEvents = 0;
+
+    uint16_t nrRows = 16;
+    uint16_t nrColumns  = 16;
+
+    uint16_t gridSizePixels_x = 16;
+    uint16_t gridSizePixels_y = 8;
+    uint16_t actualHeight = 0;
+
+    int16_t selectedNoteId = -1;
+
+    uint16_t color = 0x9CF3;
+    void layout(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
+    void draw();
+    void drawNotes();
+    void syncToTrack();
+    bool checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType);
+};
+
+class GraphicEditor : public Container
+{
+  using Container :: Container;
+  public:
+    Track * track = nullptr;
+    Grid grid;
+    Button button_exit;
+    bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);
+    void layout();
+    void draw();
+    void drawNotes();
+    void setTrack(Track * _track);
+    
+};

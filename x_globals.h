@@ -15,6 +15,7 @@
 #define NR_LENGTHSTEPS   6
 
 #define NR_LIST_ROWS 20 // max rows to display
+#define NR_EDITOR_NOTES 16
 
 #define NR_FILE_ROWS 16
 

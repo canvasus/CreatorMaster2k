@@ -94,6 +94,7 @@ class Track
     void triggerEvent(uint8_t type, uint8_t data1, uint8_t data2);
     uint16_t triggerEvents(uint32_t timestamp);
     void syncSettings();
+    uint16_t getMatchingNoteOff(uint16_t noteOnEventIndex);
 };
 
 int compareEvents(const void *s1, const void *s2);

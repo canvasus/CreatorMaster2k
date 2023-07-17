@@ -248,6 +248,19 @@ void Track::syncSettings()
 
 uint16_t Track::getNrEvents() { return _nrEvents; }
 
+uint16_t Track::getMatchingNoteOff(uint16_t noteOnEventIndex)
+{
+  if (events != nullptr)
+  {
+    uint8_t noteValue = events[noteOnEventIndex].data1;
+    for (uint16_t eventIndex = noteOnEventIndex; eventIndex < _nrEvents; eventIndex++)
+    {
+      if ( (events[eventIndex].type == usbMIDI.NoteOff) && (events[eventIndex].data1 == noteValue) ) return eventIndex;
+    }
+  }
+  return 0;
+}
+
 int compareEvents(const void *s1, const void *s2)
 {
     struct event *e1 = (struct event *)s1;

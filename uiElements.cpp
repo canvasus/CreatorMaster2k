@@ -671,78 +671,6 @@ bool ArrangementView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickT
   return false;
 }
 
-ListEditorRow::ListEditorRow()
-{
-
-}
-
-void ListEditorRow::layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2)
-{
-  _geo.configure("", xPos, yPos, width, height, color1, color2);
-
-  uint8_t indicatorWidth = 40;
-  uint8_t xPadding = 10;
-  indicator_start_tick.layout(  "", _geo.xPos + xPadding, _geo.yPos + 1, 2 * indicatorWidth, _geo.height - 2, _geo.color1, _geo.color2, INDICATOR_LABEL_NONE);
-  indicator_start_bar.layout(   "", _geo.xPos + 2 * xPadding + 2 * indicatorWidth, _geo.yPos + 1, indicatorWidth, _geo.height - 2, _geo.color1, _geo.color2, INDICATOR_LABEL_NONE);
-  indicator_start_4th.layout(   "", _geo.xPos + 3 * xPadding + 3 * indicatorWidth, _geo.yPos + 1, indicatorWidth, _geo.height - 2, _geo.color1, _geo.color2, INDICATOR_LABEL_NONE);
-  indicator_start_16th.layout(  "", _geo.xPos + 4 * xPadding + 4 * indicatorWidth, _geo.yPos + 1, indicatorWidth, _geo.height - 2, _geo.color1, _geo.color2, INDICATOR_LABEL_NONE);
-  indicator_start_768th.layout( "", _geo.xPos + 5 * xPadding + 5 * indicatorWidth, _geo.yPos + 1, indicatorWidth, _geo.height - 2, _geo.color1, _geo.color2, INDICATOR_LABEL_NONE);
-  indicator_type.layout(        "", _geo.xPos + 6 * xPadding + 6 * indicatorWidth, _geo.yPos + 1, indicatorWidth, _geo.height - 2, _geo.color1, _geo.color2, INDICATOR_LABEL_NONE);
-  indicator_channel.layout(     "", _geo.xPos + 7 * xPadding + 7 * indicatorWidth, _geo.yPos + 1, indicatorWidth, _geo.height - 2, _geo.color1, _geo.color2, INDICATOR_LABEL_NONE);
-  indicator_data1.layout(       "", _geo.xPos + 8 * xPadding + 8 * indicatorWidth, _geo.yPos + 1, indicatorWidth, _geo.height - 2, _geo.color1, _geo.color2, INDICATOR_LABEL_NONE);
-  indicator_data2.layout(       "", _geo.xPos + 9 * xPadding + 9 * indicatorWidth, _geo.yPos + 1, indicatorWidth, _geo.height - 2, _geo.color1, _geo.color2, INDICATOR_LABEL_NONE);
-}
-
-void ListEditorRow::draw(bool selected)
-{
-  tft.writeTo(L2);
-  tft.setFontScale(0);
-  //tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_NORMAL_COLOR); // background
-  if (selected) tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_SELECTED_COLOR); // background
-  else tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_NORMAL_COLOR); // background
-  tft.setCursor(_geo.xPos + 20, _geo.yPos + 5);
-  //tft.setTextColor(INDICATOR_TEXT_COLOR);
-  if (selected) tft.setTextColor(RA8875_WHITE);
-  else tft.setTextColor(INDICATOR_TEXT_COLOR);
-  tft.printf("%2d", id);
-}
-
-void ListEditorRow::draw(bool selected, uint32_t startTick, uint8_t type, uint8_t data1, uint8_t data2)
-{
-  draw(selected);
-  indicator_start_tick.draw(startTick);
-  indicator_type.draw(type);
-  indicator_data1.draw(data1);
-  indicator_data2.draw(data2);
-}
-
-void ListEditor::layout()
-{
-  button_exit.layout("EXIT", relX(0.9), relY(0.9), relW(0.1), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
-  button_exit.draw(false);
-  button_exit.cb = &exitEditorClick;
-  uint16_t listRowHeight = relH(1/(1.0 * NR_LIST_ROWS));
-
-  indicator_header.layout("", relX(0.0), relY(0.0), relW(1.0), relH(1.0 / (1.0 * NR_LIST_ROWS)), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_NONE);
-  indicator_header.draw(F("TICK BAR BEAT  16TH    TYPE  DATA1 DATA2"));
-  
-  for (uint8_t listItemRow = 0; listItemRow < NR_LIST_ROWS; listItemRow++)
-  {
-    uint16_t listRowYpos = relY((listItemRow + 1) / (1.0 * NR_LIST_ROWS));
-    //listEditorRows[listItemRow].cb = &arrangementItemSelectClick;
-    //arrangementRows[arrItemId].patternName = "PATTERN01";
-    listEditorRows[listItemRow].id = listItemRow;
-    listEditorRows[listItemRow].layout(relX(0), listRowYpos, relW(0.85), listRowHeight , TRACK_NORMAL_COLOR, TRACK_SELECTED_COLOR);
-  }
-  listEditorRows[0].draw(true);
-}
-
-bool ListEditor::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
-{
-  if (button_exit.checkCursor(xPos, yPos, clickType)) return true;
-  return false;
-}
-
 void FileManagerView::layout()
 {
   button_loadPatterns.layout(F("LOAD PTRNS"), relX(0.80), relY(0.6), relW(0.19), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
@@ -842,3 +770,179 @@ bool OnscreenKeyboard::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t click
 {
   return false;
 }
+
+void Grid::layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height)
+{
+  _geo.configure("", xPos, yPos, width, height, 0x9CF3, 0x9CF3);
+  nrRows = lastNoteIndex - firstNoteIndex;
+  gridSizePixels_x = _geo.width / nrColumns;
+  gridSizePixels_y = _geo.height / nrRows;
+  actualHeight = gridSizePixels_y * nrRows;
+}
+
+void Grid::draw()
+{
+  tft.writeTo(L2);
+  //Serial.printf("draw grid: x:%d, y:%d, w:%d, h:%d\n", _geo.xPos, _geo.yPos, _geo.width, _geo.height);
+  
+  for (uint16_t row = 0; row < nrRows; row++)
+  {
+    uint8_t note = firstNoteIndex + row;
+    uint8_t noteInOctave = 12 - (note % 12);
+    switch (noteInOctave)
+    {
+      case 1:  // C#
+      case 3:  // D#
+      case 6:  // F#
+      case 8:  // G#
+      case 10: // A#
+        tft.fillRect(_geo.xPos, _geo.yPos + row * gridSizePixels_y, _geo.width, gridSizePixels_y, EDITOR_BLACKKEY_COLOR);
+        break;
+    }
+    tft.drawFastHLine(_geo.xPos, _geo.yPos + row * gridSizePixels_y, _geo.width, _geo.color1);
+  }
+  tft.drawFastHLine(_geo.xPos, _geo.yPos + nrRows * gridSizePixels_y, _geo.width, _geo.color1);
+  for (uint16_t column = 0; column <= nrColumns; column++) tft.drawFastVLine(_geo.xPos + column * gridSizePixels_x, _geo.yPos, actualHeight, _geo.color1);
+
+  drawNotes();
+}
+
+bool GraphicEditor::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
+{
+  if (button_exit.checkCursor(xPos, yPos, clickType)) return true;
+  if (grid.checkCursor(xPos, yPos, clickType)) return true;
+  return false;
+}
+
+void Grid::syncToTrack()
+{
+   // go through track events
+  // for events in view, create visual representations in noteElements[]
+  Serial.println("Synced grid to track");
+  Serial.printf("track is nullptr: %d\n", track == nullptr);
+  Serial.printf("track nr events: %d\n", track->getNrEvents());
+  nrVisibleEvents = 0;
+  if ( (track != nullptr) && (track->_nrEvents > 0) )
+  {
+     for (uint16_t eventIndex = 0; eventIndex < track->_nrEvents; eventIndex++)
+    {
+      if (nrVisibleEvents >= NR_EDITOR_NOTES) break;
+      switch (track->events[eventIndex].type)
+      {
+        case 0x90: // note on
+          if (  (track->events[eventIndex].timestamp >= firstTick) &&
+                (track->events[eventIndex].timestamp < lastTick) &&
+                (track->events[eventIndex].data1 >= firstNoteIndex) &&
+                (track->events[eventIndex].data1 <= lastNoteIndex) )
+                    {
+                      uint16_t noteOffIndex = track->getMatchingNoteOff(eventIndex);
+                      uint32_t timestampNoteOn = track->events[eventIndex].timestamp;
+                      uint32_t timestampNoteOff = track->events[noteOffIndex].timestamp;
+                      if (!(timestampNoteOff > timestampNoteOn)) timestampNoteOff = timestampNoteOn + 1; // TBD
+                      noteElements[nrVisibleEvents].eventIndex_noteOff = noteOffIndex;
+                      noteElements[nrVisibleEvents].xPos = _timestampToXpos(timestampNoteOn);
+                      noteElements[nrVisibleEvents].yPos = _noteToYpos(track->events[eventIndex].data1);
+                      noteElements[nrVisibleEvents].width = _timestampToWidth(timestampNoteOff - timestampNoteOn); // FOR TEST ONLY
+                      noteElements[nrVisibleEvents].height = gridSizePixels_y - 2;
+                      nrVisibleEvents++;
+                    }
+          break;
+        default:
+          Serial.printf("Ignored event: %d\n", track->events[eventIndex].type);
+          break;
+      }
+    }
+  }
+}
+
+uint16_t Grid::_timestampToXpos(uint32_t timestamp)
+{
+  float fractionalTime = timestamp / (1.0 * (lastTick - firstTick));
+  uint16_t xPos = _geo.xPos + fractionalTime * _geo.width; // note 10 = padX, fix magic number
+  Serial.printf("Timestamp: %d --> xPos %d\n", timestamp, xPos);
+  return xPos;
+}
+
+uint16_t Grid::_noteToYpos(uint8_t note)
+{
+  uint8_t row = lastNoteIndex - note;
+  uint16_t yPos = _geo.yPos + row * gridSizePixels_y;
+  Serial.printf("Note: %d --> yPos %d\n", note, yPos);
+  return yPos;
+}
+
+uint16_t Grid::_timestampToWidth(uint32_t timestamp)
+{
+  float fractionalWidth = timestamp / (1.0 * (lastTick - firstTick));
+  uint16_t width = fractionalWidth * _geo.width;
+  return width;
+}
+
+void Grid::drawNotes()
+{
+  for (uint16_t index = 0; index < nrVisibleEvents; index++) noteElements[index].draw(index == selectedNoteId);
+}
+
+bool Grid::checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType)
+{
+  for (uint16_t index = 0; index < nrVisibleEvents; index++)
+  {
+    if (noteElements[index].checkCursor(xPos, yPos, clickType))
+    {
+      if (selectedNoteId > -1)
+      noteElements[selectedNoteId].draw(false);
+      selectedNoteId = index;
+      noteElements[selectedNoteId].draw(true);
+      return true;
+    }
+  }
+  return false;
+}
+
+void NoteElement::draw(bool selected)
+{
+  tft.writeTo(L2);
+  if (selected) tft.fillRect(xPos, yPos + 1 , width, height, EDITOR_NOTE_COLOR_SELECTED);
+  else tft.fillRect(xPos, yPos + 1 , width, height, EDITOR_NOTE_COLOR_DEFAULT);
+  Serial.printf("Draw note - %d, %d, %d, %d\n", xPos, yPos, width, height);
+}
+
+bool NoteElement::checkCursor(uint16_t _xPos, uint16_t _yPos, uint8_t clickType)
+{
+  if ( (_xPos < xPos) || (_xPos > xPos + width) || (_yPos < yPos) || (_yPos > yPos + height) ) return false;
+  else return true;
+}
+
+void GraphicEditor::layout()
+{
+  const uint16_t padX = 10;
+  const uint16_t padY = 10;
+  const uint16_t toolSpaceWidth = relX(0.2);
+
+  uint16_t gridHeight = geo.height - 2 * padY;
+  uint16_t gridWidth = geo.width - padX - toolSpaceWidth;
+
+  button_exit.layout("EXIT", geo.relX(0.9), geo.relY(0.9), geo.relW(0.1), geo.relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_exit.cb = &exitEditorClick;
+
+  grid.nrRows = grid.lastNoteIndex - grid.firstNoteIndex;
+  grid.nrColumns = 16;
+  grid.layout(geo.xPos + padX, geo.yPos + padY, gridWidth, gridHeight);
+}
+
+void GraphicEditor::draw()
+{
+  tft.writeTo(L2);
+  tft.fillRect(geo.xPos, geo.yPos , geo.width, geo.height, EDITOR_BG_COLOR); // background
+  tft.drawRect(geo.xPos, geo.yPos , geo.width, geo.height, EDITOR_BORDER_COLOR); // border
+  Serial.printf("draw editor: x:%d, y:%d, w:%d, h:%d\n", geo.xPos, geo.yPos, geo.width, geo.height);
+  button_exit.draw(false);
+  grid.draw();
+}
+
+void GraphicEditor::setTrack(Track * _track)
+{
+  track = _track;
+  grid.track = _track;
+}
+

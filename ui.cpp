@@ -7,8 +7,10 @@ ArrangementView arrangementView = ArrangementView("ARRANGE", 0, HEADER_H + PADDI
 PatternView patternView = PatternView("PATTERN", ARRANGE_W + PADDING, HEADER_H + PADDING, PATTERN_W, MAIN_H, RA8875_WHITE, RA8875_WHITE);
 TrackDetailsView trackDetailsView = TrackDetailsView("TRACK", ARRANGE_W + PATTERN_W + 2 * PADDING, HEADER_H + PADDING, TRACKDETAILS_W, MAIN_H,  RA8875_WHITE, RA8875_WHITE);
 ControlsView controlsView = ControlsView("CONTROL", ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 3 * PADDING, HEADER_H + PADDING, CONTROLS_W, MAIN_H,  MAIN_BG_COLOR, RA8875_WHITE);
-ListEditor listEditorView = ListEditor("LISTEDITOR", 0, HEADER_H + PADDING, ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 2 * PADDING, MAIN_H,  RA8875_WHITE, RA8875_WHITE);
+//ListEditor listEditorView = ListEditor("LISTEDITOR", 0, HEADER_H + PADDING, ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 2 * PADDING, MAIN_H,  RA8875_WHITE, RA8875_WHITE);
 FileManagerView fileManagerView = FileManagerView("FILEMANAGER", 0, HEADER_H + PADDING, ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 2 * PADDING, MAIN_H,  RA8875_WHITE, RA8875_WHITE);
+GraphicEditor graphicEditorView = GraphicEditor("GRAPHICEDITOR", 0, HEADER_H + PADDING, ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 2 * PADDING, MAIN_H,  RA8875_WHITE, RA8875_WHITE);
+
 
 const uint8_t cursorOn[16] = {
   0b10000000,
@@ -75,7 +77,9 @@ void setupUI()
   controlsView.draw();
   controlsView.layout();
 
-  listEditorView.drawBorder = true;
+  //listEditorView.drawBorder = true;
+  graphicEditorView.layout();
+  graphicEditorView.drawBorder = true;
   fileManagerView.drawBorder = true;
   
   tft.writeTo(L1);
@@ -222,7 +226,7 @@ void updateMouse()
         trackDetailsView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);        
       }
 
-      if (viewMode == VIEW_LISTEDITOR) listEditorView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
+      if (viewMode == VIEW_EDITOR) graphicEditorView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
       if (viewMode == VIEW_FILEMANAGER) fileManagerView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
     }
     mouse1.mouseDataClear();
@@ -575,7 +579,7 @@ void signatureClick(uint8_t clickType)
   headerView.indicator_signature.draw(transport.signature);
 }
 
-void editTrackClick(uint8_t clickType) { if (clickType == 1) uiSetListEditorViewMode(); }
+void editTrackClick(uint8_t clickType) { if (clickType == 1) uiSetEditorViewMode(); }
 
 void fileClick(uint8_t clickType) { uiSetFileManagerViewMode(); }
 
@@ -658,30 +662,15 @@ void uiSetNormalViewMode()
   uiRedrawTrackDetailsView();
 }
 
-void uiSetListEditorViewMode()
+void uiSetEditorViewMode()
 {
-  tft.writeTo(L2);
-  tft.fillRect(0, HEADER_H + PADDING, ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 2 * PADDING, MAIN_H,  MAIN_BG_COLOR);
-  // replace arrangement and pattern view with list editor
-  viewMode = VIEW_LISTEDITOR;
-  
-  listEditorView.draw();
-  listEditorView.layout();
-  uint16_t eventIndex = listEditorView.firstRowIndex;
-  if (patterns[currentPattern].tracks[currentTrack].getNrEvents() > 0)
-  {
-    for (uint8_t listRow = 0; listRow < NR_LIST_ROWS; listRow++)
-    {
-      listEditorView.listEditorRows[listRow].draw(listRow == listEditorView.selectedIndex);
-      eventIndex = eventIndex + listRow;
-      eventIndex = min(eventIndex, patterns[currentPattern].tracks[currentTrack].getNrEvents() - 1);
-      event tempEvent = patterns[currentPattern].tracks[currentTrack].events[eventIndex];
-      listEditorView.listEditorRows[listRow].indicator_start_tick.draw(tempEvent.timestamp);
-      listEditorView.listEditorRows[listRow].indicator_type.draw(tempEvent.type);
-      listEditorView.listEditorRows[listRow].indicator_data1.draw(tempEvent.data1);
-      listEditorView.listEditorRows[listRow].indicator_data2.draw(tempEvent.data2);
-    }
-  }
+  // replace arrangement and pattern view with editor
+  viewMode = VIEW_EDITOR;
+  graphicEditorView.setTrack(&patterns[currentPattern].tracks[currentTrack]);
+  graphicEditorView.grid.firstNoteIndex = 43;
+  graphicEditorView.grid.lastNoteIndex = 65;
+  graphicEditorView.grid.syncToTrack();
+  graphicEditorView.draw();
 }
 
 void uiSetFileManagerViewMode()
