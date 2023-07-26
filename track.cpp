@@ -258,13 +258,17 @@ uint16_t Track::getMatchingNoteOff(uint16_t noteOnEventIndex)
 uint16_t Track::deleteNote(uint16_t noteOnEventIndex)
 {
   uint16_t noteOffEventIndex = getMatchingNoteOff(noteOnEventIndex);
-  Serial.printf("Delete note, On: %d, Off: %d\n", noteOnEventIndex, noteOffEventIndex);
-  
-  //events[noteOnEventIndex].type == NONE;
-  //events[noteOffEventIndex].type == NONE;
-  //_nrEvents = _nrEvents - 2;
-  //if (_nrEvents == 0) _releaseBuffer();
-  //else _sortEvents();
+  //Serial.printf("Delete note, On: %d, Off: %d\n", noteOnEventIndex, noteOffEventIndex);
+  _nrEvents = _nrEvents - 2;
+  if (_nrEvents == 0) _releaseBuffer();
+  else
+  {
+    for (uint16_t index = noteOnEventIndex; index < _nrEvents; index++)
+    {
+      if ( index < (noteOffEventIndex - 1) ) events[index] = events[index + 1];
+      if ( index >= (noteOffEventIndex - 1) ) events[index] = events[index + 2];
+    }
+  }
   return 0;
 }
 

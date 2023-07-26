@@ -870,7 +870,7 @@ uint16_t Grid::_timestampToXpos(uint32_t timestamp)
   timestamp = timestamp - firstTick;
   float fractionalTime = timestamp / (1.0 * (lastTick - firstTick));
   uint16_t xPos = _geo.xPos + fractionalTime * actualWidth; //_geo.width;
-  Serial.printf("Timestamp: %d --> xPos %d\n", timestamp, xPos);
+  //Serial.printf("Timestamp: %d --> xPos %d\n", timestamp, xPos);
   return xPos;
 }
 
@@ -891,12 +891,16 @@ uint16_t Grid::_timestampToWidth(uint32_t timestamp)
 
 uint8_t Grid::_yPosToNote(uint16_t yPos)
 {
-  return 0;
+  uint8_t row = (yPos - _geo.yPos) / gridSizePixels_y;
+  uint8_t note = lastNoteIndex - row;
+  return note;
 }
 
-uint32_t Grid::_xPosToTimestamp(uint16_t xPos)
+uint32_t Grid::_xPosToQuantizedTimestamp(uint16_t xPos)
 {
-  return 0;
+  uint16_t column = (xPos - _geo.xPos) / gridSizePixels_x;
+  uint32_t timestamp = firstTick + column * (RESOLUTION >>2);
+  return timestamp;
 }
 
 void Grid::drawNotes()
@@ -906,29 +910,47 @@ void Grid::drawNotes()
 
 bool Grid::checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 {
+  if ( (xPos < _geo.xPos) || xPos > (_geo.xPos + _geo.width) || (yPos < _geo.yPos) || (yPos > _geo.yPos + _geo.height) ) return false; // outside
+
   for (uint16_t index = 0; index < nrVisibleEvents; index++)
   {
     if (noteElements[index].checkCursor(xPos, yPos, clickType))
     {
-      if (clickType == 1)
+      if (clickType == 1) // select
       {
         if (selectedNoteId > -1) noteElements[selectedNoteId].draw(false);
         selectedNoteId = index;
         noteElements[selectedNoteId].draw(true);
         return true;
       }
-      // if (clickType == 2) // delete, need work
-      // {
-      //   // delete note from track and resync
-      //   uint16_t noteOnEventIndex = noteElements[index].eventIndex_noteOn;
-      //   track->deleteNote(noteOnEventIndex);
-      //   clear();
-      //   syncToTrack();
-      //   draw();
-      //   return true;
-      // }
+      if (clickType == 2) // delete
+      {
+        uint16_t noteOnEventIndex = noteElements[index].eventIndex_noteOn;
+        track->deleteNote(noteOnEventIndex);
+        selectedNoteId = -1;
+        clear();
+        syncToTrack();
+        draw();
+        return true;
+      }
     }
   }
+
+  // inside but no note interaction, so add note at position if clickType == 1
+  if (clickType == 1)
+  {
+    uint8_t note = _yPosToNote(yPos);
+    uint32_t timestampOn = _xPosToQuantizedTimestamp(xPos);
+    uint32_t timestampOff = timestampOn + (RESOLUTION >> 2); // 1/16th, make this variable later
+    Serial.printf("Add: note %d, tOn: %d, tOff: %d\n", note, timestampOn, timestampOff);
+    track->addEvent(timestampOn, 0x91, note, 100); // velocity default?
+    track->addEvent(timestampOff, 0x81, note, 0); // velocity default?
+    clear();
+    syncToTrack();
+    draw();
+    return true;
+  }
+
   return false;
 }
 
@@ -1134,15 +1156,24 @@ void GraphicEditor::draw()
 
 void GraphicEditor::drawNoteInfo()
 {
-  uint16_t eventIndex_noteOn = grid.noteElements[grid.selectedNoteId].eventIndex_noteOn;
-  uint16_t eventIndex_noteOff = grid.noteElements[grid.selectedNoteId].eventIndex_noteOff;
-  uint32_t noteOnTick = grid.track->events[eventIndex_noteOn].timestamp;
-  uint32_t noteOffTick = grid.track->events[eventIndex_noteOff].timestamp;
-  uint8_t noteValue = grid.track->events[eventIndex_noteOn].data1;
-  
-  indicator_noteValue.draw(noteValue);
-  indicator_noteOnTick.draw(noteOnTick);
-  indicator_noteOffTick.draw(noteOffTick);
+  if (grid.selectedNoteId > -1)
+  {
+    uint16_t eventIndex_noteOn = grid.noteElements[grid.selectedNoteId].eventIndex_noteOn;
+    uint16_t eventIndex_noteOff = grid.noteElements[grid.selectedNoteId].eventIndex_noteOff;
+    uint32_t noteOnTick = grid.track->events[eventIndex_noteOn].timestamp;
+    uint32_t noteOffTick = grid.track->events[eventIndex_noteOff].timestamp;
+    uint8_t noteValue = grid.track->events[eventIndex_noteOn].data1;
+    
+    indicator_noteValue.draw(noteValue);
+    indicator_noteOnTick.draw(noteOnTick);
+    indicator_noteOffTick.draw(noteOffTick);
+  }
+  else
+  {
+    indicator_noteValue.draw("-");
+    indicator_noteOnTick.draw("-");
+    indicator_noteOffTick.draw("-");
+  }
 }
 
 void GraphicEditor::drawNoteRange()
@@ -1209,14 +1240,17 @@ bool GraphicEditor::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickTyp
     return true;
   }
 
-  if ( (indicator_noteValue.checkCursor(xPos, yPos, clickType)) || (indicator_noteOnTick.checkCursor(xPos, yPos, clickType)) || (indicator_noteOffTick.checkCursor(xPos, yPos, clickType)) )
+  if (grid.selectedNoteId > -1)
   {
-    grid.clear();
-    grid.syncToTrack();
-    grid.draw();
-    drawNoteInfo();
-    return true;
-  } 
+    if ( (indicator_noteValue.checkCursor(xPos, yPos, clickType)) || (indicator_noteOnTick.checkCursor(xPos, yPos, clickType)) || (indicator_noteOffTick.checkCursor(xPos, yPos, clickType)) )
+    {
+      grid.clear();
+      grid.syncToTrack();
+      grid.draw();
+      drawNoteInfo();
+      return true;
+    } 
+  }
 
   return false;
 }

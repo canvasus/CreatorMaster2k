@@ -366,7 +366,7 @@ class Grid
     uint16_t _timestampToWidth(uint32_t timestamp);
     uint16_t _noteToYpos(uint8_t note);
     uint8_t   _yPosToNote(uint16_t yPos);
-    uint32_t  _xPosToTimestamp(uint16_t xPos);
+    uint32_t  _xPosToQuantizedTimestamp(uint16_t xPos);
 
   public:
     Track * track = nullptr;
