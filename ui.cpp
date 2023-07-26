@@ -34,6 +34,8 @@ const uint8_t cursorOn[16] = {
 const uint8_t cursorOff[16] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
                                 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
+
+
 uint16_t cursorXpos = 0;
 uint16_t cursorYpos = 0;
 
@@ -55,6 +57,7 @@ void setupUI()
 
   tft.uploadUserChar(cursorOn, 0);
   tft.uploadUserChar(cursorOff, 1);
+
   tft.writeTo(L2);
   tft.clearScreen(MAIN_BG_COLOR);
   
@@ -105,6 +108,7 @@ void updateUI()
     uiTimer = 0;
     uiUpdateTransport();
     if (viewMode == VIEW_NORMAL) uiUpdateActivity();
+    if (viewMode == VIEW_EDITOR) graphicEditorView.grid.animate();
     drawCursor();
   }
   if (uiTimerSlow > uiSlowInterval)
@@ -303,28 +307,32 @@ void uiUpdateSlowItems()
   static uint8_t lastPatternIndex = 0;
   static uint8_t lastTrackIndex = 0;
   
-  if (lastArrangementItem != currentArrangementPosition)
+  if (viewMode == VIEW_NORMAL)
   {
-    lastArrangementItem = currentArrangementPosition;
-    uiRedrawArrangeView();
-  }
+    if (lastArrangementItem != currentArrangementPosition)
+    {
+      lastArrangementItem = currentArrangementPosition;
+      uiRedrawArrangeView();
+    }
 
-  if (lastPatternIndex != currentPattern)
-  {
-    lastPatternIndex = currentPattern;
-    uiRedrawPatternView();
-    uiRedrawTrackDetailsView();
-  }
+    if (lastPatternIndex != currentPattern)
+    {
+      lastPatternIndex = currentPattern;
+      uiRedrawPatternView();
+      uiRedrawTrackDetailsView();
+    }
 
-  if ( (lastPatternIndex == currentPattern) && (lastTrackIndex != currentTrack) )
-  {
-    lastTrackIndex = currentTrack;
-    uiRedrawTrackDetailsView();
+    if ( (lastPatternIndex == currentPattern) && (lastTrackIndex != currentTrack) )
+    {
+      lastTrackIndex = currentTrack;
+      uiRedrawTrackDetailsView();
+    }
   }
 }
 
 void uiUpdateControls()
 {
+  // TODO: replace with .animate() functions?
   if (trackDetailsView.button_copy.state) trackDetailsView.button_copy.set(false);
   if (trackDetailsView.button_paste.state) trackDetailsView.button_paste.set(false);
   if (trackDetailsView.button_clear.state) trackDetailsView.button_clear.set(false);
@@ -583,7 +591,7 @@ void editTrackClick(uint8_t clickType) { if (clickType == 1) uiSetEditorViewMode
 
 void fileClick(uint8_t clickType) { uiSetFileManagerViewMode(); }
 
-void exitEditorClick(uint8_t clickType) { if (clickType == 1) uiSetNormalViewMode(); }
+
 
 void loadPatternsClick(uint8_t clickType)
 {
@@ -667,8 +675,6 @@ void uiSetEditorViewMode()
   // replace arrangement and pattern view with editor
   viewMode = VIEW_EDITOR;
   graphicEditorView.setTrack(&patterns[currentPattern].tracks[currentTrack]);
-  graphicEditorView.grid.firstNoteIndex = 43;
-  graphicEditorView.grid.lastNoteIndex = 65;
   graphicEditorView.grid.syncToTrack();
   graphicEditorView.draw();
 }
@@ -685,12 +691,53 @@ void uiSetFileManagerViewMode()
 
 void scrollbarUpClick(uint8_t clickType)
 {
-  
+  // TBD
 }
 
 void scrollbarDownClick(uint8_t clickType)
 {
-  
+  // TBD
+}
+
+void exitEditorClick(uint8_t clickType)
+{
+  if (clickType == 1)
+  {
+   graphicEditorView.grid.clearPosition();
+   uiSetNormalViewMode();
+  } 
+}
+
+void editor_noteValueClick(uint8_t clickType)
+{
+  uint16_t selectedNoteId = graphicEditorView.grid.selectedNoteId;
+  uint16_t eventIndexOn = graphicEditorView.grid.noteElements[selectedNoteId].eventIndex_noteOn;
+  uint16_t eventIndexOff = graphicEditorView.grid.noteElements[selectedNoteId].eventIndex_noteOff;
+  uint8_t noteValue = patterns[currentPattern].tracks[currentTrack].events[eventIndexOn].data1;
+  if (clickType == 1 && noteValue < 127) noteValue++;
+  if (clickType == 2 && noteValue > 0) noteValue--;
+  patterns[currentPattern].tracks[currentTrack].events[eventIndexOn].data1 = noteValue;
+  patterns[currentPattern].tracks[currentTrack].events[eventIndexOff].data1 = noteValue;
+}
+
+void editor_noteOnTickClick(uint8_t clickType)
+{
+  uint16_t selectedNoteId = graphicEditorView.grid.selectedNoteId;
+  uint16_t eventIndexOn = graphicEditorView.grid.noteElements[selectedNoteId].eventIndex_noteOn;
+  uint32_t noteOnTick = patterns[currentPattern].tracks[currentTrack].events[eventIndexOn].timestamp;
+  if (clickType == 1) noteOnTick++;
+  if (clickType == 2 && noteOnTick > 0) noteOnTick--;
+  patterns[currentPattern].tracks[currentTrack].events[eventIndexOn].timestamp = noteOnTick;
+}
+
+void editor_noteOffTickClick(uint8_t clickType)
+{
+  uint16_t selectedNoteId = graphicEditorView.grid.selectedNoteId;
+  uint16_t eventIndexOff = graphicEditorView.grid.noteElements[selectedNoteId].eventIndex_noteOff;
+  uint32_t noteOffTick = patterns[currentPattern].tracks[currentTrack].events[eventIndexOff].timestamp;
+  if (clickType == 1) noteOffTick++;
+  if (clickType == 2 && noteOffTick > 0) noteOffTick--;
+  patterns[currentPattern].tracks[currentTrack].events[eventIndexOff].timestamp = noteOffTick;
 }
 
 void testClick(uint8_t clickType)

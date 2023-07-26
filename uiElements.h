@@ -45,6 +45,10 @@
 #define EDITOR_NOTE_COLOR_DEFAULT   0x3B35
 #define EDITOR_NOTE_COLOR_SELECTED  0xf81f  
 
+#define EDIT_TOOL_DELETE 0
+#define EDIT_TOOL_ADD    1
+#define EDIT_TOOL_MOVE   2
+
 #define TRANSPORT_W 110
 
 typedef void (*buttonCallback)(uint8_t);
@@ -106,12 +110,15 @@ class Indicator
     uint8_t _labelPosition;
     int _labelXoffset = 0;
     int _labelYoffset = 0;
+    int _variableXoffset = 5;
+    int _variableYoffset = 2;
  
   public:
     Indicator();
     buttonCallback cb;
     void layout(String label, uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2, uint8_t labelPosition);
     void setLabelOffset(int xOffset, int yOffset);
+    void setVariableOffset(int xOffset, int yOffset);
     bool checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType); 
     void draw(uint16_t value);
     void draw(uint32_t value);
@@ -358,6 +365,8 @@ class Grid
     uint16_t _timestampToXpos(uint32_t timestamp);
     uint16_t _timestampToWidth(uint32_t timestamp);
     uint16_t _noteToYpos(uint8_t note);
+    uint8_t   _yPosToNote(uint16_t yPos);
+    uint32_t  _xPosToTimestamp(uint16_t xPos);
 
   public:
     Track * track = nullptr;
@@ -365,37 +374,69 @@ class Grid
     uint16_t firstNoteIndex = 36; // C2
     uint16_t lastNoteIndex = 60; // C4
     uint32_t firstTick = 0;
-    uint32_t lastTick = RESOLUTION * 4 * 4; // 16 beats
+    uint32_t lastTick = RESOLUTION * 4; // 4 beats
     uint16_t nrVisibleEvents = 0;
 
-    uint16_t nrRows = 16;
-    uint16_t nrColumns  = 16;
+    uint16_t nrRows = 25;
+    uint16_t nrColumns  = 16; // 16 * 1/16th
 
-    uint16_t gridSizePixels_x = 16;
-    uint16_t gridSizePixels_y = 8;
+    uint16_t gridSizePixels_x = 0; 
+    uint16_t gridSizePixels_y = 0;
     uint16_t actualHeight = 0;
+    uint16_t actualWidth = 0;
 
     int16_t selectedNoteId = -1;
 
     uint16_t color = 0x9CF3;
     void layout(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
     void draw();
+    void clear();
     void drawNotes();
     void syncToTrack();
     bool checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType);
+    void moveY(bool isUp);
+    void moveX(bool isRight);
+    void zoomY(bool isIn);
+    void zoomX(bool isIn);
+
+    void animate();
+    void drawPosition(uint32_t timestamp);
+    void clearPosition();
 };
 
 class GraphicEditor : public Container
 {
   using Container :: Container;
+  private:
+    uint8_t _toolMode = EDIT_TOOL_DELETE;
   public:
     Track * track = nullptr;
     Grid grid;
+    Button button_tool_delete;
+    Button button_tool_add;
+    
+    Button button_gridMoveLeft;
+    Button button_gridMoveRight;
+    Button button_gridZoomX;
+    
+    Button button_gridMoveUp;
+    Button button_gridMoveDown;
+    Button button_gridZoomY;
+    
+    Indicator indicator_firstNote;
+    Indicator indicator_lastNote;
+
+    Indicator indicator_noteValue;
+    Indicator indicator_noteOnTick;
+    Indicator indicator_noteOffTick;
+    
     Button button_exit;
     bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);
     void layout();
     void draw();
-    void drawNotes();
+    //void drawNotes();
+    void drawNoteInfo();
+    void drawNoteRange();
     void setTrack(Track * _track);
     
 };

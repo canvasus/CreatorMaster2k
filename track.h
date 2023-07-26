@@ -76,6 +76,8 @@ class Track
     uint8_t   compress = 0;
     uint16_t  length = 0;
 
+    uint32_t  uiTimestamp = 0;
+
     MIDIcallbackGeneric  midi_cb;
     void setMidiCb(MIDIcallbackGeneric cb);
 
@@ -95,6 +97,7 @@ class Track
     uint16_t triggerEvents(uint32_t timestamp);
     void syncSettings();
     uint16_t getMatchingNoteOff(uint16_t noteOnEventIndex);
+    uint16_t deleteNote(uint16_t noteOnEventIndex);
 };
 
 int compareEvents(const void *s1, const void *s2);

@@ -148,6 +148,12 @@ void Indicator::setLabelOffset(int xOffset, int yOffset)
   _labelYoffset = yOffset;
 }
 
+void Indicator::setVariableOffset(int xOffset, int yOffset)
+{
+  _variableXoffset = xOffset;
+  _variableYoffset = yOffset;
+}
+
 void Indicator::_drawCommon()
 {
   tft.writeTo(L2);
@@ -162,7 +168,8 @@ void Indicator::_drawCommon()
     tft.setTextColor(INDICATOR_LABEL_COLOR);
     tft.print(_geo.label);
   }
-  tft.setCursor(_geo.xPos + 5, _geo.yPos + 2); // set position for main text
+  //tft.setCursor(_geo.xPos + 5, _geo.yPos + 2);
+  tft.setCursor(_geo.xPos + _variableXoffset, _geo.yPos + _variableYoffset); // set position for main text
   tft.setTextColor(INDICATOR_TEXT_COLOR);
   tft.setFontScale(0);
 }
@@ -774,21 +781,23 @@ bool OnscreenKeyboard::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t click
 void Grid::layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height)
 {
   _geo.configure("", xPos, yPos, width, height, 0x9CF3, 0x9CF3);
-  nrRows = lastNoteIndex - firstNoteIndex;
+  nrRows = (lastNoteIndex - firstNoteIndex + 1);
   gridSizePixels_x = _geo.width / nrColumns;
   gridSizePixels_y = _geo.height / nrRows;
   actualHeight = gridSizePixels_y * nrRows;
+  actualWidth = gridSizePixels_x * nrColumns;
+  lastTick = firstTick + nrColumns * (RESOLUTION >> 2);
 }
 
 void Grid::draw()
 {
   tft.writeTo(L2);
-  //Serial.printf("draw grid: x:%d, y:%d, w:%d, h:%d\n", _geo.xPos, _geo.yPos, _geo.width, _geo.height);
   
+  // draw horizontal lines and keybed hints
   for (uint16_t row = 0; row < nrRows; row++)
   {
-    uint8_t note = firstNoteIndex + row;
-    uint8_t noteInOctave = 12 - (note % 12);
+    uint8_t note = lastNoteIndex - row;
+    uint8_t noteInOctave = note % 12;
     switch (noteInOctave)
     {
       case 1:  // C#
@@ -802,25 +811,24 @@ void Grid::draw()
     tft.drawFastHLine(_geo.xPos, _geo.yPos + row * gridSizePixels_y, _geo.width, _geo.color1);
   }
   tft.drawFastHLine(_geo.xPos, _geo.yPos + nrRows * gridSizePixels_y, _geo.width, _geo.color1);
-  for (uint16_t column = 0; column <= nrColumns; column++) tft.drawFastVLine(_geo.xPos + column * gridSizePixels_x, _geo.yPos, actualHeight, _geo.color1);
+
+  // draw vertical lines
+  for (uint16_t column = 0; column <= nrColumns; column++)
+  {
+    tft.drawFastVLine(_geo.xPos + column * gridSizePixels_x, _geo.yPos, actualHeight, _geo.color1);
+  }
 
   drawNotes();
 }
 
-bool GraphicEditor::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
+void Grid::clear()
 {
-  if (button_exit.checkCursor(xPos, yPos, clickType)) return true;
-  if (grid.checkCursor(xPos, yPos, clickType)) return true;
-  return false;
+   tft.writeTo(L2);
+   tft.fillRect(_geo.xPos, _geo.yPos , _geo.width, _geo.height, EDITOR_BG_COLOR);
 }
 
 void Grid::syncToTrack()
 {
-   // go through track events
-  // for events in view, create visual representations in noteElements[]
-  Serial.println("Synced grid to track");
-  Serial.printf("track is nullptr: %d\n", track == nullptr);
-  Serial.printf("track nr events: %d\n", track->getNrEvents());
   nrVisibleEvents = 0;
   if ( (track != nullptr) && (track->_nrEvents > 0) )
   {
@@ -838,17 +846,19 @@ void Grid::syncToTrack()
                       uint16_t noteOffIndex = track->getMatchingNoteOff(eventIndex);
                       uint32_t timestampNoteOn = track->events[eventIndex].timestamp;
                       uint32_t timestampNoteOff = track->events[noteOffIndex].timestamp;
-                      if (!(timestampNoteOff > timestampNoteOn)) timestampNoteOff = timestampNoteOn + 1; // TBD
+                      if (!(timestampNoteOff > timestampNoteOn)) timestampNoteOff = timestampNoteOn + 1; // TBD, need better handling
+                      if (timestampNoteOff > lastTick) timestampNoteOff = lastTick; // to avoid drawing longer notes outside grid
+                      noteElements[nrVisibleEvents].eventIndex_noteOn = eventIndex;
                       noteElements[nrVisibleEvents].eventIndex_noteOff = noteOffIndex;
                       noteElements[nrVisibleEvents].xPos = _timestampToXpos(timestampNoteOn);
                       noteElements[nrVisibleEvents].yPos = _noteToYpos(track->events[eventIndex].data1);
-                      noteElements[nrVisibleEvents].width = _timestampToWidth(timestampNoteOff - timestampNoteOn); // FOR TEST ONLY
+                      noteElements[nrVisibleEvents].width = _timestampToWidth(timestampNoteOff - timestampNoteOn);
                       noteElements[nrVisibleEvents].height = gridSizePixels_y - 2;
                       nrVisibleEvents++;
                     }
           break;
         default:
-          Serial.printf("Ignored event: %d\n", track->events[eventIndex].type);
+          //Serial.printf("Ignored event: %d\n", track->events[eventIndex].type);
           break;
       }
     }
@@ -857,8 +867,9 @@ void Grid::syncToTrack()
 
 uint16_t Grid::_timestampToXpos(uint32_t timestamp)
 {
+  timestamp = timestamp - firstTick;
   float fractionalTime = timestamp / (1.0 * (lastTick - firstTick));
-  uint16_t xPos = _geo.xPos + fractionalTime * _geo.width; // note 10 = padX, fix magic number
+  uint16_t xPos = _geo.xPos + fractionalTime * actualWidth; //_geo.width;
   Serial.printf("Timestamp: %d --> xPos %d\n", timestamp, xPos);
   return xPos;
 }
@@ -867,15 +878,25 @@ uint16_t Grid::_noteToYpos(uint8_t note)
 {
   uint8_t row = lastNoteIndex - note;
   uint16_t yPos = _geo.yPos + row * gridSizePixels_y;
-  Serial.printf("Note: %d --> yPos %d\n", note, yPos);
+  //Serial.printf("Note: %d --> yPos %d\n", note, yPos);
   return yPos;
 }
 
 uint16_t Grid::_timestampToWidth(uint32_t timestamp)
 {
   float fractionalWidth = timestamp / (1.0 * (lastTick - firstTick));
-  uint16_t width = fractionalWidth * _geo.width;
+  uint16_t width = fractionalWidth * actualWidth;// _geo.width;
   return width;
+}
+
+uint8_t Grid::_yPosToNote(uint16_t yPos)
+{
+  return 0;
+}
+
+uint32_t Grid::_xPosToTimestamp(uint16_t xPos)
+{
+  return 0;
 }
 
 void Grid::drawNotes()
@@ -889,14 +910,119 @@ bool Grid::checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType)
   {
     if (noteElements[index].checkCursor(xPos, yPos, clickType))
     {
-      if (selectedNoteId > -1)
-      noteElements[selectedNoteId].draw(false);
-      selectedNoteId = index;
-      noteElements[selectedNoteId].draw(true);
-      return true;
+      if (clickType == 1)
+      {
+        if (selectedNoteId > -1) noteElements[selectedNoteId].draw(false);
+        selectedNoteId = index;
+        noteElements[selectedNoteId].draw(true);
+        return true;
+      }
+      // if (clickType == 2) // delete, need work
+      // {
+      //   // delete note from track and resync
+      //   uint16_t noteOnEventIndex = noteElements[index].eventIndex_noteOn;
+      //   track->deleteNote(noteOnEventIndex);
+      //   clear();
+      //   syncToTrack();
+      //   draw();
+      //   return true;
+      // }
     }
   }
   return false;
+}
+
+void Grid::moveY(bool isUp)
+{
+  if (isUp)
+  {
+    uint8_t topMargin = 127 - lastNoteIndex;
+    uint8_t deltaUp = min(topMargin, 8);
+    lastNoteIndex = lastNoteIndex + deltaUp;
+    firstNoteIndex = firstNoteIndex + deltaUp;
+  }
+  else
+  {
+    uint8_t deltaDown = min(firstNoteIndex, 8);
+    lastNoteIndex = lastNoteIndex - deltaDown;
+    firstNoteIndex = firstNoteIndex - deltaDown;
+  }
+  clear();
+  syncToTrack();
+  draw();
+}
+
+void Grid::moveX(bool isRight)
+{
+  uint16_t delta = (nrColumns >> 1) * (RESOLUTION >> 2);
+  if (isRight)
+  {
+    firstTick = firstTick + delta;
+    lastTick = lastTick + delta;
+  }
+  else
+  {
+    delta = min(firstTick, delta);
+    firstTick = firstTick - delta;
+    lastTick = lastTick - delta;
+  }
+  clear();
+  syncToTrack();
+  draw();
+}
+
+void Grid::zoomX(bool isIn) // time
+{
+  if (isIn && nrColumns >= 8) nrColumns = nrColumns - 4;
+  else if (nrColumns < EDITOR_MAX_COLUMNS) nrColumns = nrColumns + 4;
+  gridSizePixels_x = _geo.width / nrColumns;
+  actualWidth = gridSizePixels_x * nrColumns;
+  lastTick = firstTick + nrColumns * (RESOLUTION >> 2);
+  clear();
+  syncToTrack();
+  draw();
+}
+
+void Grid::zoomY(bool isIn) // note
+{
+  if (isIn && (nrRows > EDITOR_MIN_ROWS) ) nrRows--; 
+  else if (nrRows < EDITOR_MAX_ROWS) nrRows++;
+  gridSizePixels_y = _geo.height / nrRows;
+  actualHeight = gridSizePixels_y * nrRows;
+  lastNoteIndex = firstNoteIndex + nrRows - 1;
+  clear();
+  syncToTrack();
+  draw();
+}
+
+void Grid::animate()
+{
+  static uint32_t lastTimestamp = 0;
+  uint32_t newTimestamp = track->uiTimestamp;
+  if (lastTimestamp != newTimestamp)
+  {
+    drawPosition(newTimestamp);
+    lastTimestamp = newTimestamp;
+  }
+}
+
+void Grid::drawPosition(uint32_t timestamp)
+{
+  if (timestamp < lastTick)
+  {
+    static uint16_t lastPositionX = 0;
+    uint16_t positionX = _timestampToXpos(timestamp);
+    tft.writeTo(L1);
+    tft.drawFastVLine(lastPositionX, _geo.yPos, actualHeight, RA8875_MAGENTA);
+    tft.drawFastVLine(positionX, _geo.yPos, actualHeight, 0x7BEF);
+    lastPositionX = positionX;
+  }
+}
+
+void Grid::clearPosition()
+{
+  tft.writeTo(L1);
+  tft.fillRect(_geo.xPos, _geo.yPos , _geo.width, _geo.height, RA8875_MAGENTA);
 }
 
 void NoteElement::draw(bool selected)
@@ -904,30 +1030,77 @@ void NoteElement::draw(bool selected)
   tft.writeTo(L2);
   if (selected) tft.fillRect(xPos, yPos + 1 , width, height, EDITOR_NOTE_COLOR_SELECTED);
   else tft.fillRect(xPos, yPos + 1 , width, height, EDITOR_NOTE_COLOR_DEFAULT);
-  Serial.printf("Draw note - %d, %d, %d, %d\n", xPos, yPos, width, height);
+  //Serial.printf("Draw note - %d, %d, %d, %d\n", xPos, yPos, width, height);
 }
 
 bool NoteElement::checkCursor(uint16_t _xPos, uint16_t _yPos, uint8_t clickType)
 {
-  if ( (_xPos < xPos) || (_xPos > xPos + width) || (_yPos < yPos) || (_yPos > yPos + height) ) return false;
-  else return true;
+  //const uint8_t edgeWidth = 4;
+  if ( (_xPos < xPos) || (_xPos > xPos + width) || (_yPos < yPos) || (_yPos > yPos + height) ) return false; // outside
+
+  // if ( _xPos <= (xPos + edgeWidth) ) // left edge
+  // {
+  //   Serial.println("Left edge");
+  //   return true;
+  // }
+
+  // if ( (_xPos > xPos + edgeWidth) && ( _xPos < xPos + width - edgeWidth) ) // center
+  // {
+  //   Serial.println("Center");
+  //   return true;
+  // }
+
+  // if (  _xPos >= (xPos + width - edgeWidth) ) // right edge
+  // {
+  //   Serial.println("Right edge");
+  //   return true;
+  // } 
+
+  return true;
 }
 
 void GraphicEditor::layout()
 {
-  const uint16_t padX = 10;
-  const uint16_t padY = 10;
-  const uint16_t toolSpaceWidth = relX(0.2);
+  uint16_t gridHeight = geo.relH(0.8);
+  uint16_t gridWidth = geo.relW(0.8);
 
-  uint16_t gridHeight = geo.height - 2 * padY;
-  uint16_t gridWidth = geo.width - padX - toolSpaceWidth;
-
-  button_exit.layout("EXIT", geo.relX(0.9), geo.relY(0.9), geo.relW(0.1), geo.relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_exit.layout("EXIT", geo.relX(0.91), geo.relY(0.9), geo.relW(0.08), geo.relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
   button_exit.cb = &exitEditorClick;
 
-  grid.nrRows = grid.lastNoteIndex - grid.firstNoteIndex;
-  grid.nrColumns = 16;
-  grid.layout(geo.xPos + padX, geo.yPos + padY, gridWidth, gridHeight);
+  // Time / X
+  button_gridMoveLeft.layout("<", geo.relX(0.08), geo.relY(0.02), geo.relW(0.07), geo.relH(0.07) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_gridMoveLeft.setLabelOffset(8, 4);
+
+  button_gridMoveRight.layout(">", geo.relX(0.8), geo.relY(0.02), geo.relW(0.07), geo.relH(0.07) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_gridMoveRight.setLabelOffset(8, 4);
+
+  button_gridZoomX.layout("Z", geo.relX(0.45), geo.relY(0.02), geo.relW(0.10), geo.relH(0.07) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_gridZoomX.setLabelOffset(8, 4);
+
+  // Note / Y
+  button_gridMoveUp.layout("^", geo.relX(0.01), geo.relY(0.08), geo.relW(0.04), geo.relH(0.08) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_gridMoveUp.setLabelOffset(8, 8);
+
+  button_gridZoomY.layout("Z", geo.relX(0.01), geo.relY(0.40), geo.relW(0.04), geo.relH(0.14) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_gridZoomY.setLabelOffset(8, 8);
+
+  button_gridMoveDown.layout("V", geo.relX(0.01), geo.relY(0.8), geo.relW(0.04), geo.relH(0.08) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_gridMoveDown.setLabelOffset(8, 8);
+
+  grid.layout(geo.relX(0.08), geo.relY(0.10), gridWidth, gridHeight);
+
+  indicator_lastNote.layout("", geo.relX(0.01), geo.relY(0.02), geo.relW(0.04), geo.relH(0.04), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_NONE);
+  indicator_firstNote.layout("", geo.relX(0.01), geo.relY(0.90), geo.relW(0.04), geo.relH(0.04), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_NONE);
+  indicator_lastNote.setVariableOffset(2, 1);
+  indicator_firstNote.setVariableOffset(2, 1);
+
+  indicator_noteValue.layout("Note", geo.relX(0.89), geo.relY(0.1), geo.relW(0.092), geo.relH(0.05), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
+  indicator_noteOnTick.layout("OnT", geo.relX(0.89), geo.relY(0.2), geo.relW(0.092), geo.relH(0.05), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
+  indicator_noteOffTick.layout("OffT", geo.relX(0.89), geo.relY(0.3), geo.relW(0.092), geo.relH(0.05), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR, INDICATOR_LABEL_TOP);
+
+  indicator_noteValue.cb = &editor_noteValueClick;
+  indicator_noteOnTick.cb = &editor_noteOnTickClick;
+  indicator_noteOffTick.cb = &editor_noteOffTickClick;
 }
 
 void GraphicEditor::draw()
@@ -935,9 +1108,47 @@ void GraphicEditor::draw()
   tft.writeTo(L2);
   tft.fillRect(geo.xPos, geo.yPos , geo.width, geo.height, EDITOR_BG_COLOR); // background
   tft.drawRect(geo.xPos, geo.yPos , geo.width, geo.height, EDITOR_BORDER_COLOR); // border
-  Serial.printf("draw editor: x:%d, y:%d, w:%d, h:%d\n", geo.xPos, geo.yPos, geo.width, geo.height);
+
   button_exit.draw(false);
+  button_gridMoveLeft.draw(false);
+  button_gridMoveRight.draw(false);
+  button_gridZoomX.draw(false);
+  button_gridZoomY.draw(false);
+
+  button_gridMoveUp.draw(false);
+  button_gridMoveDown.draw(false);
+
   grid.draw();
+
+  if (grid.selectedNoteId > -1) drawNoteInfo();
+  else
+  {
+    indicator_noteValue.draw("-");
+    indicator_noteOnTick.draw("-");
+    indicator_noteOffTick.draw("-");
+  }
+
+  indicator_firstNote.draw(grid.firstNoteIndex);
+  indicator_lastNote.draw(grid.lastNoteIndex);
+}
+
+void GraphicEditor::drawNoteInfo()
+{
+  uint16_t eventIndex_noteOn = grid.noteElements[grid.selectedNoteId].eventIndex_noteOn;
+  uint16_t eventIndex_noteOff = grid.noteElements[grid.selectedNoteId].eventIndex_noteOff;
+  uint32_t noteOnTick = grid.track->events[eventIndex_noteOn].timestamp;
+  uint32_t noteOffTick = grid.track->events[eventIndex_noteOff].timestamp;
+  uint8_t noteValue = grid.track->events[eventIndex_noteOn].data1;
+  
+  indicator_noteValue.draw(noteValue);
+  indicator_noteOnTick.draw(noteOnTick);
+  indicator_noteOffTick.draw(noteOffTick);
+}
+
+void GraphicEditor::drawNoteRange()
+{
+  indicator_firstNote.draw(grid.firstNoteIndex);
+  indicator_lastNote.draw(grid.lastNoteIndex);
 }
 
 void GraphicEditor::setTrack(Track * _track)
@@ -946,3 +1157,66 @@ void GraphicEditor::setTrack(Track * _track)
   grid.track = _track;
 }
 
+bool GraphicEditor::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
+{
+  if (button_exit.checkCursor(xPos, yPos, clickType)) return true;
+
+  if (button_gridMoveLeft.checkCursor(xPos, yPos, clickType))
+  {
+    grid.moveX(false);
+    drawNoteRange();
+    return true;
+  } 
+  
+  if (button_gridMoveRight.checkCursor(xPos, yPos, clickType))
+  {
+    grid.moveX(true);
+    drawNoteRange();
+    return true;
+  } 
+  
+  if (button_gridMoveUp.checkCursor(xPos, yPos, clickType))
+  { 
+    grid.moveY(true);
+    drawNoteRange();
+    return true;
+  } 
+  
+  if (button_gridMoveDown.checkCursor(xPos, yPos, clickType))
+  {
+    grid.moveY(false);
+    drawNoteRange();
+    return true;
+  } 
+
+  if (button_gridZoomX.checkCursor(xPos, yPos, clickType))
+  {
+    grid.zoomX(clickType == 1);
+    drawNoteRange();
+    return true;
+  }
+
+  if (button_gridZoomY.checkCursor(xPos, yPos, clickType))
+  {
+    grid.zoomY(clickType == 1);
+    drawNoteRange();
+    return true;
+  }
+
+  if (grid.checkCursor(xPos, yPos, clickType))
+  {
+    if (grid.selectedNoteId > -1) drawNoteInfo();
+    return true;
+  }
+
+  if ( (indicator_noteValue.checkCursor(xPos, yPos, clickType)) || (indicator_noteOnTick.checkCursor(xPos, yPos, clickType)) || (indicator_noteOffTick.checkCursor(xPos, yPos, clickType)) )
+  {
+    grid.clear();
+    grid.syncToTrack();
+    grid.draw();
+    drawNoteInfo();
+    return true;
+  } 
+
+  return false;
+}

@@ -84,6 +84,10 @@ void fileManagerRowClick(uint8_t id);
 void scrollbarUpClick(uint8_t clickType);
 void scrollbarDownClick(uint8_t clickType);
 
+void editor_noteValueClick(uint8_t clickType);
+void editor_noteOnTickClick(uint8_t clickType);
+void editor_noteOffTickClick(uint8_t clickType);
+
 void testClick(uint8_t clickType);
 void testClickIndicator(uint8_t clickType);
 

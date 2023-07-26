@@ -168,7 +168,7 @@ void processInput(uint8_t channel, uint8_t type, uint8_t data1, uint8_t data2)
     // Midi through
     uint8_t _data1 = data1;
     if (type == usbMIDI.NoteOn || type == usbMIDI.NoteOff) _data1 = _data1 + patterns[currentPattern].tracks[currentTrack].config.transpose;
-    if (type == usbMIDI.NoteOn || type == usbMIDI.NoteOff || type == usbMIDI.ControlChange)
+    if (type == usbMIDI.NoteOn || type == usbMIDI.NoteOff || type == usbMIDI.ControlChange || type == usbMIDI.PitchBend)
     {
       //Serial.printf("Through: type %d, data1 %d, data2 %d\n", type, data1, data2);
       patterns[currentPattern].tracks[currentTrack].midi_cb(patterns[currentPattern].tracks[currentTrack].config.channel, type, _data1, data2);

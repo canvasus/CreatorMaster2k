@@ -1,6 +1,6 @@
 #pragma once
 
-#define RESOLUTION 192
+#define RESOLUTION 192 // ticks per 1/4th (beat)
 
 #define NR_ARRITEMS 10
 #define NR_PATTERNS 8
@@ -14,8 +14,10 @@
 #define NR_COMPRESSTEPS  5
 #define NR_LENGTHSTEPS   6
 
-#define NR_LIST_ROWS 20 // max rows to display
-#define NR_EDITOR_NOTES 16
+#define NR_EDITOR_NOTES 32
+#define EDITOR_MAX_COLUMNS 96
+#define EDITOR_MAX_ROWS 64
+#define EDITOR_MIN_ROWS 8
 
 #define NR_FILE_ROWS 16
 

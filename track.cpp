@@ -102,20 +102,15 @@ void Track::triggerEvent(uint8_t type, uint8_t data1, uint8_t data2)
  uint16_t Track::triggerEvents(uint32_t timestamp)
  {
   uint16_t eventCounter = 0;
-  //uint32_t inTime = timestamp;
 
   if (config.hidden) return 0;
-  
-  // if (config.generatorOn)
-  // {
-  //   eventCounter = 0;
-  //   return eventCounter;
-  // }
 
-  if (events != nullptr) // && !config.generatorOn)
+  if (events != nullptr)
   {
     if(config.loop > 0) timestamp = timestamp % (config.loop * 192); // loop is set in 1/4ths
-
+    
+    uiTimestamp = timestamp;
+    
     if (timestamp == 0)
       {
         cleanupNoteOff();
@@ -182,7 +177,6 @@ void Track::cleanupNoteOff()
   {
     if (_noteStatus[note] && midi_cb)
     {
-      Serial.printf("Cleanup: note %d, notesPlaying %d\n", note, _notesPlaying);
       _noteStatus[note] = false;
       midi_cb(config.channel, usbMIDI.NoteOff, note, 0);
       //_notesPlaying--;
@@ -209,7 +203,7 @@ void Track::_convertTempEvents()
 
 uint16_t Track::addEvent(uint32_t timestamp, uint8_t type, uint8_t data1, uint8_t data2)
 {
-  Serial.printf("Add event (track): type %d, data1 %d, data2 %d, nrEvents %d\n", type, data1, data2, _nrEvents);
+  //Serial.printf("Add event (track): type %d, data1 %d, data2 %d, nrEvents %d\n", type, data1, data2, _nrEvents);
   if (_nrEvents == 0 || events == nullptr) _initBuffer();
   if (_nrEvents >= (memBlocks * NR_EVENTS - 1)) _expandBuffer();
   
@@ -258,6 +252,19 @@ uint16_t Track::getMatchingNoteOff(uint16_t noteOnEventIndex)
       if ( (events[eventIndex].type == usbMIDI.NoteOff) && (events[eventIndex].data1 == noteValue) ) return eventIndex;
     }
   }
+  return 0;
+}
+
+uint16_t Track::deleteNote(uint16_t noteOnEventIndex)
+{
+  uint16_t noteOffEventIndex = getMatchingNoteOff(noteOnEventIndex);
+  Serial.printf("Delete note, On: %d, Off: %d\n", noteOnEventIndex, noteOffEventIndex);
+  
+  //events[noteOnEventIndex].type == NONE;
+  //events[noteOffEventIndex].type == NONE;
+  //_nrEvents = _nrEvents - 2;
+  //if (_nrEvents == 0) _releaseBuffer();
+  //else _sortEvents();
   return 0;
 }
 
