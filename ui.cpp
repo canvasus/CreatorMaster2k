@@ -164,7 +164,7 @@ void uiRedrawPatternView()
 {
   // redraw pattern view using currentPattern data
   patternView.indicator_patternName.draw(patterns[currentPattern].name);
-  currentTrack = 0;
+  //currentTrack = 0;
   for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++)
   {
     patternView.trackRows[trackId].id = trackId;
@@ -215,8 +215,8 @@ void updateMouse()
     }
     
     uint8_t mouseWheel = mouse1.getWheel();
-    if (mouseWheel == 255 && mouseButtons == 0) mouseButtons = 2;
-    if (mouseWheel == 1 && mouseButtons == 0) mouseButtons = 1;
+    if (mouseWheel == 255 && mouseButtons == 0) mouseButtons = MOUSE_WHL_DOWN;//  2;
+    if (mouseWheel == 1 && mouseButtons == 0) mouseButtons = MOUSE_WHL_UP;//1;
     
     if (mouseButtons != 0)
     {
@@ -348,7 +348,7 @@ void recordClick(uint8_t clickType)
 {
   static bool recordOn = false;
   const String inUse = "in use";
-  if (clickType == 1)
+  if (clickType == MOUSE_LEFT)
   {
     recordOn = !recordOn;
     record(recordOn);
@@ -361,7 +361,7 @@ void recordClick(uint8_t clickType)
 
 void startClick(uint8_t clickType)
 {
-  if (clickType == 1)
+  if (clickType == MOUSE_LEFT)
   {
     play();
     controlsView.button_start.set(true);
@@ -371,7 +371,7 @@ void startClick(uint8_t clickType)
 
 void stopClick(uint8_t clickType)
 {
-  if (clickType == 1)
+  if (clickType == MOUSE_LEFT)
   {
     stop();
     reset();
@@ -385,8 +385,8 @@ void leftLocatorClick(uint8_t clickType)
 {
   uint16_t barLeft = transport.leftLocatorTick / transport.ticksPerBar;
   uint16_t barRight = transport.rightLocatorTick / transport.ticksPerBar;
-  if (clickType == 1 && (barLeft < (barRight - 1)) ) barLeft++;
-  if (clickType == 2 && (barLeft > 0) ) barLeft--;
+  if ( ( (clickType == MOUSE_LEFT)  || (clickType == MOUSE_WHL_UP))   && (barLeft < (barRight - 1)) ) barLeft++;
+  if ( ( (clickType == MOUSE_RIGHT) || (clickType == MOUSE_WHL_DOWN)) && (barLeft > 0) ) barLeft--;
   transport.leftLocatorTick = barLeft * transport.ticksPerBar;
   controlsView.indicator_leftLocator.draw(barLeft + 1, 0, 0, false);
 }
@@ -395,8 +395,8 @@ void rightLocatorClick(uint8_t clickType)
 {
   uint16_t barLeft = transport.leftLocatorTick / transport.ticksPerBar;
   uint16_t barRight = transport.rightLocatorTick / transport.ticksPerBar;
-  if (clickType == 1) barRight++;
-  if (clickType == 2 && (barRight > (barLeft + 1)) ) barRight--;
+  if ( (clickType == MOUSE_LEFT) || (clickType == MOUSE_WHL_UP)) barRight++;
+  if ( ( (clickType == MOUSE_RIGHT) || (clickType == MOUSE_WHL_DOWN) ) && (barRight > (barLeft + 1)) ) barRight--;
   transport.rightLocatorTick = barRight * transport.ticksPerBar;
   controlsView.indicator_rightLocator.draw(barRight + 1, 0, 0, false);
 }
@@ -417,16 +417,16 @@ void trackSelectClick(uint8_t id)
 
 void bpmClick(uint8_t clickType)
 {
-  if (clickType == 1) setBpm(transport.bpm + 1);
-  if (clickType == 2) setBpm(transport.bpm - 1);
+  if ((clickType == MOUSE_LEFT)  || (clickType == MOUSE_WHL_UP)) setBpm(transport.bpm + 1);
+  if ( (clickType == MOUSE_RIGHT) || (clickType == MOUSE_WHL_DOWN)) setBpm(transport.bpm - 1);
   headerView.indicator_bpm.draw(transport.bpm);
 }
 
 void portClick(uint8_t clickType)
 {
   uint8_t portIndex = patterns[currentPattern].tracks[currentTrack].config.portIndex;
-  if (clickType == 1 && portIndex < (NR_PORTS - 1)) portIndex++;
-  if (clickType == 2 && portIndex > 0) portIndex--;
+  if (((clickType == MOUSE_LEFT)  || (clickType == MOUSE_WHL_UP)) && portIndex < (NR_PORTS - 1)) portIndex++;
+  if (( (clickType == MOUSE_RIGHT) || (clickType == MOUSE_WHL_DOWN)) && portIndex > 0) portIndex--;
 
   trackDetailsView.indicator_port.draw(trackDetailsView.portStrings[portIndex]);
   patterns[currentPattern].tracks[currentTrack].config.portIndex = portIndex;
@@ -436,8 +436,8 @@ void portClick(uint8_t clickType)
 void channelClick(uint8_t clickType)
 {
   uint8_t channel = patterns[currentPattern].tracks[currentTrack].config.channel;
-  if (clickType == 1 && channel < 16) channel++;
-  if (clickType == 2 && channel > 0) channel--;
+  if ( ((clickType == MOUSE_LEFT)  || (clickType == MOUSE_WHL_UP)) && channel < 16) channel++;
+  if ( ((clickType == MOUSE_RIGHT) || (clickType == MOUSE_WHL_DOWN)) && channel > 0) channel--;
   trackDetailsView.indicator_channel.draw(channel);
   patterns[currentPattern].tracks[currentTrack].config.channel = channel;
   patternView.trackRows[currentTrack].channel = channel;
@@ -447,8 +447,8 @@ void channelClick(uint8_t clickType)
 void quantizeClick(uint8_t clickType)
 {
   uint8_t quantizeIndex = patterns[currentPattern].tracks[currentTrack].config.quantizeIndex;
-  if (clickType == 1 && quantizeIndex < (NR_QUANTIZESTEPS - 1)) quantizeIndex++;
-  if (clickType == 2 && quantizeIndex > 0) quantizeIndex--;
+  if (((clickType == MOUSE_LEFT)  || (clickType == MOUSE_WHL_UP)) && quantizeIndex < (NR_QUANTIZESTEPS - 1)) quantizeIndex++;
+  if (((clickType == MOUSE_RIGHT) || (clickType == MOUSE_WHL_DOWN)) && quantizeIndex > 0) quantizeIndex--;
   trackDetailsView.indicator_quantize.draw(trackDetailsView.quantizeStrings[quantizeIndex]);
   patterns[currentPattern].tracks[currentTrack].config.quantizeIndex = quantizeIndex;
   patterns[currentPattern].tracks[currentTrack].quantize = trackDetailsView.quantizeSettings[quantizeIndex];
@@ -457,8 +457,8 @@ void quantizeClick(uint8_t clickType)
 void transposeClick(uint8_t clickType)
 {
   int transpose = patterns[currentPattern].tracks[currentTrack].config.transpose;
-  if (clickType == 1 && transpose < 64) transpose++;
-  if (clickType == 2 && transpose > -64) transpose--;
+  if (((clickType == MOUSE_LEFT)  || (clickType == MOUSE_WHL_UP)) && transpose < 64) transpose++;
+  if (((clickType == MOUSE_RIGHT) || (clickType == MOUSE_WHL_DOWN)) && transpose > -64) transpose--;
   patterns[currentPattern].tracks[currentTrack].config.transpose = transpose;
   trackDetailsView.indicator_transpose.draw(transpose);
 }
@@ -466,8 +466,8 @@ void transposeClick(uint8_t clickType)
 void loopClick(uint8_t clickType)
 {
   uint8_t loop = patterns[currentPattern].tracks[currentTrack].config.loop;
-  if (clickType == 1 && loop < 64) loop++;
-  if (clickType == 2 && loop > 0) loop--;
+  if (((clickType == MOUSE_LEFT)  || (clickType == MOUSE_WHL_UP)) && loop < 64) loop++;
+  if (((clickType == MOUSE_RIGHT) || (clickType == MOUSE_WHL_DOWN)) && loop > 0) loop--;
   patterns[currentPattern].tracks[currentTrack].config.loop = loop;
   trackDetailsView.indicator_loop.draw(loop);
 }
@@ -475,8 +475,8 @@ void loopClick(uint8_t clickType)
 void velocityClick(uint8_t clickType)
 {
   int velocity = patterns[currentPattern].tracks[currentTrack].config.velocity;
-  if (clickType == 1 && velocity < 127) velocity++;
-  if (clickType == 2 && velocity > -127) velocity--;
+  if (((clickType == MOUSE_LEFT)  || (clickType == MOUSE_WHL_UP)) && velocity < 127) velocity++;
+  if (((clickType == MOUSE_RIGHT) || (clickType == MOUSE_WHL_DOWN)) && velocity > -127) velocity--;
   patterns[currentPattern].tracks[currentTrack].config.velocity = velocity;
   trackDetailsView.indicator_velocity.draw(velocity);
 }
@@ -484,8 +484,8 @@ void velocityClick(uint8_t clickType)
 void compressClick(uint8_t clickType)
 {
   uint8_t compressIndex = patterns[currentPattern].tracks[currentTrack].config.compressIndex;
-  if (clickType == 1 && compressIndex < (NR_COMPRESSTEPS - 1)) compressIndex++;
-  if (clickType == 2 && compressIndex > 0) compressIndex--;
+  if (((clickType == MOUSE_LEFT)  || (clickType == MOUSE_WHL_UP)) && compressIndex < (NR_COMPRESSTEPS - 1)) compressIndex++;
+  if (((clickType == MOUSE_RIGHT) || (clickType == MOUSE_WHL_DOWN)) && compressIndex > 0) compressIndex--;
   trackDetailsView.indicator_compress.draw(trackDetailsView.compressStrings[compressIndex]);
   patterns[currentPattern].tracks[currentTrack].config.compressIndex = compressIndex;
   patterns[currentPattern].tracks[currentTrack].compress = trackDetailsView.compressSettings[compressIndex];
@@ -494,8 +494,8 @@ void compressClick(uint8_t clickType)
 void lengthClick(uint8_t clickType)
 {
   uint8_t lengthIndex = patterns[currentPattern].tracks[currentTrack].config.lengthIndex;
-  if (clickType == 1 && lengthIndex < (NR_LENGTHSTEPS - 1)) lengthIndex++;
-  if (clickType == 2 && lengthIndex > 0) lengthIndex--;
+  if (((clickType == MOUSE_LEFT)  || (clickType == MOUSE_WHL_UP)) && lengthIndex < (NR_LENGTHSTEPS - 1)) lengthIndex++;
+  if (((clickType == MOUSE_RIGHT) || (clickType == MOUSE_WHL_DOWN)) && lengthIndex > 0) lengthIndex--;
   trackDetailsView.indicator_length.draw(trackDetailsView.lengthStrings[lengthIndex]);
   patterns[currentPattern].tracks[currentTrack].config.lengthIndex = lengthIndex;
   patterns[currentPattern].tracks[currentTrack].length = trackDetailsView.lengthSettings[lengthIndex];
@@ -515,8 +515,8 @@ void clearTrackClick(uint8_t clickType)
 void patternLengthClick(uint8_t clickType)
 {
   uint16_t currentLengthBeats = arrangement.arrangementItems_a[currentArrangementPosition].lengthTicks / transport.ticksPerBeat;
-  if (clickType == 1) currentLengthBeats++;
-  if (clickType == 2 && currentLengthBeats > 0) currentLengthBeats--;
+  if ((clickType == MOUSE_LEFT)  || (clickType == MOUSE_WHL_UP)) currentLengthBeats++;
+  if (((clickType == MOUSE_RIGHT) || (clickType == MOUSE_WHL_DOWN)) && currentLengthBeats > 0) currentLengthBeats--;
   arrangement.arrangementItems_a[currentArrangementPosition].lengthTicks = currentLengthBeats * transport.ticksPerBeat;
   arrangementView.indicator_patternLength.draw(currentLengthBeats / 4, currentLengthBeats % 4, 0, false);
   arrangement.updateArrangementStartPositions();
@@ -525,15 +525,15 @@ void patternLengthClick(uint8_t clickType)
 
 void patternSelectClick(uint8_t clickType)
 {
-  if (clickType == 1 && currentPattern < (NR_PATTERNS - 1) ) currentPattern++;
-  if (clickType == 2 && currentPattern > 0) currentPattern--;
+  if (((clickType == MOUSE_LEFT)  || (clickType == MOUSE_WHL_UP)) && currentPattern < (NR_PATTERNS - 1) ) currentPattern++;
+  if (((clickType == MOUSE_RIGHT) || (clickType == MOUSE_WHL_DOWN)) && currentPattern > 0) currentPattern--;
   arrangement.arrangementItems_a[currentArrangementPosition].patternIndex = currentPattern; // update arrangement data
   uiRedrawArrangeView(); // update arrangement view
 }
 
 void newArrangeItemClick(uint8_t clickType)
 {
-  if (clickType == 1)
+  if (clickType == MOUSE_LEFT)
   {
     uint8_t id = arrangement.newArrangementItem();
     arrangement.arrangementItems_a[id].patternIndex = currentPattern;
@@ -563,7 +563,7 @@ void arrangementItemSelectClick(uint8_t id)
 
 void arrangementOnClick(uint8_t clickType)
 {
-  if (clickType == 1)
+  if (clickType == MOUSE_LEFT)
   {
     transport.arrangementOn = !transport.arrangementOn;
     if (transport.arrangementOn) headerView.indicator_arrOn.draw("ON");
@@ -582,16 +582,14 @@ void muteArrayClick(uint8_t id)
 
 void signatureClick(uint8_t clickType)
 {
-  if (clickType == 1 && transport.signatureId < (NR_SIGNATURES - 1) ) setSignature(++transport.signatureId);
-  if (clickType == 2 && transport.signatureId > 0) setSignature(--transport.signatureId);
+  if (((clickType == MOUSE_LEFT)  || (clickType == MOUSE_WHL_UP)) && transport.signatureId < (NR_SIGNATURES - 1) ) setSignature(++transport.signatureId);
+  if (((clickType == MOUSE_RIGHT) || (clickType == MOUSE_WHL_DOWN)) && transport.signatureId > 0) setSignature(--transport.signatureId);
   headerView.indicator_signature.draw(transport.signature);
 }
 
-void editTrackClick(uint8_t clickType) { if (clickType == 1) uiSetEditorViewMode(); }
+void editTrackClick(uint8_t clickType) { if (clickType == MOUSE_LEFT) uiSetEditorViewMode(); }
 
 void fileClick(uint8_t clickType) { uiSetFileManagerViewMode(); }
-
-
 
 void loadPatternsClick(uint8_t clickType)
 {
@@ -701,7 +699,7 @@ void scrollbarDownClick(uint8_t clickType)
 
 void exitEditorClick(uint8_t clickType)
 {
-  if (clickType == 1)
+  if (clickType == MOUSE_LEFT)
   {
    graphicEditorView.grid.clearPosition();
    uiSetNormalViewMode();
@@ -714,8 +712,8 @@ void editor_noteValueClick(uint8_t clickType)
   uint16_t eventIndexOn = graphicEditorView.grid.noteElements[selectedNoteId].eventIndex_noteOn;
   uint16_t eventIndexOff = graphicEditorView.grid.noteElements[selectedNoteId].eventIndex_noteOff;
   uint8_t noteValue = patterns[currentPattern].tracks[currentTrack].events[eventIndexOn].data1;
-  if (clickType == 1 && noteValue < 127) noteValue++;
-  if (clickType == 2 && noteValue > 0) noteValue--;
+  if (((clickType == MOUSE_LEFT)  || (clickType == MOUSE_WHL_UP)) && noteValue < 127) noteValue++;
+  if (((clickType == MOUSE_RIGHT) || (clickType == MOUSE_WHL_DOWN)) && noteValue > 0) noteValue--;
   patterns[currentPattern].tracks[currentTrack].events[eventIndexOn].data1 = noteValue;
   patterns[currentPattern].tracks[currentTrack].events[eventIndexOff].data1 = noteValue;
 }
@@ -725,8 +723,8 @@ void editor_noteOnTickClick(uint8_t clickType)
   uint16_t selectedNoteId = graphicEditorView.grid.selectedNoteId;
   uint16_t eventIndexOn = graphicEditorView.grid.noteElements[selectedNoteId].eventIndex_noteOn;
   uint32_t noteOnTick = patterns[currentPattern].tracks[currentTrack].events[eventIndexOn].timestamp;
-  if (clickType == 1) noteOnTick++;
-  if (clickType == 2 && noteOnTick > 0) noteOnTick--;
+  if ((clickType == MOUSE_LEFT)  || (clickType == MOUSE_WHL_UP)) noteOnTick++;
+  if (((clickType == MOUSE_RIGHT) || (clickType == MOUSE_WHL_DOWN)) && noteOnTick > 0) noteOnTick--;
   patterns[currentPattern].tracks[currentTrack].events[eventIndexOn].timestamp = noteOnTick;
 }
 
@@ -735,8 +733,8 @@ void editor_noteOffTickClick(uint8_t clickType)
   uint16_t selectedNoteId = graphicEditorView.grid.selectedNoteId;
   uint16_t eventIndexOff = graphicEditorView.grid.noteElements[selectedNoteId].eventIndex_noteOff;
   uint32_t noteOffTick = patterns[currentPattern].tracks[currentTrack].events[eventIndexOff].timestamp;
-  if (clickType == 1) noteOffTick++;
-  if (clickType == 2 && noteOffTick > 0) noteOffTick--;
+  if ((clickType == MOUSE_LEFT)  || (clickType == MOUSE_WHL_UP)) noteOffTick++;
+  if (((clickType == MOUSE_RIGHT) || (clickType == MOUSE_WHL_DOWN)) && noteOffTick > 0) noteOffTick--;
   patterns[currentPattern].tracks[currentTrack].events[eventIndexOff].timestamp = noteOffTick;
 }
 

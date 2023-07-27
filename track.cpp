@@ -1,6 +1,5 @@
 #include "track.h"
 
-//String emptyName = "<empty>";
 String emptyName = "";
 String usedName = "In use";
 
@@ -25,6 +24,7 @@ void Track::_initBuffer()
   memset(events, 0, NR_EVENTS * sizeof(event));
   memUsage = NR_EVENTS;
   memBlocks = 1;
+  usedName.toCharArray(config.name, 8);
 }
 
 void Track::_releaseBuffer()
@@ -33,6 +33,7 @@ void Track::_releaseBuffer()
   events = nullptr;
   memUsage = 0;
   memBlocks = 0;
+  emptyName.toCharArray(config.name, 8);
 }
 
 void Track::_expandBuffer()
@@ -199,6 +200,29 @@ void Track::_convertTempEvents()
     _nrTempEvents = 0;
     _sortEvents();
   }
+}
+
+uint16_t Track::addNoteDirect(uint32_t timestampOn, uint32_t timestampOff, uint8_t note, uint8_t velocity)
+{
+  if (_nrEvents == 0 || events == nullptr) _initBuffer();
+  if (_nrEvents >= (memBlocks * NR_EVENTS - 2)) _expandBuffer();
+ 
+  if (_nrEvents < (memBlocks * NR_EVENTS - 2))
+  {
+    events[_nrEvents].timestamp = timestampOn;
+    events[_nrEvents].type = 0x90;
+    events[_nrEvents].data1 = note;
+    events[_nrEvents].data2 = velocity;
+    _nrEvents++;
+    events[_nrEvents].timestamp = timestampOff;
+    events[_nrEvents].type = 0x80;
+    events[_nrEvents].data1 = note;
+    events[_nrEvents].data2 = 0;
+    _nrEvents++;
+    _sortEvents();
+    return _nrEvents;
+  }
+  else return 0;
 }
 
 uint16_t Track::addEvent(uint32_t timestamp, uint8_t type, uint8_t data1, uint8_t data2)

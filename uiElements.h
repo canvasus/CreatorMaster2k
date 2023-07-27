@@ -399,6 +399,9 @@ class Grid
     void zoomY(bool isIn);
     void zoomX(bool isIn);
 
+    void deleteNote(uint16_t noteOnEventIndex);
+    void addNote(uint8_t note, uint32_t timestampOn, uint32_t timestampOff);
+
     void animate();
     void drawPosition(uint32_t timestamp);
     void clearPosition();

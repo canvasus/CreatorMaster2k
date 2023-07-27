@@ -28,6 +28,12 @@
 #define HEADER_H        (uint16_t)(SCREEN_YRES * 0.1)
 #define MAIN_H          (uint16_t)(SCREEN_YRES * 0.9 - PADDING)
 
+#define MOUSE_LEFT    1
+#define MOUSE_RIGHT   2
+#define MOUSE_MIDDLE  3
+#define MOUSE_WHL_UP    12
+#define MOUSE_WHL_DOWN  11
+
 #define VIEW_NORMAL      0
 #define VIEW_EDITOR      1
 #define VIEW_FILEMANAGER 2

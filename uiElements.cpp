@@ -678,6 +678,8 @@ bool ArrangementView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickT
   return false;
 }
 
+// --- FILE MANAGER ---
+
 void FileManagerView::layout()
 {
   button_loadPatterns.layout(F("LOAD PTRNS"), relX(0.80), relY(0.6), relW(0.19), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
@@ -777,6 +779,8 @@ bool OnscreenKeyboard::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t click
 {
   return false;
 }
+
+// --- EDITOR ---
 
 void Grid::layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height)
 {
@@ -908,6 +912,30 @@ void Grid::drawNotes()
   for (uint16_t index = 0; index < nrVisibleEvents; index++) noteElements[index].draw(index == selectedNoteId);
 }
 
+void Grid::deleteNote(uint16_t noteOnEventIndex)
+{
+  //uint16_t noteOnEventIndex = noteElements[index].eventIndex_noteOn;
+  track->deleteNote(noteOnEventIndex);
+  selectedNoteId = -1;
+  clear();
+  syncToTrack();
+  draw();
+}
+
+void Grid::addNote(uint8_t note, uint32_t timestampOn, uint32_t timestampOff)
+{
+  track->addNoteDirect(timestampOn, timestampOff, note, 100);
+  clear();
+  syncToTrack();
+  draw();
+  if ( (transport.state == SEQ_STOPPED) && (track->midi_cb != nullptr))
+  {
+    track->midi_cb(track->config.channel, 0x90, note, 100);
+    delay(200);
+    track->midi_cb(track->config.channel, 0x80, note, 0);
+  }
+}
+
 bool Grid::checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 {
   if ( (xPos < _geo.xPos) || xPos > (_geo.xPos + _geo.width) || (yPos < _geo.yPos) || (yPos > _geo.yPos + _geo.height) ) return false; // outside
@@ -916,38 +944,29 @@ bool Grid::checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType)
   {
     if (noteElements[index].checkCursor(xPos, yPos, clickType))
     {
-      if (clickType == 1) // select
+      if (clickType == MOUSE_LEFT) // select
       {
         if (selectedNoteId > -1) noteElements[selectedNoteId].draw(false);
         selectedNoteId = index;
         noteElements[selectedNoteId].draw(true);
         return true;
       }
-      if (clickType == 2) // delete
+      if (clickType == MOUSE_RIGHT) // delete
       {
         uint16_t noteOnEventIndex = noteElements[index].eventIndex_noteOn;
-        track->deleteNote(noteOnEventIndex);
-        selectedNoteId = -1;
-        clear();
-        syncToTrack();
-        draw();
+        deleteNote(noteOnEventIndex);
         return true;
       }
     }
   }
 
-  // inside but no note interaction, so add note at position if clickType == 1
-  if (clickType == 1)
+  // inside grid but no note interaction, so add note at position if clickType == 1
+  if (clickType == MOUSE_LEFT)
   {
     uint8_t note = _yPosToNote(yPos);
     uint32_t timestampOn = _xPosToQuantizedTimestamp(xPos);
-    uint32_t timestampOff = timestampOn + (RESOLUTION >> 2); // 1/16th, make this variable later
-    Serial.printf("Add: note %d, tOn: %d, tOff: %d\n", note, timestampOn, timestampOff);
-    track->addEvent(timestampOn, 0x91, note, 100); // velocity default?
-    track->addEvent(timestampOff, 0x81, note, 0); // velocity default?
-    clear();
-    syncToTrack();
-    draw();
+    uint32_t timestampOff = timestampOn + (RESOLUTION >> 2) - 1; // 1/16th, make this variable later
+    addNote(note, timestampOn, timestampOff);
     return true;
   }
 
@@ -1194,42 +1213,54 @@ bool GraphicEditor::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickTyp
 
   if (button_gridMoveLeft.checkCursor(xPos, yPos, clickType))
   {
-    grid.moveX(false);
-    drawNoteRange();
+    if (clickType == MOUSE_LEFT)
+    {
+      grid.moveX(false);
+      drawNoteRange();
+    }
     return true;
   } 
   
   if (button_gridMoveRight.checkCursor(xPos, yPos, clickType))
   {
-    grid.moveX(true);
-    drawNoteRange();
+    if (clickType == MOUSE_LEFT)
+    {
+      grid.moveX(true);
+      drawNoteRange();
+    }
     return true;
   } 
   
   if (button_gridMoveUp.checkCursor(xPos, yPos, clickType))
   { 
-    grid.moveY(true);
-    drawNoteRange();
+    if (clickType == MOUSE_LEFT)
+    {
+      grid.moveY(true);
+      drawNoteRange();
+    }
     return true;
   } 
   
   if (button_gridMoveDown.checkCursor(xPos, yPos, clickType))
   {
-    grid.moveY(false);
-    drawNoteRange();
+    if (clickType == MOUSE_LEFT)
+    {
+      grid.moveY(false);
+      drawNoteRange();
+    }
     return true;
   } 
 
   if (button_gridZoomX.checkCursor(xPos, yPos, clickType))
   {
-    grid.zoomX(clickType == 1);
+    grid.zoomX(clickType == MOUSE_LEFT || clickType == MOUSE_WHL_UP);
     drawNoteRange();
     return true;
   }
 
   if (button_gridZoomY.checkCursor(xPos, yPos, clickType))
   {
-    grid.zoomY(clickType == 1);
+    grid.zoomY(clickType == MOUSE_LEFT || clickType == MOUSE_WHL_UP);
     drawNoteRange();
     return true;
   }

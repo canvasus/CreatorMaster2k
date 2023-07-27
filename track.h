@@ -84,6 +84,7 @@ class Track
     uint16_t nextEventId;
     event * events;
     uint16_t addEvent(uint32_t timestamp, uint8_t type, uint8_t data1, uint8_t data2);
+    uint16_t addNoteDirect(uint32_t timestampOn, uint32_t timestampOff, uint8_t note, uint8_t velocity);
     void clear();
     void paste(event * eventClipboard, uint16_t nrEvents);
     event * copy();
