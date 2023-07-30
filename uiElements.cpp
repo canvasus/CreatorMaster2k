@@ -48,7 +48,7 @@ void Container::draw()
 {
   tft.writeTo(L2);
   tft.fillRect(geo.xPos, geo.yPos , geo.width, geo.height, geo.color1);
-  if (drawBorder) tft.drawRect(geo.xPos, geo.yPos , geo.width, geo.height, BUTTON_BORDER_COLOR);
+  if (drawBorder) tft.drawRect(geo.xPos, geo.yPos , geo.width, geo.height, CONTAINER_BORDER_COLOR);
 }
 
 bool Container::checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType)
@@ -77,19 +77,23 @@ void Button::draw(bool state)
   tft.writeTo(L2);
   if (type == TYPE_BUTTON)
   {
+    const int8_t mainOffset[4] = {5, 5, -10, -10};
+    const int8_t shadowOffset[4] = {10, 10, -12, -12};
     tft.fillRect(_geo.xPos, _geo.yPos , _geo.width, _geo.height, BUTTON_BG_COLOR); // background
-    if (drawBorder) tft.drawRect(_geo.xPos, _geo.yPos , _geo.width, _geo.height, BUTTON_BORDER_COLOR); // border
+    if (drawBorder) tft.drawRect(_geo.xPos, _geo.yPos , _geo.width, _geo.height, BUTTON_BORDER_COLOR); // outer border
+    
     if (!state) //not pressed
     {
-      tft.fillRect(_geo.xPos + 10, _geo.yPos + 10 , _geo.width - 12, _geo.height - 12, BUTTON_SHADOW_COLOR);  //shadow
-      tft.fillRect(_geo.xPos + 5, _geo.yPos + 5 , _geo.width - 10, _geo.height - 10, _geo.color1); // main button area (state off)
-      tft.drawRect(_geo.xPos + 5, _geo.yPos + 5 , _geo.width - 10, _geo.height - 10, BUTTON_BORDER_COLOR); // main button border
+      tft.fillRect(_geo.xPos + shadowOffset[0], _geo.yPos + shadowOffset[1] , _geo.width + shadowOffset[2], _geo.height + shadowOffset[3], BUTTON_SHADOW_COLOR);  //shadow
+      tft.fillRect(_geo.xPos + mainOffset[0], _geo.yPos + mainOffset[1] , _geo.width + mainOffset[2], _geo.height + mainOffset[3], _geo.color1); // main button area (state off)
+      tft.drawRect(_geo.xPos + mainOffset[0], _geo.yPos + mainOffset[1] , _geo.width + mainOffset[2], _geo.height + mainOffset[3], BUTTON_BORDER_COLOR); // main button border
     }
+    
     else // pressed
     {
-      tft.fillRect(_geo.xPos + 10, _geo.yPos + 10 , _geo.width - 12, _geo.height - 12, BUTTON_BG_COLOR);  // clear shadow
-      tft.fillRect(_geo.xPos + 5, _geo.yPos + 5 , _geo.width - 10, _geo.height - 10, _geo.color2); // main button area (state on)
-      tft.drawRect(_geo.xPos + 5, _geo.yPos + 5 , _geo.width - 10, _geo.height - 10, BUTTON_BORDER_COLOR); // main button border
+      tft.fillRect(_geo.xPos + shadowOffset[0], _geo.yPos + shadowOffset[1] , _geo.width + shadowOffset[2], _geo.height + shadowOffset[3], BUTTON_BG_COLOR);  // clear shadow
+      tft.fillRect(_geo.xPos + mainOffset[0], _geo.yPos + mainOffset[1] , _geo.width + mainOffset[2], _geo.height + mainOffset[3], _geo.color2); // main button area (state on)
+      tft.drawRect(_geo.xPos + mainOffset[0], _geo.yPos + mainOffset[1] , _geo.width + mainOffset[2], _geo.height + mainOffset[3], BUTTON_BORDER_COLOR); // main button border
     }
   }
   if (type == TYPE_CHECKBOX)
@@ -276,8 +280,8 @@ void TrackRow::draw(bool selected)
   if (selected) tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_SELECTED_COLOR); // background
   else tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_NORMAL_COLOR); // background
   tft.setCursor(_geo.xPos + 20, _geo.yPos + 5);
-  if (selected) tft.setTextColor(RA8875_WHITE);
-  else tft.setTextColor(INDICATOR_TEXT_COLOR);
+  if (selected) tft.setTextColor(TRACK_SELECTED_TEXT_COLOR);
+  else tft.setTextColor(TRACK_TEXT_COLOR);
   tft.printf("%2d", id + 1);
   tft.setCursor(_geo.xPos + 50, _geo.yPos + 5);
   tft.print(trackName);
@@ -299,7 +303,7 @@ void TrackRow::activity(uint8_t level)
 {
   const uint8_t a_width = 18;
   level = constrain(level, 0, 20);
-  tft.fillRect(_geo.xPos + 3, _geo.yPos + 1, a_width , _geo.height - 2, ACTIVITY_BG_COLOR);
+  tft.fillRect(_geo.xPos + 3, _geo.yPos + 2, a_width , _geo.height - 4, ACTIVITY_BG_COLOR);
   if (level > 0) tft.fillRect(_geo.xPos + 3, _geo.yPos + 4, (uint16_t)( (level/20.0) * a_width) , _geo.height - 8, ACTIVITY_FILL_COLOR);
 }
 
@@ -582,8 +586,8 @@ void ArrangementRow::draw(bool selected)
   if (selected) tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_SELECTED_COLOR); // background
   else tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_NORMAL_COLOR); // background
   tft.setCursor(_geo.xPos + 20, _geo.yPos + 5);
-  if (selected) tft.setTextColor(RA8875_WHITE);
-  else tft.setTextColor(INDICATOR_TEXT_COLOR);
+  if (selected) tft.setTextColor(ARRITEM_SELECTED_TEXT_COLOR);
+  else tft.setTextColor(ARRITEM_TEXT_COLOR);
   tft.printf("%d", startBars);
   tft.setCursor(_geo.xPos + 50, _geo.yPos + 5);
   tft.print(patternName);

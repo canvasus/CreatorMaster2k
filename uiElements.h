@@ -5,51 +5,89 @@
 #include "x_globals.h"
 #include "track.h"
 
-#define MAIN_BG_COLOR         0x9D39 //light blue
+// --- COLOR SCHEME ---
 
-#define DECO_TOPROW_FILL_COLOR  0x1175 // dark blue
+// https://rgbcolorpicker.com/565 
+// Note: colors are not exactly reproduced on BuyDisplay 7" RA8875
+
+#define CM2K_LIGHTGREY        0xef5d
+#define CM2K_MEDIUMGREY       0xce99
+#define CM2K_DARKGREY         0x7bef
+#define CM2K_DARKBLUE         0x1175
+#define CM2K_NAVY             0x3b35
+#define CM2K_BABYBLUE         0xCEFC
+#define CM2K_PURPLEBLUE       0xA55B
+#define CM2K_GREYBLUE         0xadb9
+#define CM2K_DARKORANGE       0xfda0
+#define CM2K_PURPLE           0xf81f
+
+// Top and right sections
+#define MAIN_BG_COLOR           CM2K_GREYBLUE
+
+// Header deco elements, bar, mute, stat etc
+#define DECO_TOPROW_FILL_COLOR  CM2K_DARKBLUE
 #define DECO_TOPROW_TEXT_COLOR  RA8875_WHITE
 
-#define BUTTON_BG_COLOR       RA8875_WHITE // button background color =  white
-#define BUTTON_BORDER_COLOR   0x1175 // dark blue
-#define BUTTON_SHADOW_COLOR   0x7BEF // dark grey
-#define BUTTON_FILL_NORMAL    0xCEFC // light blue
-#define BUTTON_FILL_PRESSED   0xA55B // medium blue
-#define BUTTON_TEXT_COLOR     0x1175 // dark blue
+// Button colors
+#define BUTTON_BG_COLOR         RA8875_WHITE
+#define BUTTON_BORDER_COLOR     CM2K_DARKBLUE
+#define BUTTON_SHADOW_COLOR     CM2K_DARKGREY
+#define BUTTON_FILL_NORMAL      CM2K_BABYBLUE
+#define BUTTON_FILL_PRESSED     CM2K_PURPLEBLUE 
+#define BUTTON_TEXT_COLOR       CM2K_DARKBLUE
+
+// Borders for sections that draw it
+#define CONTAINER_BORDER_COLOR  BUTTON_BORDER_COLOR
+
+// Indicator colors
+#define INDICATOR_BG_COLOR      RA8875_WHITE
+#define INDICATOR_BORDER_COLOR  CM2K_DARKBLUE
+#define INDICATOR_TEXT_COLOR    CM2K_DARKBLUE
+#define INDICATOR_LABEL_COLOR   CM2K_DARKBLUE
+
+// Activity indicator for tracks
+#define ACTIVITY_BG_COLOR       RA8875_WHITE
+#define ACTIVITY_FILL_COLOR     CM2K_PURPLEBLUE
+
+// Track colors
+#define TRACK_SELECTED_COLOR    CM2K_DARKORANGE
+#define TRACK_NORMAL_COLOR      RA8875_WHITE
+#define TRACK_TEXT_COLOR        CM2K_DARKBLUE
+#define TRACK_SELECTED_TEXT_COLOR   CM2K_DARKBLUE
+
+// Arrangement colors
+#define ARRITEM_SELECTED_COLOR      TRACK_SELECTED_COLOR
+#define ARRITEM_NORMAL_COLOR        TRACK_NORMAL_COLOR
+#define ARRITEM_TEXT_COLOR          TRACK_TEXT_COLOR
+#define ARRITEM_SELECTED_TEXT_COLOR TRACK_SELECTED_TEXT_COLOR
+
+// Editor colors
+#define EDITOR_BG_COLOR             RA8875_WHITE
+#define EDITOR_BORDER_COLOR         CM2K_NAVY
+#define EDITOR_BLACKKEY_COLOR       CM2K_LIGHTGREY  
+#define EDITOR_NOTE_COLOR_DEFAULT   CM2K_NAVY
+#define EDITOR_NOTE_COLOR_SELECTED  CM2K_PURPLE
+
+#define EDITOR_GRID_MINOR_COLOR     CM2K_LIGHTGREY 
+#define EDITOR_GRID_MAJOR_COLOR     CM2K_MEDIUMGREY
+
+// -------
 
 #define TYPE_BUTTON   0
 #define TYPE_CHECKBOX 1
 
-#define INDICATOR_BG_COLOR      RA8875_WHITE
-#define INDICATOR_BORDER_COLOR  0x1175 // dark blue
-#define INDICATOR_TEXT_COLOR    0x1175
-#define INDICATOR_LABEL_COLOR   0x1175 //0x9CF3 // medium grey
+#define EDIT_TOOL_DELETE 0
+#define EDIT_TOOL_ADD    1
+#define EDIT_TOOL_MOVE   2
+
 #define INDICATOR_LABEL_NONE    0
 #define INDICATOR_LABEL_TOP     1
 #define INDICATOR_LABEL_LEFT40  2
 #define INDICATOR_LABEL_LEFT80  3
 #define INDICATOR_LABEL_CUSTOM  4
 
-#define ACTIVITY_BG_COLOR       RA8875_WHITE
-#define ACTIVITY_FILL_COLOR     0xA55B
-
-#define TRACK_SELECTED_COLOR    0x3B35 // dark blue
-#define TRACK_NORMAL_COLOR      RA8875_WHITE
-
-#define CONTAINER_TITLE_COLOR 0xADB9
-#define CONTAINER_TITLE_H 20
-
-#define EDITOR_BG_COLOR             RA8875_WHITE
-#define EDITOR_BORDER_COLOR         0x3B35
-#define EDITOR_BLACKKEY_COLOR       0xCEFC  
-#define EDITOR_NOTE_COLOR_DEFAULT   0x3B35
-#define EDITOR_NOTE_COLOR_SELECTED  0xf81f  
-
-#define EDIT_TOOL_DELETE 0
-#define EDIT_TOOL_ADD    1
-#define EDIT_TOOL_MOVE   2
-
 #define TRANSPORT_W 110
+#define CONTAINER_TITLE_H 20
 
 typedef void (*buttonCallback)(uint8_t);
 
