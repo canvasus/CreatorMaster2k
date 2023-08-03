@@ -7,10 +7,17 @@
 
 // --- COLOR SCHEME ---
 
-// https://rgbcolorpicker.com/565 
-// Note: colors are not exactly reproduced on BuyDisplay 7" RA8875
+// Note: using two layers the color depth is 8-bit
+// 15 14 13 12 11 10 09 08 07 06 05 04 03 02 01 00
+// R2 R1 R0 -- -- G2 G1 G0 -- -- -- B1 B0 -- -- --
 
-#define CM2K_LIGHTGREY        0xef5d
+#define CM2K_PRIMARYRED       0xe000
+#define CM2K_PRIMARYGREEN     0x0700
+#define CM2K_PRIMARYBLUE      0x0018
+
+#define CM2K_DARKRED          0xa100
+
+#define CM2K_LIGHTGREY        0xc618 //0xef5d
 #define CM2K_MEDIUMGREY       0xce99
 #define CM2K_DARKGREY         0x7bef
 #define CM2K_DARKBLUE         0x1175
@@ -64,12 +71,15 @@
 // Editor colors
 #define EDITOR_BG_COLOR             RA8875_WHITE
 #define EDITOR_BORDER_COLOR         CM2K_NAVY
-#define EDITOR_BLACKKEY_COLOR       CM2K_LIGHTGREY  
+#define EDITOR_BLACKKEY_COLOR       CM2K_MEDIUMGREY  
 #define EDITOR_NOTE_COLOR_DEFAULT   CM2K_NAVY
 #define EDITOR_NOTE_COLOR_SELECTED  CM2K_PURPLE
 
 #define EDITOR_GRID_MINOR_COLOR     CM2K_LIGHTGREY 
 #define EDITOR_GRID_MAJOR_COLOR     CM2K_MEDIUMGREY
+
+#define TEXTEDITOR_BG_COLOR       CM2K_PURPLEBLUE
+#define TEXTEDITOR_BORDER_COLOR   CM2K_DARKBLUE
 
 // -------
 
@@ -131,13 +141,16 @@ class Button
     bool state = false;
     bool latch = false;
     bool drawBorder = true;
+    uint16_t textColor_off = BUTTON_TEXT_COLOR;
+    uint16_t textColor_on = BUTTON_TEXT_COLOR;
     uint8_t type = TYPE_BUTTON;
     void set(bool newState);
     void layout(String label, uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t bgColor, uint16_t selectedColor);
     buttonCallback cb;
     bool checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType); 
-    void draw(bool state);
+    void draw(bool newState);
     void setLabelOffset(int xOffset, int yOffset);
+    void setTextColors(uint16_t colorOff, uint16_t colorOn);
 };
 
 class Indicator
@@ -192,7 +205,7 @@ class TrackRow
     Geo _geo;
   public:
     TrackRow();
-    char trackName[8];
+    char trackName[13];
     uint8_t id;
     uint8_t channel;
     bool checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType); 
@@ -222,7 +235,7 @@ class HeaderView : public Container
   using Container :: Container;
   public:
     Button button_file;
-    Button button_new;
+    //Button button_new;
     Indicator indicator_freeMem;
     Indicator indicator_arrOn;
     Indicator indicator_transport;
@@ -333,19 +346,30 @@ class ControlsView :  public Container
     void layout();
 };
 
-class OnscreenKeyboard// : public Container
+class TextEditor : public Container
 {
-  //using Container :: Container;
+  using Container :: Container;
   private:
-    Geo _geo;
+    uint8_t _textPosition = 0;
+    char _textBuffer[16];
+
   public:
-    Indicator letters[26];
-    Button digits[10];
+    uint8_t callerViewID = 0;
+    uint8_t stringLength = 12;
+    Indicator indicator_text;
+    
+    Button button_characters[25];
+    Button button_digits[10];
+    Button button_backspace;
+
     Button button_ok;
     Button button_cancel;
-    Button button_shift;
+    char * textVariable = nullptr;
+    bool * flagVariable = nullptr;
     bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);
     void layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2);
+    void draw();
+    void animate();
 };
 
 class FileManagerRow
@@ -372,12 +396,12 @@ class FileManagerView : public Container
     uint16_t firstRowIndex = 0;
     uint16_t selectedIndex = 0;
     FileManagerRow fileManagerRows[NR_FILE_ROWS];
+    Button button_new;
     Button button_exit;
     Button button_load;
     Button button_save;
     Button button_loadPatterns;
     Scrollbar scrollbar;
-    OnscreenKeyboard keyboard;
     bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);
     void layout();
 };

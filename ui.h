@@ -30,13 +30,14 @@
 
 #define MOUSE_LEFT    1
 #define MOUSE_RIGHT   2
-#define MOUSE_MIDDLE  3
+#define MOUSE_MIDDLE  4
 #define MOUSE_WHL_UP    12
 #define MOUSE_WHL_DOWN  11
 
 #define VIEW_NORMAL      0
 #define VIEW_EDITOR      1
 #define VIEW_FILEMANAGER 2
+#define VIEW_TEXTEDIT    3
 
 extern KeyboardController keyboard1;
 extern MouseController mouse1;
@@ -53,7 +54,7 @@ void drawCursor();
 void recordClick(uint8_t clickType);
 void startClick(uint8_t clickType);
 void stopClick(uint8_t clickType);
-void trackSelectClick(uint8_t id);
+void trackSelectClick(uint8_t id, uint8_t clickType);
 void bpmClick(uint8_t clickType);
 void portClick(uint8_t clickType);
 void channelClick(uint8_t clickType);
@@ -85,7 +86,7 @@ void newClick(uint8_t clickType);
 void loadClick(uint8_t clickType);
 void loadPatternsClick(uint8_t clickType);
 void saveClick(uint8_t clickType);
-void fileManagerRowClick(uint8_t id);
+void fileManagerRowClick(uint8_t row, uint8_t clickType);
 
 void scrollbarUpClick(uint8_t clickType);
 void scrollbarDownClick(uint8_t clickType);
@@ -110,5 +111,8 @@ void uiRedrawHeaderView();
 void uiSetNormalViewMode();
 void uiSetEditorViewMode();
 void uiSetFileManagerViewMode();
+void uiSetTextEditViewMode();
+
+void uiReturnFromTextEditor(bool status);
 
 void setScreensaver(bool state);

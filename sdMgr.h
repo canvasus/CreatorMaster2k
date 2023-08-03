@@ -10,7 +10,8 @@
 void initSDcard();
 void listContent();
 
-bool loadSystemSettings();
+void loadSystemSettings();
+void saveSystemSettings();
 
 void setProjectfolder(uint8_t projectId);
 

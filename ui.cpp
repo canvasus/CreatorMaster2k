@@ -10,7 +10,7 @@ ControlsView controlsView = ControlsView("CONTROL", ARRANGE_W + PATTERN_W + TRAC
 //ListEditor listEditorView = ListEditor("LISTEDITOR", 0, HEADER_H + PADDING, ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 2 * PADDING, MAIN_H,  RA8875_WHITE, RA8875_WHITE);
 FileManagerView fileManagerView = FileManagerView("FILEMANAGER", 0, HEADER_H + PADDING, ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 2 * PADDING, MAIN_H,  RA8875_WHITE, RA8875_WHITE);
 GraphicEditor graphicEditorView = GraphicEditor("GRAPHICEDITOR", 0, HEADER_H + PADDING, ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 2 * PADDING, MAIN_H,  RA8875_WHITE, RA8875_WHITE);
-
+TextEditor textEditorView = TextEditor("", 0, 0, 0, 0,  RA8875_WHITE, RA8875_WHITE); // layout is set when calling
 
 const uint8_t cursorOn[16] = {
   0b10000000,
@@ -40,7 +40,7 @@ uint16_t cursorXpos = 0;
 uint16_t cursorYpos = 0;
 
 elapsedMillis uiTimer = 0;
-const uint8_t uiInterval = 35;
+const uint8_t uiInterval = 25;
 elapsedMillis uiTimerSlow = 0;
 const uint8_t uiSlowInterval = 100;
 elapsedMillis uiResetTimer = 0;
@@ -52,7 +52,7 @@ const unsigned long screenSaverTimeout = 120000; // 2min
 
 void setupUI()
 {
-  Serial.print(F("UI SETUP..."));
+  Serial.println(F("UI SETUP..."));
   tft.begin(RA8875_800x480);
 
   tft.uploadUserChar(cursorOn, 0);
@@ -139,7 +139,7 @@ void uiRedrawArrangeView()
     if (arrangement.arrangementItems_a[arrItemIndex].status == ARRITEM_ACTIVE)
     {
       uint8_t patternIndex = arrangement.arrangementItems_a[arrItemIndex].patternIndex;
-      arrangementView.arrangementRows[arrItemIndex].patternName = patterns[patternIndex].name;
+      arrangementView.arrangementRows[arrItemIndex].patternName = patterns[patternIndex].config.name;
       arrangementView.arrangementRows[arrItemIndex].startBars = arrangement.arrangementItems_a[arrItemIndex].startTick / transport.ticksPerBar + 1;
       arrangementView.arrangementRows[arrItemIndex].active = (arrangement.arrangementItems_a[arrItemIndex].status == ARRITEM_ACTIVE);
       arrangementView.arrangementRows[arrItemIndex].draw(arrItemIndex == currentArrangementPosition);
@@ -163,13 +163,13 @@ void uiRedrawArrangeView()
 void uiRedrawPatternView()
 {
   // redraw pattern view using currentPattern data
-  patternView.indicator_patternName.draw(patterns[currentPattern].name);
+  patternView.indicator_patternName.draw(patterns[currentPattern].config.name);
   //currentTrack = 0;
   for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++)
   {
     patternView.trackRows[trackId].id = trackId;
     //patternView.trackRows[trackId].trackName = patterns[currentPattern].tracks[trackId].name;
-    memcpy(patternView.trackRows[trackId].trackName, patterns[currentPattern].tracks[trackId].config.name, 8);
+    memcpy(patternView.trackRows[trackId].trackName, patterns[currentPattern].tracks[trackId].config.name, 12);
     patternView.trackRows[trackId].channel = patterns[currentPattern].tracks[trackId].config.channel;
     patternView.trackRows[trackId].draw(trackId == currentTrack);
   }
@@ -193,25 +193,21 @@ void updateMouse()
 {
   static elapsedMillis activityTimer = 0;
   static elapsedMillis debounceTimer = 0;
-  const uint8_t debounceTime = 250;
-  static uint8_t lastMouseButtons = 0;
-   if (mouse1.available())
-   {
+  const uint8_t debounceTime = 50;
+  uint8_t mouseButtons = 0;
+   
+  if (mouse1.available())
+  {
     activityTimer = 0;
     int mouseX = mouse1.getMouseX();
     int mouseY = mouse1.getMouseY();
     if ( (abs(mouseX) > 0) || (abs(mouseY) > 0)) updateCursor(mouseX, mouseY);
-   
-    uint8_t mouseButtons = mouse1.getButtons();
-    if (mouseButtons != lastMouseButtons)
+    
+    uint8_t mouseButtonsTemp = mouse1.getButtons();
+    if (debounceTimer > debounceTime)
     {
-      activityTimer = 0;
-      if (debounceTimer < debounceTime) mouseButtons = 0;
-      else
-      {
-        debounceTimer = 0;
-        lastMouseButtons = mouseButtons;
-      }
+      debounceTimer = 0;
+      mouseButtons = mouseButtonsTemp;
     }
     
     uint8_t mouseWheel = mouse1.getWheel();
@@ -232,6 +228,7 @@ void updateMouse()
 
       if (viewMode == VIEW_EDITOR) graphicEditorView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
       if (viewMode == VIEW_FILEMANAGER) fileManagerView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
+      if (viewMode == VIEW_TEXTEDIT) textEditorView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
     }
     mouse1.mouseDataClear();
   }
@@ -341,21 +338,22 @@ void uiUpdateControls()
 
   headerView.indicator_freeMem.draw(transport.freeMemory);
   if (headerView.button_file.state) headerView.button_file.set(false);
-  if (headerView.button_new.state) headerView.button_new.set(false);
+
+  if (viewMode == VIEW_TEXTEDIT) textEditorView.animate();
 }
 
 void recordClick(uint8_t clickType)
 {
   static bool recordOn = false;
-  const String inUse = "in use";
+  //const String inUse = "in use";
   if (clickType == MOUSE_LEFT)
   {
     recordOn = !recordOn;
     record(recordOn);
     controlsView.button_record.set(recordOn);
-    inUse.toCharArray(patterns[currentPattern].tracks[currentTrack].config.name, 8);
-    memcpy(patternView.trackRows[currentTrack].trackName, patterns[currentPattern].tracks[currentTrack].config.name, 8);
-    patternView.trackRows[currentTrack].draw(true);
+    //inUse.toCharArray(patterns[currentPattern].tracks[currentTrack].config.name, 8);
+    //memcpy(patternView.trackRows[currentTrack].trackName, patterns[currentPattern].tracks[currentTrack].config.name, 8);
+    //patternView.trackRows[currentTrack].draw(true);
   }
 }
 
@@ -378,6 +376,11 @@ void stopClick(uint8_t clickType)
     panic();
     controlsView.button_start.set(false);
     controlsView.button_stop.set(true);
+    if (transport.recording && !patterns[currentPattern].tracks[currentTrack].isUserNamed)
+    {
+      memcpy(patternView.trackRows[currentTrack].trackName, patterns[currentPattern].tracks[currentTrack].config.name, 12);
+      patternView.trackRows[currentTrack].draw(true); // redraw to update auto name
+    }
   }
 }
 
@@ -408,11 +411,24 @@ void cycleOnClick(uint8_t clickType)
   else controlsView.indicator_cycle.draw("OFF");
 }
 
-void trackSelectClick(uint8_t id)
+void trackSelectClick(uint8_t id, uint8_t clickType)
 {
-  patternView.trackRows[currentTrack].draw(false);
-  currentTrack = id;
-  patternView.trackRows[currentTrack].draw(true);
+  if (clickType == MOUSE_LEFT)
+  {
+    patternView.trackRows[currentTrack].draw(false);
+    currentTrack = id;
+    patternView.trackRows[currentTrack].draw(true);
+  }
+  if (clickType == MOUSE_MIDDLE)
+  {
+    patternView.trackRows[currentTrack].draw(false);
+    currentTrack = id;
+    patternView.trackRows[currentTrack].draw(true);
+    textEditorView.textVariable = patterns[currentPattern].tracks[currentTrack].config.name;
+    textEditorView.flagVariable = &patterns[currentPattern].tracks[currentTrack].isUserNamed;
+    uiSetTextEditViewMode();
+    return;
+  }
 }
 
 void bpmClick(uint8_t clickType)
@@ -506,8 +522,8 @@ void clearTrackClick(uint8_t clickType)
   //String empty = "<empty>";
   String empty = "";
   clearTrack(currentTrack);
-  empty.toCharArray(patterns[currentPattern].tracks[currentTrack].config.name, 8);
-  empty.toCharArray(patternView.trackRows[currentTrack].trackName, 8);
+  empty.toCharArray(patterns[currentPattern].tracks[currentTrack].config.name, 12);
+  empty.toCharArray(patternView.trackRows[currentTrack].trackName, 12);
   patternView.trackRows[currentTrack].draw(true);
   trackDetailsView.button_clear.set(true);
 }
@@ -525,10 +541,17 @@ void patternLengthClick(uint8_t clickType)
 
 void patternSelectClick(uint8_t clickType)
 {
+  if (clickType == MOUSE_MIDDLE)
+  {
+    textEditorView.textVariable = patterns[currentPattern].config.name;
+    uiSetTextEditViewMode();
+    return;
+  }
   if (((clickType == MOUSE_LEFT)  || (clickType == MOUSE_WHL_UP)) && currentPattern < (NR_PATTERNS - 1) ) currentPattern++;
   if (((clickType == MOUSE_RIGHT) || (clickType == MOUSE_WHL_DOWN)) && currentPattern > 0) currentPattern--;
   arrangement.arrangementItems_a[currentArrangementPosition].patternIndex = currentPattern; // update arrangement data
   uiRedrawArrangeView(); // update arrangement view
+  
 }
 
 void newArrangeItemClick(uint8_t clickType)
@@ -612,22 +635,31 @@ void saveClick(uint8_t clickType)
   uiSetNormalViewMode();
 }
 
-void fileManagerRowClick(uint8_t id)
+void fileManagerRowClick(uint8_t id, uint8_t clickType)
 {
-  fileManagerView.fileManagerRows[currentProject].draw(false);
-  currentProject = id;
-  fileManagerView.selectedIndex = id;
-  setProjectfolder(id);
-  fileManagerView.fileManagerRows[currentProject].draw(true);
+  if (clickType == MOUSE_LEFT)
+  {
+    fileManagerView.fileManagerRows[currentProject].draw(false);
+    currentProject = id;
+    fileManagerView.selectedIndex = id;
+    setProjectfolder(id);
+    fileManagerView.fileManagerRows[currentProject].draw(true);
+  }
+  
+  if (clickType == MOUSE_MIDDLE)
+  {
+    
+  }
 }
 
 void newClick(uint8_t clickType)
 {
   clearArrangement();
   clearPatterns();
-  uiRedrawArrangeView();
-  uiRedrawPatternView();
-  uiRedrawTrackDetailsView();
+  uiSetNormalViewMode();
+  //uiRedrawArrangeView();
+  //uiRedrawPatternView();
+  //uiRedrawTrackDetailsView();
 }
 
 void copyTrackClick(uint8_t clickType)
@@ -640,8 +672,8 @@ void pasteTrackClick(uint8_t clickType)
 {
   String inUse = "in use";
   pasteTrack();
-  inUse.toCharArray(patterns[currentPattern].tracks[currentTrack].config.name, 8);
-  inUse.toCharArray(patternView.trackRows[currentTrack].trackName, 8);
+  inUse.toCharArray(patterns[currentPattern].tracks[currentTrack].config.name, 13);
+  inUse.toCharArray(patternView.trackRows[currentTrack].trackName, 13);
   patternView.trackRows[currentTrack].draw(true);
   trackDetailsView.button_paste.set(true);
 }
@@ -685,6 +717,33 @@ void uiSetFileManagerViewMode()
   viewMode = VIEW_FILEMANAGER;
   fileManagerView.draw();
   fileManagerView.layout();
+}
+
+void uiSetTextEditViewMode()
+{
+  textEditorView.callerViewID = viewMode;
+  viewMode = VIEW_TEXTEDIT;
+  textEditorView.layout(200, 150, 400, 200, CM2K_GREYBLUE, CM2K_GREYBLUE);
+  textEditorView.draw();
+}
+
+void uiReturnFromTextEditor(bool status)
+{
+  switch (textEditorView.callerViewID)
+  {
+    case VIEW_NORMAL:
+      uiSetNormalViewMode();
+      break;
+    case VIEW_EDITOR:
+      uiSetEditorViewMode();
+      break;
+    case VIEW_FILEMANAGER:
+      uiSetFileManagerViewMode();
+      break;
+    default:
+      Serial.printf("unknown text edit caller: %d\n", textEditorView.callerViewID);
+      break;
+  }
 }
 
 void scrollbarUpClick(uint8_t clickType)

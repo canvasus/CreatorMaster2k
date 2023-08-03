@@ -72,8 +72,9 @@ void Button::layout(String label, uint16_t xPos, uint16_t yPos, uint16_t width, 
   _geo.configure(label, xPos, yPos, width, height, color1, color2);
 }
 
-void Button::draw(bool state)
+void Button::draw(bool newState)
 {
+  state = newState;
   tft.writeTo(L2);
   if (type == TYPE_BUTTON)
   {
@@ -108,7 +109,8 @@ void Button::draw(bool state)
     else tft.fillRect(checkbox_x + 2, checkbox_y + 2 , checkbox_side - 4, checkbox_side - 4, BUTTON_BG_COLOR); // checkbox OFF
   }
   tft.setFontScale(0);
-  tft.setTextColor(BUTTON_TEXT_COLOR);
+  if (state) tft.setTextColor(textColor_on);
+  else tft.setTextColor(textColor_off);
   tft.setCursor(_geo.xPos + _labelXoffset, _geo.yPos + _labelYoffset);
   tft.print(_geo.label);
 }
@@ -135,6 +137,12 @@ void Button::setLabelOffset(int xOffset, int yOffset)
 {
   _labelXoffset = xOffset;
   _labelYoffset = yOffset;
+}
+
+void Button::setTextColors(uint16_t colorOff, uint16_t colorOn)
+{
+  textColor_off = colorOff;
+  textColor_on = colorOn;
 }
 
 // --- INDICATOR CLASS ---
@@ -292,11 +300,7 @@ void TrackRow::draw(bool selected)
 bool TrackRow::checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 {
   if ( (xPos < _geo.xPos) || (xPos > _geo.xPos + _geo.width) || (yPos < _geo.yPos) || (yPos > _geo.yPos + _geo.height) ) return false;
-  else
-  {
-    if (cb) cb(id);
-    return true;
-  }
+  return true;
 }
 
 void TrackRow::activity(uint8_t level)
@@ -323,9 +327,7 @@ void PatternView::layout()
 
   for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++)
   {
-    //String empty = "<empty>";
     String empty = "";
-    trackRows[trackId].cb = &trackSelectClick;
     empty.toCharArray(trackRows[trackId].trackName, 8);
     trackRows[trackId].id = trackId;
     trackRows[trackId].layout(relX(0), relY((1/17.0) * (trackId + 1)), relW(1.0), relH(1/17.0) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
@@ -337,11 +339,13 @@ bool PatternView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 {
   if (indicator_patternName.checkCursor(xPos, yPos, clickType)) return true;
   
-  bool matchClick = false;
-  uint8_t trackId = 0;
-  while (!matchClick && trackId < NR_TRACKS)
+  for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++)
   {
-    trackRows[trackId++].checkCursor(xPos, yPos, clickType); 
+    if (trackRows[trackId].checkCursor(xPos, yPos, clickType))
+    {
+      trackSelectClick(trackId, clickType);
+      return true;
+    }
   }
   return false;
 }
@@ -533,9 +537,9 @@ void HeaderView::layout()
   button_file.draw(false);
   button_file.cb = &fileClick;
 
-  button_new.layout("NEW", relX(2 * button_w + 3 * button_xPpad), relY(button_y), relW(button_w), relH(button_h) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
-  button_new.draw(false);
-  button_new.cb = &newClick;
+  //button_new.layout("NEW", relX(2 * button_w + 3 * button_xPpad), relY(button_y), relW(button_w), relH(button_h) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  //button_new.draw(false);
+  //button_new.cb = &newClick;
   
   indicator_freeMem.layout("MEM", relX(0.3), relY(0.5), relW(0.08), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR,INDICATOR_LABEL_TOP);
   indicator_freeMem.draw(MEMORY_MAX);
@@ -559,7 +563,7 @@ void HeaderView::layout()
 
 bool HeaderView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 {
-  if (button_new.checkCursor(xPos, yPos, clickType)) return true;
+  //if (button_new.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_bpm.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_arrOn.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_signature.checkCursor(xPos, yPos, clickType)) return true;
@@ -686,6 +690,10 @@ bool ArrangementView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickT
 
 void FileManagerView::layout()
 {
+  button_new.layout("NEW PRJ", relX(0.80), relY(0.2), relW(0.19), relH(0.1) , CM2K_DARKRED, CM2K_PRIMARYRED);
+  button_new.draw(false);
+  button_new.cb = &newClick;
+
   button_loadPatterns.layout(F("LOAD PTRNS"), relX(0.80), relY(0.6), relW(0.19), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
   button_loadPatterns.draw(false);
   button_loadPatterns.cb = &loadPatternsClick;
@@ -709,11 +717,11 @@ void FileManagerView::layout()
     fileManagerRows[row].draw(fileManagerRows[row].id == selectedIndex);
   }
 
-  keyboard.layout(relX(0.6), relY(0.1), relW(0.4), relH(0.4), BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
 }
 
 bool FileManagerView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 {
+  if (button_new.checkCursor(xPos, yPos, clickType)) return true;
   if (button_exit.checkCursor(xPos, yPos, clickType)) return true;
   if (button_load.checkCursor(xPos, yPos, clickType)) return true;
   if (button_save.checkCursor(xPos, yPos, clickType)) return true;
@@ -723,7 +731,7 @@ bool FileManagerView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickT
   {
     if (fileManagerRows[row].checkCursor(xPos, yPos, clickType))
     {
-      fileManagerRowClick(row);
+      fileManagerRowClick(row, clickType);
       return true;
     }
   }
@@ -758,29 +766,128 @@ bool FileManagerRow::checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType
   else return true;
 }
 
-void OnscreenKeyboard::layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2)
+// --- TEXT EDITOR ---
+
+void TextEditor::layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2)
 {
-  _geo.configure("", xPos, yPos, width, height, color1, color2);
-  Serial.printf("Keyboard outline: x %d, y %d, w %d, h %d\n", xPos, yPos, width, height);
-  for (uint8_t letterId = 0; letterId < 26; letterId++)
+  memset(_textBuffer, 32, 16);
+  _textBuffer[12] = 0;
+  _textPosition = 0;
+  geo.configure("", xPos, yPos, width, height, color1, color2);
+  //Serial.printf("Text editor at: x %d, y %d, w %d, h %d\n", xPos, yPos, width, height);
+  
+  indicator_text.layout("", relX(0.05), relY(0.05), relW(0.8), relH(0.10) , BUTTON_FILL_NORMAL, CM2K_DARKORANGE, INDICATOR_LABEL_NONE);
+
+  for (uint8_t digitIndex = 0; digitIndex < 10; digitIndex++)
   {
-    uint8_t row = letterId / 6;
-    uint8_t col = letterId % 6;
-    uint16_t xPos = _geo.relX(col * 0.15);
-    uint16_t yPos = _geo.relY(row * 0.15);
-    letters[letterId].layout(String(letterId), xPos, yPos, _geo.relW(0.12), _geo.relH(0.12), BUTTON_FILL_PRESSED, BUTTON_FILL_PRESSED, INDICATOR_LABEL_NONE);
-    letters[letterId].draw(String(letterId+65));
-    //Serial.printf("Key: %s, x %d, y %d, w %d, h %d\n", String(letterId), xPos, yPos,  _geo.relW(0.15), _geo.relH(0.15));
+    uint16_t _xPos = geo.relX(0.03 + digitIndex * 0.07);
+    uint16_t _yPos = geo.relY(0.2);
+    button_digits[digitIndex].layout((char)(digitIndex + 48), _xPos, _yPos, geo.relW(0.065), geo.relH(0.15), BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+    button_digits[digitIndex].setLabelOffset(8, 6);
   }
 
-  for (uint8_t digitId = 0; digitId < 10; digitId++)
+  for (uint8_t characterIndex = 0; characterIndex < 25; characterIndex++)
   {
-    // draw digit buttons
+    uint16_t _xPos = 0;
+    uint16_t _yPos = 0;
+    if (characterIndex < 13)
+    {
+      _xPos = geo.relX(0.03 + characterIndex * 0.07);
+      _yPos = geo.relY(0.37);
+    } 
+    else
+    {
+      _xPos = geo.relX(0.03 + (characterIndex - 13) * 0.07);
+      _yPos = geo.relY(0.54);
+    } 
+    button_characters[characterIndex].layout((char)(characterIndex + 65), _xPos, _yPos, geo.relW(0.065), geo.relH(0.15), BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+    button_characters[characterIndex].setLabelOffset(8, 6);
+  }
+
+  button_backspace.layout("<<", geo.relX(0.73), geo.relY(0.2), geo.relW(0.1), geo.relH(0.15), BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_backspace.setLabelOffset(8, 6);
+
+  button_ok.layout(F("OK"), geo.relX(0.1), geo.relY(0.75), geo.relW(0.2), geo.relH(0.2) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_cancel.layout(F("CANCEL"), geo.relX(0.6), geo.relY(0.75), geo.relW(0.2), geo.relH(0.2) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+}
+
+void TextEditor::draw()
+{
+  tft.writeTo(L2);
+  tft.fillRect(geo.xPos, geo.yPos , geo.width, geo.height, TEXTEDITOR_BG_COLOR); // background
+  tft.drawRect(geo.xPos, geo.yPos , geo.width, geo.height, TEXTEDITOR_BORDER_COLOR); // border
+
+  button_ok.draw(false);
+  button_cancel.draw(false);
+  button_backspace.draw(false);
+  if (textVariable != nullptr) indicator_text.draw(String(textVariable));
+  else indicator_text.draw("");
+
+  for (uint8_t characterIndex = 0; characterIndex < 25; characterIndex++)  button_characters[characterIndex].draw(false);
+  for (uint8_t digitIndex = 0; digitIndex < 10; digitIndex++) button_digits[digitIndex].draw(false);
+}
+
+void TextEditor::animate()
+{
+  if (button_backspace.state) button_backspace.draw(false);
+
+  for (uint8_t characterIndex = 0; characterIndex < 25; characterIndex++)
+  {
+    if (button_characters[characterIndex].state) button_characters[characterIndex].draw(false);
+  }
+  
+  for (uint8_t digitIndex = 0; digitIndex < 10; digitIndex++)
+  {
+    if (button_digits[digitIndex].state) button_digits[digitIndex].draw(false);
   }
 }
 
-bool OnscreenKeyboard::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
+bool TextEditor::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 {
+  if (button_backspace.checkCursor(xPos, yPos, clickType))
+  {
+    _textBuffer[_textPosition] = 32;
+    if (_textPosition > 0) _textPosition--;
+    indicator_text.draw(String(_textBuffer));
+    button_backspace.draw(true);
+  }
+
+  for (uint8_t characterIndex = 0; characterIndex < 25; characterIndex++)
+  {
+    if (button_characters[characterIndex].checkCursor(xPos, yPos, clickType))
+    {
+      _textBuffer[_textPosition] = characterIndex + 65;
+      indicator_text.draw(String(_textBuffer));
+      if (_textPosition < stringLength) _textPosition++;
+      button_characters[characterIndex].draw(true);
+    }
+  }
+
+  for (uint8_t digitIndex = 0; digitIndex < 10; digitIndex++)
+  {
+    if (button_digits[digitIndex].checkCursor(xPos, yPos, clickType))
+    {
+      _textBuffer[_textPosition] = digitIndex + 48;
+      indicator_text.draw(String(_textBuffer));
+      if (_textPosition < stringLength) _textPosition++;
+      button_digits[digitIndex].draw(true);
+    }
+  }
+
+  if (button_ok.checkCursor(xPos, yPos, clickType))
+  {
+    if (textVariable != nullptr) memcpy(textVariable, _textBuffer, 13 * sizeof(char));
+    if (flagVariable != nullptr) *flagVariable = 1;
+    textVariable = nullptr;
+    flagVariable = nullptr;
+    uiReturnFromTextEditor(true);
+    return true;
+  } 
+  if (button_cancel.checkCursor(xPos, yPos, clickType))
+  {
+    uiReturnFromTextEditor(false);
+    return true;
+  } 
   return false;
 }
 
@@ -816,14 +923,14 @@ void Grid::draw()
         tft.fillRect(_geo.xPos, _geo.yPos + row * gridSizePixels_y, _geo.width, gridSizePixels_y, EDITOR_BLACKKEY_COLOR);
         break;
     }
-    tft.drawFastHLine(_geo.xPos, _geo.yPos + row * gridSizePixels_y, _geo.width, _geo.color1);
+    tft.drawFastHLine(_geo.xPos, _geo.yPos + row * gridSizePixels_y, _geo.width, EDITOR_GRID_MAJOR_COLOR);
   }
-  tft.drawFastHLine(_geo.xPos, _geo.yPos + nrRows * gridSizePixels_y, _geo.width, _geo.color1);
+  tft.drawFastHLine(_geo.xPos, _geo.yPos + nrRows * gridSizePixels_y, _geo.width, EDITOR_GRID_MAJOR_COLOR);
 
   // draw vertical lines
   for (uint16_t column = 0; column <= nrColumns; column++)
   {
-    tft.drawFastVLine(_geo.xPos + column * gridSizePixels_x, _geo.yPos, actualHeight, _geo.color1);
+    tft.drawFastVLine(_geo.xPos + column * gridSizePixels_x, _geo.yPos, actualHeight, EDITOR_GRID_MAJOR_COLOR);
   }
 
   drawNotes();

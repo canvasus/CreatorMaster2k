@@ -44,19 +44,47 @@ void usbMidi1Send(uint8_t channel, uint8_t type, uint8_t data1, uint8_t data2)
 {
   //Serial.printf("Send (midi1): type %d, data1 %d, data2 %d\n", type, data1, data2);
   midi1.send(type, data1, data2, channel);
-  midi1.send_now();
+  //midi1.send_now();
 }
 void usbMidi2Send(uint8_t channel, uint8_t type, uint8_t data1, uint8_t data2)
 {
   //Serial.printf("Send (midi2): type %d, data1 %d, data2 %d\n", type, data1, data2);
-  midi2.send(type, data1, data2, channel);
-  midi2.send_now();
+  if (midi2) midi2.send(type, data1, data2, channel);
+  //Serial.println("done");
+  //if (midi2) midi2.send_now();
 }
 
 void usbMidi3Send(uint8_t channel, uint8_t type, uint8_t data1, uint8_t data2)
 {
   midi3.send(type, data1, data2, channel);
-  midi3.send_now();
+  //midi3.send_now();
+}
+
+void sendStart()
+{
+  if (midi2)
+  {
+    midi2.sendRealTime(usbMIDI.Start);
+    //midi2.send_now();
+  }
+}
+
+void sendClock()
+{
+  if (midi2)
+  {
+    midi2.sendRealTime(usbMIDI.Clock);
+    //midi2.send_now();
+  }
+}
+
+void sendStop()
+{
+  if (midi2)
+  {
+    midi2.sendRealTime(usbMIDI.Stop);
+    //midi2.send_now();
+  }
 }
 
 void allNotesOff()

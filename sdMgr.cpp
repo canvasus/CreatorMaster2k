@@ -25,7 +25,7 @@ void loadProject()
 
 void loadPatterns()
 {
-  for (uint8_t patternId = 0; patternId < NR_PATTERNS; patternId++)
+   for (uint8_t patternId = 0; patternId < NR_PATTERNS; patternId++)
   {
     loadTrackEvents(patternId);
     loadTrackSettings(patternId);
@@ -97,9 +97,14 @@ void saveTrackEvents(uint8_t patternNr)
   dataFile.close();
 }
 
-bool loadSystemSettings()
+void loadSystemSettings()
 {
-  return true;
+  
+}
+
+void saveSystemSettings()
+{
+
 }
 
 void loadTrackSettings(uint8_t patternNr)
@@ -109,6 +114,8 @@ void loadTrackSettings(uint8_t patternNr)
   if (SD.exists(fileName))
   {
     File dataFile = SD.open(fileName, FILE_READ);
+    
+    dataFile.read((uint8_t *)&patterns[patternNr].config, sizeof(PatternConfig));
     for (uint8_t trackNr = 0; trackNr < NR_TRACKS; trackNr++)
     {
       dataFile.read((uint8_t *)&patterns[patternNr].tracks[trackNr].config, sizeof(TrackConfig));
@@ -125,10 +132,13 @@ void saveTrackSettings(uint8_t patternNr)
   sprintf(fileName, "CM2K_PATTERNSET_%03d", patternNr);
   SD.remove(fileName);
   File dataFile = SD.open(fileName, FILE_WRITE);
+  
+  dataFile.write((uint8_t *)&patterns[patternNr].config, sizeof(PatternConfig));
   for (uint8_t trackNr = 0; trackNr < NR_TRACKS; trackNr++)
   {
     dataFile.write((uint8_t *)&patterns[patternNr].tracks[trackNr].config, sizeof(TrackConfig));
   }
+  
   dataFile.close();
 }
 

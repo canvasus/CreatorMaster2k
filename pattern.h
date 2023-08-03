@@ -4,11 +4,17 @@
 #include "peripherals.h"
 #include "x_globals.h"
 
+struct PatternConfig
+{
+  char name[13];
+};
+
 class Pattern
 {
   public:
     Pattern();
-    char name[8];
+    PatternConfig config;
+    //char name[13];
     uint32_t patternTick;
     Track tracks[NR_TRACKS];
     void tick();

@@ -22,7 +22,7 @@ struct event
 
 struct TrackConfig
 {
-  char      name[8];
+  char      name[13];
   uint8_t   portIndex = 0;
   uint8_t   channel = 1;
   uint8_t   quantizeIndex = 0;
@@ -77,6 +77,7 @@ class Track
     uint16_t  length = 0;
 
     uint32_t  uiTimestamp = 0;
+    bool  isUserNamed = false;
 
     MIDIcallbackGeneric  midi_cb;
     void setMidiCb(MIDIcallbackGeneric cb);

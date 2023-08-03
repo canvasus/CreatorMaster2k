@@ -31,7 +31,7 @@ void setupSequencer()
   for (uint8_t patternId = 0; patternId < NR_PATTERNS; patternId++)
   {
     String name = patternNames[patternId];
-    name.toCharArray(patterns[patternId].name, 8);
+    name.toCharArray(patterns[patternId].config.name, 12);
   }
 }
 
@@ -47,6 +47,8 @@ void tickPattern()
   // elapsedMicros timer = 0;
   // static uint16_t counter = 0;
   // static uint16_t timerMax = 0;
+
+  if (transport.state == SEQ_PLAYING && ( (patterns[currentPattern].patternTick % 8) == 0) ) sendClock();
 
   if (transport.state == SEQ_PRECOUNT) handlePrecount();
   if (transport.state == SEQ_PLAYING && transport.arrangementOn)
@@ -88,6 +90,7 @@ void play()
 {
   if (transport.recording) transport.state = SEQ_PRECOUNT;
   else transport.state = SEQ_PLAYING;
+  sendStart();
 }
 
 void stop()
@@ -96,6 +99,7 @@ void stop()
   transport.precountBars = 0;
   transport.precountTicks = 0;
   updateMetronome(true);
+  sendStop();
 }
 
 void seq_continue()
