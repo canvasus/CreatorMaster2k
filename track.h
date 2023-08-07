@@ -22,7 +22,6 @@ struct event
 
 struct TrackConfig
 {
-  char      name[13];
   uint8_t   portIndex = 0;
   uint8_t   channel = 1;
   uint8_t   quantizeIndex = 0;
@@ -35,6 +34,7 @@ struct TrackConfig
   bool      muted = false;
 
   bool      generatorOn = false;
+  char      name[13];
 };
 
 class Generator
@@ -66,6 +66,9 @@ class Track
     uint8_t   _processVelocity(uint8_t velocityIn);
     bool      _noteStatus[128];
     uint8_t   _notesPlaying;
+    uint16_t  _loopInUse = 0;
+    uint8_t   _quantizeInUse = 0;
+
   public:
     Track();
     TrackConfig config;

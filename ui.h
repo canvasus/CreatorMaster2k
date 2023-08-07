@@ -38,6 +38,7 @@
 #define VIEW_EDITOR      1
 #define VIEW_FILEMANAGER 2
 #define VIEW_TEXTEDIT    3
+#define VIEW_SYSTEM      4
 
 extern KeyboardController keyboard1;
 extern MouseController mouse1;
@@ -88,6 +89,8 @@ void loadPatternsClick(uint8_t clickType);
 void saveClick(uint8_t clickType);
 void fileManagerRowClick(uint8_t row, uint8_t clickType);
 
+void systemClick(uint8_t clickType);
+
 void scrollbarUpClick(uint8_t clickType);
 void scrollbarDownClick(uint8_t clickType);
 
@@ -112,6 +115,7 @@ void uiSetNormalViewMode();
 void uiSetEditorViewMode();
 void uiSetFileManagerViewMode();
 void uiSetTextEditViewMode();
+void uiSetSystemViewMode();
 
 void uiReturnFromTextEditor(bool status);
 

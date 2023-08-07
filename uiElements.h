@@ -235,7 +235,7 @@ class HeaderView : public Container
   using Container :: Container;
   public:
     Button button_file;
-    //Button button_new;
+    Button button_system;
     Indicator indicator_freeMem;
     Indicator indicator_arrOn;
     Indicator indicator_transport;
@@ -401,7 +401,7 @@ class FileManagerView : public Container
     Button button_load;
     Button button_save;
     Button button_loadPatterns;
-    Scrollbar scrollbar;
+    //Scrollbar scrollbar;
     bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);
     void layout();
 };
@@ -429,6 +429,8 @@ class Grid
     uint16_t _noteToYpos(uint8_t note);
     uint8_t   _yPosToNote(uint16_t yPos);
     uint32_t  _xPosToQuantizedTimestamp(uint16_t xPos);
+    uint32_t  _lastTimestamp = 0;
+    uint16_t  _lastXpos = 0;
 
   public:
     Track * track = nullptr;
@@ -504,4 +506,25 @@ class GraphicEditor : public Container
     void drawNoteRange();
     void setTrack(Track * _track);
     
+};
+
+class SystemView : public Container
+{
+  using Container :: Container;
+  public:
+    Deco deco_deviceNames;
+
+    Indicator indicator_usbDeviceNames[3];
+    Indicator indicator_rateLimits[3];
+    Indicator indicator_sendClock[3];
+    
+    Indicator indicator_metronomeChannel;
+    Indicator indicator_metronomeNote1;
+    Indicator indicator_metronomeNote2;
+    
+    Button button_exit;
+
+    bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);
+    void layout();
+    void draw();
 };

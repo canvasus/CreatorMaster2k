@@ -7,10 +7,11 @@ ArrangementView arrangementView = ArrangementView("ARRANGE", 0, HEADER_H + PADDI
 PatternView patternView = PatternView("PATTERN", ARRANGE_W + PADDING, HEADER_H + PADDING, PATTERN_W, MAIN_H, RA8875_WHITE, RA8875_WHITE);
 TrackDetailsView trackDetailsView = TrackDetailsView("TRACK", ARRANGE_W + PATTERN_W + 2 * PADDING, HEADER_H + PADDING, TRACKDETAILS_W, MAIN_H,  RA8875_WHITE, RA8875_WHITE);
 ControlsView controlsView = ControlsView("CONTROL", ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 3 * PADDING, HEADER_H + PADDING, CONTROLS_W, MAIN_H,  MAIN_BG_COLOR, RA8875_WHITE);
-//ListEditor listEditorView = ListEditor("LISTEDITOR", 0, HEADER_H + PADDING, ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 2 * PADDING, MAIN_H,  RA8875_WHITE, RA8875_WHITE);
 FileManagerView fileManagerView = FileManagerView("FILEMANAGER", 0, HEADER_H + PADDING, ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 2 * PADDING, MAIN_H,  RA8875_WHITE, RA8875_WHITE);
 GraphicEditor graphicEditorView = GraphicEditor("GRAPHICEDITOR", 0, HEADER_H + PADDING, ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 2 * PADDING, MAIN_H,  RA8875_WHITE, RA8875_WHITE);
 TextEditor textEditorView = TextEditor("", 0, 0, 0, 0,  RA8875_WHITE, RA8875_WHITE); // layout is set when calling
+SystemView systemView = SystemView("SYSTEM", 0, HEADER_H + PADDING, ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 2 * PADDING, MAIN_H,  RA8875_WHITE, RA8875_WHITE);
+
 
 const uint8_t cursorOn[16] = {
   0b10000000,
@@ -39,6 +40,7 @@ const uint8_t cursorOff[16] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 uint16_t cursorXpos = 0;
 uint16_t cursorYpos = 0;
 
+elapsedMillis mouseTimer = 0;
 elapsedMillis uiTimer = 0;
 const uint8_t uiInterval = 25;
 elapsedMillis uiTimerSlow = 0;
@@ -80,11 +82,11 @@ void setupUI()
   controlsView.draw();
   controlsView.layout();
 
-  //listEditorView.drawBorder = true;
   graphicEditorView.layout();
   graphicEditorView.drawBorder = true;
   fileManagerView.drawBorder = true;
-  
+  systemView.layout();
+
   tft.writeTo(L1);
   tft.clearScreen(RA8875_MAGENTA);
   tft.setTransparentColor(RA8875_MAGENTA);
@@ -102,7 +104,12 @@ void setChannelIndicators()
 
 void updateUI()
 {
-  updateMouse();
+  if (mouseTimer > 4)
+  {
+    mouseTimer = 0;
+    updateMouse();
+  }
+
   if (uiTimer > uiInterval)
   {
     uiTimer = 0;
@@ -229,6 +236,7 @@ void updateMouse()
       if (viewMode == VIEW_EDITOR) graphicEditorView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
       if (viewMode == VIEW_FILEMANAGER) fileManagerView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
       if (viewMode == VIEW_TEXTEDIT) textEditorView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
+      if (viewMode == VIEW_SYSTEM) systemView.checkCursor(cursorXpos,  cursorYpos, mouseButtons);
     }
     mouse1.mouseDataClear();
   }
@@ -614,6 +622,8 @@ void editTrackClick(uint8_t clickType) { if (clickType == MOUSE_LEFT) uiSetEdito
 
 void fileClick(uint8_t clickType) { uiSetFileManagerViewMode(); }
 
+void systemClick(uint8_t clickType) { uiSetSystemViewMode(); }
+
 void loadPatternsClick(uint8_t clickType)
 {
   loadPatterns();
@@ -717,6 +727,20 @@ void uiSetFileManagerViewMode()
   viewMode = VIEW_FILEMANAGER;
   fileManagerView.draw();
   fileManagerView.layout();
+}
+
+void uiSetSystemViewMode()
+{
+  tft.writeTo(L2);
+  tft.fillRect(0, HEADER_H + PADDING, ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 2 * PADDING, MAIN_H,  MAIN_BG_COLOR);
+  viewMode = VIEW_SYSTEM;
+  systemView.draw();
+  for (uint8_t deviceId = 0; deviceId < NR_USBPORTS; deviceId++)
+  {
+    char buf16[16];
+    getUsbDeviceName(deviceId, buf16, 16);
+    systemView.indicator_usbDeviceNames[deviceId].draw(buf16);
+  } 
 }
 
 void uiSetTextEditViewMode()

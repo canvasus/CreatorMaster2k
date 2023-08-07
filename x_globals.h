@@ -23,4 +23,6 @@
 
 #define NR_PROJECTS 16
 
+#define NR_USBPORTS 3
+
 #define MEMORY_MAX 50000 // in events (7 bytes each)

@@ -1,7 +1,7 @@
 #include "track.h"
 
-String emptyName = "";
-String usedName = "In use";
+String emptyName = "            ";
+String usedName =  "In use      ";
 
 const uint16_t quantizeSettingsT[NR_QUANTIZESTEPS] = {1, 192, 96, 48, 64};
 const uint16_t compressSettingsT[NR_COMPRESSTEPS] = {0, 1, 2, 3, 4};  // 63 + abs(velocity - 64) / C
@@ -11,8 +11,7 @@ Track::Track()
   events = nullptr;
   midi_cb = nullptr;
   config.channel = 1;
-  //emptyName.toCharArray(config.name, 12);
-  memset(config.name, 32, 12);
+  emptyName.toCharArray(config.name, 12);
   config.name[12] = 0;
   memset(_noteStatus, 0, 128);
   _notesPlaying = 0;
@@ -26,7 +25,7 @@ void Track::_initBuffer()
   memset(events, 0, NR_EVENTS * sizeof(event));
   memUsage = NR_EVENTS;
   memBlocks = 1;
-  if (!isUserNamed) usedName.toCharArray(config.name, 8);
+  if (!isUserNamed) memset(config.name, 32, 12); //usedName.toCharArray(config.name, 8);
 }
 
 void Track::_releaseBuffer()
@@ -35,7 +34,7 @@ void Track::_releaseBuffer()
   events = nullptr;
   memUsage = 0;
   memBlocks = 0;
-  if (!isUserNamed) emptyName.toCharArray(config.name, 8);
+  if (!isUserNamed) emptyName.toCharArray(config.name, 12);
 }
 
 void Track::_expandBuffer()
@@ -104,7 +103,7 @@ void Track::triggerEvent(uint8_t type, uint8_t data1, uint8_t data2)
 
  uint16_t Track::triggerEvents(uint32_t timestamp)
  {
-  Serial.println("trigger");
+  //Serial.println("trigger");
   uint16_t eventCounter = 0;
 
   //if (config.hidden) return 0;
@@ -112,13 +111,15 @@ void Track::triggerEvent(uint8_t type, uint8_t data1, uint8_t data2)
   if (events != nullptr)
   {
     if(config.loop > 0) timestamp = timestamp % (config.loop * 192); // loop is set in 1/4ths
-    
+    //if(_loopInUse > 0) timestamp = timestamp % (_loopInUse * 192); // loop is set in 1/4ths
+
     uiTimestamp = timestamp;
     
     if (timestamp == 0)
       {
         cleanupNoteOff();
         nextEventId = 0;
+        //_loopInUse = config.loop;
       }
 
     while ( (eventCounter < 16) && (nextEventId < _nrEvents) && (events[nextEventId].type != NONE) )
@@ -138,6 +139,7 @@ void Track::triggerEvent(uint8_t type, uint8_t data1, uint8_t data2)
         {
           //if (eventType == usbMIDI.NoteOn) Serial.printf("Note on. timestampIn %d, eventTime %d, quantizedTime %d\n", inTime, eventTimestamp, _quantizeTimestamp(eventTimestamp));
           if (!config.hidden) triggerEvent(eventType, data1, data2); // Test for better live mute/unmute handling
+          //triggerEvent(eventType, data1, data2);
           nextEventId++;
           eventCounter++;
         }
@@ -179,7 +181,6 @@ void Track::setPosition(uint32_t timestamp)
 
 void Track::cleanupNoteOff()
 {
-  Serial.println("cleanup");
   for (uint8_t note = 0; note < 128; note++)
   {
     if (_noteStatus[note] && midi_cb)

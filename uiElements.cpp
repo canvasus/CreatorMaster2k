@@ -537,9 +537,9 @@ void HeaderView::layout()
   button_file.draw(false);
   button_file.cb = &fileClick;
 
-  //button_new.layout("NEW", relX(2 * button_w + 3 * button_xPpad), relY(button_y), relW(button_w), relH(button_h) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
-  //button_new.draw(false);
-  //button_new.cb = &newClick;
+  button_system.layout("SYS", relX(2 * button_w + 3 * button_xPpad), relY(button_y), relW(button_w), relH(button_h) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_system.draw(false);
+  button_system.cb = &systemClick;
   
   indicator_freeMem.layout("MEM", relX(0.3), relY(0.5), relW(0.08), relH(0.5), INDICATOR_BG_COLOR, INDICATOR_BORDER_COLOR,INDICATOR_LABEL_TOP);
   indicator_freeMem.draw(MEMORY_MAX);
@@ -563,11 +563,12 @@ void HeaderView::layout()
 
 bool HeaderView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 {
-  //if (button_new.checkCursor(xPos, yPos, clickType)) return true;
+  if (button_system.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_bpm.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_arrOn.checkCursor(xPos, yPos, clickType)) return true;
   if (indicator_signature.checkCursor(xPos, yPos, clickType)) return true;
   if (button_file.checkCursor(xPos, yPos, clickType)) return true;
+  
   return false;
 }
 
@@ -1149,12 +1150,12 @@ void Grid::zoomY(bool isIn) // note
 
 void Grid::animate()
 {
-  static uint32_t lastTimestamp = 0;
+  //static uint32_t lastTimestamp = 0;
   uint32_t newTimestamp = track->uiTimestamp;
-  if (lastTimestamp != newTimestamp)
+  if (_lastTimestamp != newTimestamp)
   {
     drawPosition(newTimestamp);
-    lastTimestamp = newTimestamp;
+    _lastTimestamp = newTimestamp;
   }
 }
 
@@ -1162,12 +1163,12 @@ void Grid::drawPosition(uint32_t timestamp)
 {
   if (timestamp < lastTick)
   {
-    static uint16_t lastPositionX = 0;
+    //static uint16_t lastPositionX = 0;
     uint16_t positionX = _timestampToXpos(timestamp);
     tft.writeTo(L1);
-    tft.drawFastVLine(lastPositionX, _geo.yPos, actualHeight, RA8875_MAGENTA);
+    tft.drawFastVLine(_lastXpos, _geo.yPos, actualHeight, RA8875_MAGENTA);
     tft.drawFastVLine(positionX, _geo.yPos, actualHeight, 0x7BEF);
-    lastPositionX = positionX;
+    _lastXpos = positionX;
   }
 }
 
@@ -1395,4 +1396,35 @@ bool GraphicEditor::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickTyp
   }
 
   return false;
+}
+
+bool SystemView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
+{
+  if (button_exit.checkCursor(xPos, yPos, clickType)) return true;
+  return false;
+}
+
+void SystemView::layout()
+{
+  deco_deviceNames.layout(F("USB devices"), geo.relX(0.1), geo.relY(0.04) , geo.relW(0.2), geo.relH(0.05), CM2K_DARKBLUE, RA8875_WHITE, geo.relW(0.05));
+
+  button_exit.layout(F("EXIT"), geo.relX(0.80), geo.relY(0.9), geo.relW(0.19), geo.relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_exit.cb = &exitEditorClick;
+
+  for (uint8_t deviceId = 0; deviceId < NR_USBPORTS; deviceId++)
+  {
+    uint16_t xPos = geo.relX(0.1);
+    uint16_t yPos = geo.relY(0.1 + deviceId * 0.06);
+    indicator_usbDeviceNames[deviceId].layout(String(deviceId + 1), xPos, yPos, geo.relW(0.2), geo.relH(0.05), TRACK_NORMAL_COLOR, TRACK_SELECTED_COLOR, INDICATOR_LABEL_LEFT40);
+  }
+}
+
+void SystemView::draw()
+{
+  tft.fillRect(geo.xPos, geo.yPos , geo.width, geo.height, EDITOR_BG_COLOR); // background
+  tft.drawRect(geo.xPos, geo.yPos , geo.width, geo.height, EDITOR_BORDER_COLOR); // border
+
+  deco_deviceNames.draw();
+  button_exit.draw(false);
+  //for (uint8_t deviceId = 0; deviceId < NR_USBPORTS; deviceId++) indicator_usbDeviceNames[deviceId].draw(getUsbDeviceName(deviceId));
 }
