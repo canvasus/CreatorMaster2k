@@ -87,22 +87,22 @@ class Track
 
     uint16_t nextEventId;
     event * events;
-    uint16_t addEvent(uint32_t timestamp, uint8_t type, uint8_t data1, uint8_t data2);
-    uint16_t addNoteDirect(uint32_t timestampOn, uint32_t timestampOff, uint8_t note, uint8_t velocity);
-    void clear();
-    void paste(event * eventClipboard, uint16_t nrEvents);
-    event * copy();
-    uint16_t getNrEvents();
-    uint32_t getEventTimestamp(uint16_t eventIndex);
-    void setPosition(uint32_t timestamp);
-    void reset();
-    void cleanupNoteOff();
-    //void triggerEvent(uint16_t eventIndex);
-    void triggerEvent(uint8_t type, uint8_t data1, uint8_t data2);
-    uint16_t triggerEvents(uint32_t timestamp);
-    void syncSettings();
-    uint16_t getMatchingNoteOff(uint16_t noteOnEventIndex);
-    uint16_t deleteNote(uint16_t noteOnEventIndex);
+    uint16_t  addEvent(uint32_t timestamp, uint8_t type, uint8_t data1, uint8_t data2);
+    uint16_t  addNoteDirect(uint32_t timestampOn, uint32_t timestampOff, uint8_t note, uint8_t velocity);
+    void      clear();
+    void      paste(event * eventClipboard, uint16_t nrEvents);
+    event *   copy();
+    uint16_t  getNrEvents();
+    uint32_t  getEventTimestamp(uint16_t eventIndex);
+    void      setPosition(uint32_t timestamp);
+    void      reset();
+    void      cleanupNoteOff();
+    void      triggerEvent(uint8_t type, uint8_t data1, uint8_t data2);
+    uint16_t  triggerEvents(uint32_t timestamp);
+    void      syncSettings();
+    uint16_t  getMatchingNoteOff(uint16_t noteOnEventIndex);
+    uint16_t  deleteNote(uint16_t noteOnEventIndex);
+    void      setAutoName();
 };
 
 int compareEvents(const void *s1, const void *s2);

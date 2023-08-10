@@ -25,7 +25,6 @@ void Track::_initBuffer()
   memset(events, 0, NR_EVENTS * sizeof(event));
   memUsage = NR_EVENTS;
   memBlocks = 1;
-  if (!isUserNamed) memset(config.name, 32, 12); //usedName.toCharArray(config.name, 8);
 }
 
 void Track::_releaseBuffer()
@@ -34,7 +33,7 @@ void Track::_releaseBuffer()
   events = nullptr;
   memUsage = 0;
   memBlocks = 0;
-  if (!isUserNamed) emptyName.toCharArray(config.name, 12);
+  //if (!isUserNamed) emptyName.toCharArray(config.name, 12);
 }
 
 void Track::_expandBuffer()
@@ -63,6 +62,12 @@ void Track::paste(event * eventClipboard, uint16_t nrEvents)
 event * Track::copy() { return events; }
 
 void Track::setMidiCb(MIDIcallbackGeneric cb) { midi_cb = cb; }
+
+void Track::setAutoName()
+{
+  if (_nrEvents > 0) sprintf(config.name, "<OK %04dev>", _nrEvents);
+  else emptyName.toCharArray(config.name, 12);
+}
 
 void Track::triggerEvent(uint8_t type, uint8_t data1, uint8_t data2)
 {
@@ -253,8 +258,16 @@ uint16_t Track::addEvent(uint32_t timestamp, uint8_t type, uint8_t data1, uint8_
 
 void Track::clear()
 {
-  _releaseBuffer();
-  _nrEvents = 0;
+  if (_nrEvents > 0)
+  {
+    _releaseBuffer();
+    _nrEvents = 0;
+  }
+  else
+  {
+    // clear all settings here
+    setAutoName();
+  }
 }
 
 void Track::_sortEvents() { qsort(events, _nrEvents, sizeof(event), compareEvents); }
@@ -289,7 +302,6 @@ uint16_t Track::getMatchingNoteOff(uint16_t noteOnEventIndex)
 uint16_t Track::deleteNote(uint16_t noteOnEventIndex)
 {
   uint16_t noteOffEventIndex = getMatchingNoteOff(noteOnEventIndex);
-  //Serial.printf("Delete note, On: %d, Off: %d\n", noteOnEventIndex, noteOffEventIndex);
   _nrEvents = _nrEvents - 2;
   if (_nrEvents == 0) _releaseBuffer();
   else

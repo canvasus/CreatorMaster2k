@@ -26,7 +26,8 @@ uint16_t clipboardNrEvents = 0;
 
 void setupSequencer()
 {
-  setBpm(transport.bpm);
+  sequencerUpdateTimer.begin(tickPattern, transport.oneTickUs); 
+  //setBpm(transport.bpm);
   metronome_midi_cb = serialMidiSend;
   for (uint8_t patternId = 0; patternId < NR_PATTERNS; patternId++)
   {
@@ -159,9 +160,9 @@ void syncTransportSettings()
 void setBpm(uint8_t bpm)
 {
   transport.bpm = bpm;
-  //uint16_t oneTickUs = 1000 * 60000 / (transport.bpm * RESOLUTION);
   transport.oneTickUs = 1000 * 60000 / (transport.bpm * RESOLUTION);
-  sequencerUpdateTimer.begin(tickPattern, transport.oneTickUs); 
+  //sequencerUpdateTimer.begin(tickPattern, transport.oneTickUs); 
+  sequencerUpdateTimer.update(transport.oneTickUs);
 }
 
 void processInput(uint8_t channel, uint8_t type, uint8_t data1, uint8_t data2)

@@ -3,15 +3,19 @@
 const int chipSelect = BUILTIN_SDCARD;
 bool sdStatus = false;
 uint8_t currentProjectId = 0;
+ProjectInfo projectInfo[NR_PROJECTS];
 
 void initSDcard()
 {
   if (!SD.begin(chipSelect)) { Serial.println("Card failed, or not present"); }
   else
   {
-    for (uint8_t projectId = 0; projectId < NR_PROJECTS; projectId++) setProjectfolder(projectId);
+    for (uint8_t projectId = 0; projectId < NR_PROJECTS; projectId++)
+    {
+      setProjectfolder(projectId);
+      loadProjectInfo();
+    }
     sdStatus = true;
-    //listContent();
     setProjectfolder(0);
   }
 }
@@ -21,6 +25,7 @@ void loadProject()
   loadPatterns();
   loadArrangementSettings();
   loadTransport();
+  loadProjectInfo();
 }
 
 void loadPatterns()
@@ -41,6 +46,7 @@ void saveProject()
   }
   saveArrangementSettings();
   saveTransport();
+  saveProjectInfo();
 }
 
 void loadTrackEvents(uint8_t patternNr)
@@ -105,6 +111,30 @@ void loadSystemSettings()
 void saveSystemSettings()
 {
 
+}
+
+void loadProjectInfo()
+{
+  char fileName[14] = "CM2K_PROJINFO";
+  Serial.printf("loading project info file, id %d\n", currentProjectId);
+  if (SD.exists(fileName))
+  {
+    Serial.println("file found");
+    File dataFile = SD.open(fileName, FILE_READ);
+    dataFile.read((uint8_t *)&projectInfo[currentProjectId], sizeof(ProjectInfo));
+    dataFile.close();
+  }
+  else Serial.println("file not found");
+}
+
+void saveProjectInfo()
+{
+  char fileName[14] = "CM2K_PROJINFO";
+  SD.remove(fileName);
+  Serial.printf("saving project info file, id %d\n", currentProjectId);
+  File dataFile = SD.open(fileName, FILE_WRITE);
+  dataFile.write((uint8_t *)&projectInfo[currentProjectId], sizeof(ProjectInfo));
+  dataFile.close();
 }
 
 void loadTrackSettings(uint8_t patternNr)
@@ -191,6 +221,7 @@ void saveTransport()
 
 void setProjectfolder(uint8_t projectId)
 {
+  Serial.printf("set folder %d\n", projectId);
   SD.sdfs.chdir("/");
   char fileName[17];
   sprintf(fileName, "CM2K_PROJECT_%03d", projectId);

@@ -17,6 +17,11 @@
 
 #define CM2K_DARKRED          0xa100
 
+#define CM2K_DARKORANGE       0xc200
+#define CM2K_ORANGE           0xe400
+
+#define CM2K_BLUEGREY         0xc518
+
 #define CM2K_LIGHTGREY        0xc618 //0xef5d
 #define CM2K_MEDIUMGREY       0xce99
 #define CM2K_DARKGREY         0x7bef
@@ -25,7 +30,7 @@
 #define CM2K_BABYBLUE         0xCEFC
 #define CM2K_PURPLEBLUE       0xA55B
 #define CM2K_GREYBLUE         0xadb9
-#define CM2K_DARKORANGE       0xfda0
+//#define CM2K_DARKORANGE       0xfda0
 #define CM2K_PURPLE           0xf81f
 
 // Top and right sections
@@ -57,7 +62,7 @@
 #define ACTIVITY_FILL_COLOR     CM2K_PURPLEBLUE
 
 // Track colors
-#define TRACK_SELECTED_COLOR    CM2K_DARKORANGE
+#define TRACK_SELECTED_COLOR    CM2K_ORANGE
 #define TRACK_NORMAL_COLOR      RA8875_WHITE
 #define TRACK_TEXT_COLOR        CM2K_DARKBLUE
 #define TRACK_SELECTED_TEXT_COLOR   CM2K_DARKBLUE
@@ -73,10 +78,10 @@
 #define EDITOR_BORDER_COLOR         CM2K_NAVY
 #define EDITOR_BLACKKEY_COLOR       CM2K_MEDIUMGREY  
 #define EDITOR_NOTE_COLOR_DEFAULT   CM2K_NAVY
-#define EDITOR_NOTE_COLOR_SELECTED  CM2K_PURPLE
+#define EDITOR_NOTE_COLOR_SELECTED  CM2K_ORANGE
 
-#define EDITOR_GRID_MINOR_COLOR     CM2K_LIGHTGREY 
-#define EDITOR_GRID_MAJOR_COLOR     CM2K_MEDIUMGREY
+#define EDITOR_GRID_MINOR_COLOR     CM2K_BLUEGREY 
+#define EDITOR_GRID_MAJOR_COLOR     CM2K_BLUEGREY
 
 #define TEXTEDITOR_BG_COLOR       CM2K_PURPLEBLUE
 #define TEXTEDITOR_BORDER_COLOR   CM2K_DARKBLUE
@@ -354,7 +359,8 @@ class TextEditor : public Container
     char _textBuffer[16];
 
   public:
-    uint8_t callerViewID = 0;
+    uint8_t callerViewId = 0;
+    uint8_t callerVariableId = 0;
     uint8_t stringLength = 12;
     Indicator indicator_text;
     

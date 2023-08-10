@@ -7,6 +7,15 @@
 #include "arrangement.h"
 #include "x_globals.h"
 
+struct ProjectInfo
+{
+  uint16_t projectRevision = 0;
+  char projectName[13] = "";
+  bool isUserNamed = false;
+};
+
+extern ProjectInfo projectInfo[NR_PROJECTS];
+
 void initSDcard();
 void listContent();
 
@@ -28,5 +37,6 @@ void loadArrangementSettings();
 void saveArrangementSettings();
 void loadTransport();
 void saveTransport();
-
+void loadProjectInfo();
+void saveProjectInfo();
 uint16_t getNrEvents(event * eventBuffer, uint16_t bufferSizeBlocks);

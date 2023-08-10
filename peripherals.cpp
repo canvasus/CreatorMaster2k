@@ -11,7 +11,7 @@ MouseController mouse1(myusb);
 
 MIDIDevice_BigBuffer * midiDrivers[3] = {&midi1, &midi2, &midi3};
 String driver_names[3] = {"midi1", "midi2", "midi3"};
-//#define CNT_DEVICES (sizeof(midiDrivers)/sizeof(midiDrivers[0])) 
+#define CNT_DEVICES (sizeof(midiDrivers)/sizeof(midiDrivers[0])) 
 
 MIDI_CREATE_INSTANCE(HardwareSerial, Serial1, MIDI);
 
@@ -20,6 +20,7 @@ SystemConfig systemConfig;
 midiEvent messageBuffer2[64];
 uint16_t nrBufferedMessages2 = 0;
 bool sendClockRateLimited = false;
+//bool sendStartRateLimited = false;
 
 void setupPeripherals()
 {
@@ -113,7 +114,7 @@ void sendStart()
   if (midi2)
   {
     midi2.sendRealTime(usbMIDI.Start);
-    midi2.send_now();
+    //midi2.send_now();
   }
 }
 
@@ -132,7 +133,7 @@ void sendStop()
   if (midi2)
   {
     midi2.sendRealTime(usbMIDI.Stop);
-    midi2.send_now();
+    //midi2.send_now();
   }
 }
 
@@ -153,18 +154,6 @@ void clearUsbMidi()
   //for (uint8_t i = 0; i < 25; i++) midi1.read();
   //delay(10);
 }
-
-// String getUsbDeviceName(uint8_t deviceIndex)
-// {
-//   String name = "";
-//   if (midiDrivers[deviceIndex])
-//   {
-//     const uint8_t * productName = midiDrivers[deviceIndex]->product();
-//     char name[16];
-//     snprintf(name, 16, "%s", productName);
-//   }
-//   return name;  
-// }
 
 void getUsbDeviceName(uint8_t usbIndex, char * buf, uint8_t maxBufferSize)
 {

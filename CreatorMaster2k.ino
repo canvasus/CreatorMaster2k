@@ -8,9 +8,10 @@ void setup()
   Serial.println(F("START"));
   if (CrashReport) Serial.print(CrashReport);
   setupPeripherals();
+  initSDcard();
   setupUI();
   setupSequencer();
-  initSDcard();
+  
 }
 
 void loop()

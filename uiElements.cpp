@@ -691,9 +691,10 @@ bool ArrangementView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickT
 
 void FileManagerView::layout()
 {
-  button_new.layout("NEW PRJ", relX(0.80), relY(0.2), relW(0.19), relH(0.1) , CM2K_DARKRED, CM2K_PRIMARYRED);
+  button_new.layout("NEW PRJ", relX(0.80), relY(0.2), relW(0.19), relH(0.1) , CM2K_PRIMARYRED, CM2K_PRIMARYRED);
   button_new.draw(false);
   button_new.cb = &newClick;
+  button_new.setTextColors(RA8875_WHITE, RA8875_WHITE);
 
   button_loadPatterns.layout(F("LOAD PTRNS"), relX(0.80), relY(0.6), relW(0.19), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
   button_loadPatterns.draw(false);
@@ -713,9 +714,14 @@ void FileManagerView::layout()
 
   for (uint8_t row = 0; row < NR_FILE_ROWS; row++)
   {
+    setProjectfolder(row);
+    loadProjectInfo();
+
     fileManagerRows[row].id = row;
     fileManagerRows[row].layout(relX(0.1), relY(0.02 + row * 0.96/(float)NR_FILE_ROWS), relW(0.5), relH(0.96/(float)NR_FILE_ROWS), TRACK_NORMAL_COLOR, TRACK_SELECTED_COLOR);
-    fileManagerRows[row].draw(fileManagerRows[row].id == selectedIndex);
+    //fileManagerRows[row].draw(fileManagerRows[row].id == selectedIndex);
+    fileManagerRows[row].draw(row == selectedIndex);
+
   }
 
 }
@@ -756,9 +762,14 @@ void FileManagerRow::draw(bool selected)
   if (selected) tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_SELECTED_COLOR); // background
   else tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_NORMAL_COLOR); // background
   tft.setCursor(_geo.xPos + 20, _geo.yPos + 5);
+  
   if (selected) tft.setTextColor(RA8875_WHITE);
   else tft.setTextColor(INDICATOR_TEXT_COLOR);
-  tft.printf("PROJECT %2d", id + 1);
+  
+  if (projectInfo[id].isUserNamed) tft.printf(projectInfo[id].projectName);
+  else tft.printf("PROJECT %2d", id + 1);
+
+  Serial.printf("FileManagerRow::draw, id = %d, isUserNamed = %d, name = %s\n", id, projectInfo[id].isUserNamed,  projectInfo[id].projectName);
 }
 
 bool FileManagerRow::checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType)

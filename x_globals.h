@@ -1,5 +1,7 @@
 #pragma once
 
+#define PROJECT_REVISION 12
+
 #define RESOLUTION 192 // ticks per 1/4th (beat)
 
 #define NR_ARRITEMS 10
@@ -14,7 +16,7 @@
 #define NR_COMPRESSTEPS  5
 #define NR_LENGTHSTEPS   6
 
-#define NR_EDITOR_NOTES 32
+#define NR_EDITOR_NOTES 64
 #define EDITOR_MAX_COLUMNS 96
 #define EDITOR_MAX_ROWS 64
 #define EDITOR_MIN_ROWS 8

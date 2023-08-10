@@ -15,7 +15,7 @@ struct midiEvent
 
 struct SystemConfig
 {
-  uint16_t rateLimitsUs[NR_USBPORTS] = {0,500,0};
+  uint16_t rateLimitsUs[NR_USBPORTS] = {0,100,0};
   bool    sendClock[NR_USBPORTS] = {false, true, false};
   uint8_t metronomeChannel = 10;
   uint8_t metronomeNote1 = 48;

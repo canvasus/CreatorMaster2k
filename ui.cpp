@@ -386,6 +386,7 @@ void stopClick(uint8_t clickType)
     controlsView.button_stop.set(true);
     if (transport.recording && !patterns[currentPattern].tracks[currentTrack].isUserNamed)
     {
+      patterns[currentPattern].tracks[currentTrack].setAutoName();
       memcpy(patternView.trackRows[currentTrack].trackName, patterns[currentPattern].tracks[currentTrack].config.name, 12);
       patternView.trackRows[currentTrack].draw(true); // redraw to update auto name
     }
@@ -658,7 +659,17 @@ void fileManagerRowClick(uint8_t id, uint8_t clickType)
   
   if (clickType == MOUSE_MIDDLE)
   {
-    
+    Serial.printf("middle clicked row %d\n", id);
+    fileManagerView.fileManagerRows[currentProject].draw(false);
+    currentProject = id;
+    fileManagerView.selectedIndex = id;
+    setProjectfolder(id);
+    fileManagerView.fileManagerRows[currentProject].draw(true);
+
+    textEditorView.textVariable = projectInfo[currentProject].projectName;
+    textEditorView.flagVariable = &projectInfo[currentProject].isUserNamed;
+    uiSetTextEditViewMode();
+    return; 
   }
 }
 
@@ -745,7 +756,7 @@ void uiSetSystemViewMode()
 
 void uiSetTextEditViewMode()
 {
-  textEditorView.callerViewID = viewMode;
+  textEditorView.callerViewId = viewMode;
   viewMode = VIEW_TEXTEDIT;
   textEditorView.layout(200, 150, 400, 200, CM2K_GREYBLUE, CM2K_GREYBLUE);
   textEditorView.draw();
@@ -753,7 +764,7 @@ void uiSetTextEditViewMode()
 
 void uiReturnFromTextEditor(bool status)
 {
-  switch (textEditorView.callerViewID)
+  switch (textEditorView.callerViewId)
   {
     case VIEW_NORMAL:
       uiSetNormalViewMode();
@@ -765,7 +776,7 @@ void uiReturnFromTextEditor(bool status)
       uiSetFileManagerViewMode();
       break;
     default:
-      Serial.printf("unknown text edit caller: %d\n", textEditorView.callerViewID);
+      Serial.printf("unknown text edit caller: %d\n", textEditorView.callerViewId);
       break;
   }
 }
