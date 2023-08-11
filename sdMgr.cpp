@@ -18,6 +18,11 @@ void initSDcard()
     sdStatus = true;
     setProjectfolder(0);
   }
+
+  for (uint8_t projectId = 0; projectId < NR_PROJECTS; projectId++)
+  {
+    Serial.printf("Project %d: %s\n", projectId, projectInfo[projectId].projectName);
+  }
 }
 
 void loadProject()
@@ -116,22 +121,18 @@ void saveSystemSettings()
 void loadProjectInfo()
 {
   char fileName[14] = "CM2K_PROJINFO";
-  Serial.printf("loading project info file, id %d\n", currentProjectId);
   if (SD.exists(fileName))
   {
-    Serial.println("file found");
     File dataFile = SD.open(fileName, FILE_READ);
     dataFile.read((uint8_t *)&projectInfo[currentProjectId], sizeof(ProjectInfo));
     dataFile.close();
   }
-  else Serial.println("file not found");
 }
 
 void saveProjectInfo()
 {
   char fileName[14] = "CM2K_PROJINFO";
   SD.remove(fileName);
-  Serial.printf("saving project info file, id %d\n", currentProjectId);
   File dataFile = SD.open(fileName, FILE_WRITE);
   dataFile.write((uint8_t *)&projectInfo[currentProjectId], sizeof(ProjectInfo));
   dataFile.close();
@@ -221,7 +222,6 @@ void saveTransport()
 
 void setProjectfolder(uint8_t projectId)
 {
-  Serial.printf("set folder %d\n", projectId);
   SD.sdfs.chdir("/");
   char fileName[17];
   sprintf(fileName, "CM2K_PROJECT_%03d", projectId);
@@ -230,24 +230,24 @@ void setProjectfolder(uint8_t projectId)
   currentProjectId = projectId;
 }
 
-void listContent()
-{
-  File root = SD.open("/");
-  while (true) {
-    File entry = root.openNextFile();
-    if (!entry) break; // no more files
-    if (entry.isDirectory())
-    {
-      Serial.print(entry.name());
-      Serial.println("/");
-    }
-    else
-    {
-      Serial.print("  ");
-      Serial.print(entry.name());
-      Serial.print("  ");
-      Serial.println(entry.size(), DEC);
-    }
-    entry.close();
-  }
-}
+// void listContent()
+// {
+//   File root = SD.open("/");
+//   while (true) {
+//     File entry = root.openNextFile();
+//     if (!entry) break; // no more files
+//     if (entry.isDirectory())
+//     {
+//       Serial.print(entry.name());
+//       Serial.println("/");
+//     }
+//     else
+//     {
+//       Serial.print("  ");
+//       Serial.print(entry.name());
+//       Serial.print("  ");
+//       Serial.println(entry.size(), DEC);
+//     }
+//     entry.close();
+//   }
+// }

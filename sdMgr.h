@@ -17,7 +17,7 @@ struct ProjectInfo
 extern ProjectInfo projectInfo[NR_PROJECTS];
 
 void initSDcard();
-void listContent();
+//void listContent();
 
 void loadSystemSettings();
 void saveSystemSettings();

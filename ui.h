@@ -40,6 +40,11 @@
 #define VIEW_TEXTEDIT    3
 #define VIEW_SYSTEM      4
 
+#define TEXTEDIT_TRACK_NAME   0 
+#define TEXTEDIT_PATTERN_NAME 1
+#define TEXTEDIT_PROJECT_NAME 2
+
+
 extern KeyboardController keyboard1;
 extern MouseController mouse1;
 extern RA8875 tft;

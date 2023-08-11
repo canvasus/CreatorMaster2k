@@ -435,6 +435,7 @@ void trackSelectClick(uint8_t id, uint8_t clickType)
     patternView.trackRows[currentTrack].draw(true);
     textEditorView.textVariable = patterns[currentPattern].tracks[currentTrack].config.name;
     textEditorView.flagVariable = &patterns[currentPattern].tracks[currentTrack].isUserNamed;
+    textEditorView.callerVariableId = TEXTEDIT_TRACK_NAME;
     uiSetTextEditViewMode();
     return;
   }
@@ -553,6 +554,7 @@ void patternSelectClick(uint8_t clickType)
   if (clickType == MOUSE_MIDDLE)
   {
     textEditorView.textVariable = patterns[currentPattern].config.name;
+    textEditorView.callerVariableId = TEXTEDIT_PATTERN_NAME;
     uiSetTextEditViewMode();
     return;
   }
@@ -668,6 +670,7 @@ void fileManagerRowClick(uint8_t id, uint8_t clickType)
 
     textEditorView.textVariable = projectInfo[currentProject].projectName;
     textEditorView.flagVariable = &projectInfo[currentProject].isUserNamed;
+    textEditorView.callerVariableId = TEXTEDIT_PROJECT_NAME;
     uiSetTextEditViewMode();
     return; 
   }
@@ -764,21 +767,38 @@ void uiSetTextEditViewMode()
 
 void uiReturnFromTextEditor(bool status)
 {
-  switch (textEditorView.callerViewId)
+  switch (textEditorView.callerVariableId)
   {
-    case VIEW_NORMAL:
+    case TEXTEDIT_TRACK_NAME:
       uiSetNormalViewMode();
       break;
-    case VIEW_EDITOR:
-      uiSetEditorViewMode();
+    case TEXTEDIT_PATTERN_NAME:
+      uiSetNormalViewMode();
       break;
-    case VIEW_FILEMANAGER:
+    case TEXTEDIT_PROJECT_NAME:
+      if (status) saveProjectInfo();
       uiSetFileManagerViewMode();
       break;
     default:
-      Serial.printf("unknown text edit caller: %d\n", textEditorView.callerViewId);
+      Serial.printf("unknown text edit var caller: %d\n", textEditorView.callerVariableId);
       break;
   }
+  // switch (textEditorView.callerViewId)
+  // {
+  //   case VIEW_NORMAL:
+  //     uiSetNormalViewMode();
+  //     break;
+  //   case VIEW_EDITOR:
+  //     uiSetEditorViewMode();
+  //     break;
+  //   case VIEW_FILEMANAGER:
+  //     if (status) saveProjectInfo();
+  //     uiSetFileManagerViewMode();
+  //     break;
+  //   default:
+  //     Serial.printf("unknown text edit caller: %d\n", textEditorView.callerViewId);
+  //     break;
+  // }
 }
 
 void scrollbarUpClick(uint8_t clickType)

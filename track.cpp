@@ -108,49 +108,42 @@ void Track::triggerEvent(uint8_t type, uint8_t data1, uint8_t data2)
 
  uint16_t Track::triggerEvents(uint32_t timestamp)
  {
-  //Serial.println("trigger");
   uint16_t eventCounter = 0;
-
-  //if (config.hidden) return 0;
 
   if (events != nullptr)
   {
     if(config.loop > 0) timestamp = timestamp % (config.loop * 192); // loop is set in 1/4ths
-    //if(_loopInUse > 0) timestamp = timestamp % (_loopInUse * 192); // loop is set in 1/4ths
 
     uiTimestamp = timestamp;
     
     if (timestamp == 0)
-      {
-        cleanupNoteOff();
-        nextEventId = 0;
-        //_loopInUse = config.loop;
-      }
+    {
+      cleanupNoteOff();
+      nextEventId = 0;
+    }
 
     while ( (eventCounter < 16) && (nextEventId < _nrEvents) && (events[nextEventId].type != NONE) )
-    //while ( (nextEventId < _nrEvents) && (events[nextEventId].type != NONE) )
-      {
-        uint32_t eventTimestamp = events[nextEventId].timestamp;
-        uint8_t eventType = events[nextEventId].type;
-        uint8_t data1 = events[nextEventId].data1;
-        uint8_t data2 = events[nextEventId].data2;
+    {
+      uint32_t eventTimestamp = events[nextEventId].timestamp;
+      uint8_t eventType = events[nextEventId].type;
+      uint8_t data1 = events[nextEventId].data1;
+      uint8_t data2 = events[nextEventId].data2;
 
-        bool trigger = false;
-        
-        if ( (eventType == usbMIDI.NoteOn) && (_quantizeTimestamp(eventTimestamp) <= timestamp)) trigger = true;
-        if ( (eventType != usbMIDI.NoteOn) && (eventTimestamp <= timestamp)) trigger = true;
-  
-        if (trigger)
-        {
-          //if (eventType == usbMIDI.NoteOn) Serial.printf("Note on. timestampIn %d, eventTime %d, quantizedTime %d\n", inTime, eventTimestamp, _quantizeTimestamp(eventTimestamp));
-          if (!config.hidden) triggerEvent(eventType, data1, data2); // Test for better live mute/unmute handling
-          //triggerEvent(eventType, data1, data2);
-          nextEventId++;
-          eventCounter++;
-        }
-        else break;
+      bool trigger = false;
+      
+      if ( (eventType == usbMIDI.NoteOn) && (_quantizeTimestamp(eventTimestamp) <= timestamp)) trigger = true;
+      if ( (eventType != usbMIDI.NoteOn) && (eventTimestamp <= timestamp)) trigger = true;
+
+      if (trigger)
+      {
+        if (!config.hidden) triggerEvent(eventType, data1, data2); // Test for better live mute/unmute handling
+        nextEventId++;
+        eventCounter++;
       }
+      else break;
     }
+  }
+  
   if (config.hidden) return 0;
   return eventCounter;
 }
