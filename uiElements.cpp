@@ -472,9 +472,9 @@ void ControlsView::layout()
   button_start.draw(false);
   button_start.cb = &startClick;
   
-  button_continue.layout("CONT", relX(0.6), relY(0.9), relW(0.36),relH(0.1), BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_continue.layout("CONT", relX(0.6), relY(0.9), relW(0.36),relH(0.1), BUTTON_FILL_NORMAL, CM2K_PALEGREEN);
   button_continue.draw(false);
-  button_continue.cb = &testClick;
+  button_continue.cb = &continueClick;
   
   button_stop.layout("STOP", relX(0.6), relY(0.65), relW(0.36),relH(0.24), BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
   button_stop.draw(true);
@@ -500,7 +500,7 @@ void ControlsView::layout()
   button_punch.draw(false);
   button_punch.cb = &testClick;
 
-  button_record.layout("RECORD", relX(0.52), relY(0.50), relW(0.45), relH(0.1), BUTTON_FILL_NORMAL, 0xFBCF);
+  button_record.layout("RECORD", relX(0.52), relY(0.50), relW(0.45), relH(0.1), BUTTON_FILL_NORMAL, CM2K_PALERED);//0xFBCF);
   button_record.draw(false);
   button_record.cb = &recordClick;
 }
@@ -603,7 +603,6 @@ void ArrangementRow::clear()
   tft.writeTo(L2);
   tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_NORMAL_COLOR); // background
 }
-
 
 bool ArrangementRow::checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType)
 {
@@ -771,7 +770,7 @@ void FileManagerRow::draw(bool selected)
   if (projectInfo[id].isUserNamed) tft.printf(projectInfo[id].projectName);
   else tft.printf("PROJECT %2d", id + 1);
 
-  Serial.printf("FileManagerRow::draw, id = %d, isUserNamed = %d, name = %s\n", id, projectInfo[id].isUserNamed,  projectInfo[id].projectName);
+  //Serial.printf("FileManagerRow::draw, id = %d, isUserNamed = %d, name = %s\n", id, projectInfo[id].isUserNamed,  projectInfo[id].projectName);
 }
 
 bool FileManagerRow::checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType)
@@ -851,14 +850,20 @@ void TextEditor::animate()
 
   for (uint8_t characterIndex = 0; characterIndex < 25; characterIndex++)
   {
-    if (button_characters[characterIndex].state) button_characters[characterIndex].draw(false);
-    return;
+    if (button_characters[characterIndex].state)
+    {
+      button_characters[characterIndex].draw(false);
+      return;
+    }
   }
   
   for (uint8_t digitIndex = 0; digitIndex < 10; digitIndex++)
   {
-    if (button_digits[digitIndex].state) button_digits[digitIndex].draw(false);
-    return;
+    if (button_digits[digitIndex].state)
+    {
+      button_digits[digitIndex].draw(false);
+      return;
+    }
   }
 }
 

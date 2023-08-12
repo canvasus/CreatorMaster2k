@@ -369,9 +369,10 @@ void startClick(uint8_t clickType)
 {
   if (clickType == MOUSE_LEFT)
   {
-    play();
     controlsView.button_start.set(true);
     controlsView.button_stop.set(false);
+    if (transport.arrangementOn && transport.trp_continue) seq_continue();
+    else play();
   }
 }
 
@@ -390,6 +391,15 @@ void stopClick(uint8_t clickType)
       memcpy(patternView.trackRows[currentTrack].trackName, patterns[currentPattern].tracks[currentTrack].config.name, 12);
       patternView.trackRows[currentTrack].draw(true); // redraw to update auto name
     }
+  }
+}
+
+void continueClick(uint8_t clickType)
+{
+  if (clickType == MOUSE_LEFT)
+  {
+    transport.trp_continue = !transport.trp_continue;
+    controlsView.button_continue.set(transport.trp_continue == true);
   }
 }
 

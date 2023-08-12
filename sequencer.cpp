@@ -26,8 +26,7 @@ uint16_t clipboardNrEvents = 0;
 
 void setupSequencer()
 {
-  sequencerUpdateTimer.begin(tickPattern, transport.oneTickUs); 
-  //setBpm(transport.bpm);
+  if (!sequencerUpdateTimer.begin(tickPattern, transport.oneTickUs)) Serial.println(F("Sequencer Timer error"));
   metronome_midi_cb = serialMidiSend;
   for (uint8_t patternId = 0; patternId < NR_PATTERNS; patternId++)
   {

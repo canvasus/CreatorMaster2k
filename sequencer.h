@@ -43,6 +43,7 @@ struct Transport
   uint32_t  leftLocatorTick = 0;
   uint32_t  rightLocatorTick = 4 * RESOLUTION * 4;
   bool      cycle = false;
+  bool      trp_continue = false;
 };
 
 extern Transport transport;

@@ -60,6 +60,8 @@ void drawCursor();
 void recordClick(uint8_t clickType);
 void startClick(uint8_t clickType);
 void stopClick(uint8_t clickType);
+void continueClick(uint8_t clickType);
+
 void trackSelectClick(uint8_t id, uint8_t clickType);
 void bpmClick(uint8_t clickType);
 void portClick(uint8_t clickType);

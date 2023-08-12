@@ -16,6 +16,9 @@
 #define CM2K_PRIMARYBLUE      0x0018
 
 #define CM2K_DARKRED          0xa100
+#define CM2K_PALERED          0xe308
+
+#define CM2K_PALEGREEN        0x8508
 
 #define CM2K_DARKORANGE       0xc200
 #define CM2K_ORANGE           0xe400
