@@ -585,6 +585,20 @@ void deleteArrangeItemClick(uint8_t id)
   uiRedrawTrackDetailsView();
 }
 
+void moveUpArrangeItemClick(uint8_t id)
+{
+  arrangement.moveItemUp(currentArrangementPosition);
+  if (currentArrangementPosition > 0) currentArrangementPosition--;
+  uiRedrawArrangeView();
+}
+
+void moveDownArrangeItemClick(uint8_t id)
+{
+  arrangement.moveItemDown(currentArrangementPosition);
+  if (currentArrangementPosition < (NR_ARRITEMS - 1) ) currentArrangementPosition++;
+  uiRedrawArrangeView();
+}
+
 void arrangementItemSelectClick(uint8_t id)
 {
   currentArrangementPosition = id;

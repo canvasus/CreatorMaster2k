@@ -18,15 +18,11 @@ void initSDcard()
     sdStatus = true;
     setProjectfolder(0);
   }
-
-  for (uint8_t projectId = 0; projectId < NR_PROJECTS; projectId++)
-  {
-    Serial.printf("Project %d: %s\n", projectId, projectInfo[projectId].projectName);
-  }
 }
 
 void loadProject()
 {
+  Serial.printf("load project %d\n", currentProjectId);
   loadPatterns();
   loadArrangementSettings();
   loadTransport();

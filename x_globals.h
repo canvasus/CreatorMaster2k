@@ -4,7 +4,7 @@
 
 #define RESOLUTION 192 // ticks per 1/4th (beat)
 
-#define NR_ARRITEMS 10
+#define NR_ARRITEMS 12 //10
 #define NR_PATTERNS 8
 #define NR_TRACKS 16
 #define NR_EVENTS 128 // nr events per memory block

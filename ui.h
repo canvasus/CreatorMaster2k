@@ -67,15 +67,19 @@ void channelClick(uint8_t clickType);
 void quantizeClick(uint8_t clickType);
 void clearTrackClick(uint8_t clickType);
 void editTrackClick(uint8_t clickType);
-void patternLengthClick(uint8_t clickType);
 void transposeClick(uint8_t clickType);
 void loopClick(uint8_t clickType);
 void patternSelectClick(uint8_t clickType);
+
 void newArrangeItemClick(uint8_t clickType);
 void arrangementItemSelectClick(uint8_t id);
 void deleteArrangeItemClick(uint8_t id);
+void moveUpArrangeItemClick(uint8_t id);
+void moveDownArrangeItemClick(uint8_t id);
 void arrangementOnClick(uint8_t clickType);
 void muteArrayClick(uint8_t id);
+void patternLengthClick(uint8_t clickType);
+
 void signatureClick(uint8_t clickType);
 void exitEditorClick(uint8_t clickType);
 void copyTrackClick(uint8_t clickType);

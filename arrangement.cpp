@@ -71,14 +71,30 @@ void Arrangement::updateArrangementStartPositions()
   }
 }
 
-void Arrangement::moveItemUp()
+void Arrangement::moveItemUp(uint8_t itemId)
 {
-
+  Serial.printf("move up, id %d\n", itemId);
+  if (itemId > 0)
+  {
+    ArrangementItem tempItem;
+    tempItem = arrangementItems_a[itemId - 1];
+    arrangementItems_a[itemId - 1] = arrangementItems_a[itemId];
+    arrangementItems_a[itemId] = tempItem;
+    updateArrangementStartPositions();
+  }
 }
 
-void Arrangement::moveItemDown()
+void Arrangement::moveItemDown(uint8_t itemId)
 {
-  
+  Serial.printf("move down, id %d\n", itemId);
+  if ( (itemId < (NR_ARRITEMS - 1)) && (arrangementItems_a[itemId + 1].status != ARRITEM_INACTIVE) )
+  {
+    ArrangementItem tempItem;
+    tempItem = arrangementItems_a[itemId + 1];
+    arrangementItems_a[itemId + 1] = arrangementItems_a[itemId];
+    arrangementItems_a[itemId] = tempItem;
+    updateArrangementStartPositions();
+  }
 }
 
 void Arrangement::_sortItems() { qsort(arrangementItems_a, NR_ARRITEMS, sizeof(ArrangementItem), compareArrItems); }
@@ -90,8 +106,8 @@ int compareArrItems(const void *s1, const void *s2)
     // Active items first in array
     if(e1->status == ARRITEM_INACTIVE && e2->status != ARRITEM_INACTIVE) return 1;
     if(e1->status != ARRITEM_INACTIVE && e2->status == ARRITEM_INACTIVE) return -1;
-//    // Then sort by tick
-//    if(e1->timestamp < e2->timestamp) return -1;
-//    if(e1->timestamp > e2->timestamp) return 1;
+    // Then sort by tick
+    //if(e1->timestamp < e2->timestamp) return -1;
+    //if(e1->timestamp > e2->timestamp) return 1;
     return 0;
 }

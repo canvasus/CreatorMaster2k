@@ -641,26 +641,26 @@ void ArrangementView::layout()
     arrangementRows[arrItemId].patternName = "PATTERN01";
     arrangementRows[arrItemId].id = arrItemId;
     arrangementRows[arrItemId].startBars = 1;
-    arrangementRows[arrItemId].layout(relX(0), relY((arrItemId + 1) / 17.0), relW(0.85), relH(1/17.0) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+    arrangementRows[arrItemId].layout(relX(0), relY((arrItemId + 1) / 17.0), relW(0.85), relH(1/18.0) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
   }
   arrangementRows[0].active = true;
   arrangementRows[0].draw(true);
 
-  button_new.layout("NEW", relX(0.02), relY(0.78), relW(0.2), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_new.layout("NEW", relX(0.02), relY(0.8), relW(0.2), relH(0.08) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
   button_new.draw(false);
   button_new.cb = &newArrangeItemClick;
 
-  button_delete.layout("DEL", relX(0.23), relY(0.78), relW(0.2), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_delete.layout("DEL", relX(0.23), relY(0.8), relW(0.2), relH(0.08) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
   button_delete.draw(false);
   button_delete.cb = &deleteArrangeItemClick;
 
-  button_up.layout("UP", relX(0.44), relY(0.78), relW(0.2), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_up.layout("UP", relX(0.44), relY(0.8), relW(0.2), relH(0.08) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
   button_up.draw(false);
-  button_up.cb = &testClick;
+  button_up.cb = &moveUpArrangeItemClick;
 
-  button_down.layout("DN", relX(0.65), relY(0.78), relW(0.2), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_down.layout("DN", relX(0.65), relY(0.8), relW(0.2), relH(0.08) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
   button_down.draw(false);
-  button_down.cb = &testClick;
+  button_down.cb = &moveDownArrangeItemClick;
 
   for (uint8_t trackIndex = 0; trackIndex < NR_TRACKS; trackIndex++)
   {
@@ -675,6 +675,8 @@ bool ArrangementView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickT
   if (indicator_patternLength.checkCursor(xPos, yPos, clickType)) return true;
   if (button_new.checkCursor(xPos, yPos, clickType)) return true;
   if (button_delete.checkCursor(xPos, yPos, clickType)) return true;
+  if (button_up.checkCursor(xPos, yPos, clickType)) return true;
+  if (button_down.checkCursor(xPos, yPos, clickType)) return true;
   for (uint8_t itemIndex = 0; itemIndex < NR_ARRITEMS; itemIndex++) if (arrangementRows[itemIndex].active && arrangementRows[itemIndex].checkCursor(xPos, yPos, clickType)) return true;
   for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++)
   {
@@ -841,16 +843,22 @@ void TextEditor::draw()
 
 void TextEditor::animate()
 {
-  if (button_backspace.state) button_backspace.draw(false);
+  if (button_backspace.state)
+  {
+    button_backspace.draw(false);
+    return;
+  } 
 
   for (uint8_t characterIndex = 0; characterIndex < 25; characterIndex++)
   {
     if (button_characters[characterIndex].state) button_characters[characterIndex].draw(false);
+    return;
   }
   
   for (uint8_t digitIndex = 0; digitIndex < 10; digitIndex++)
   {
     if (button_digits[digitIndex].state) button_digits[digitIndex].draw(false);
+    return;
   }
 }
 
@@ -862,6 +870,7 @@ bool TextEditor::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
     if (_textPosition > 0) _textPosition--;
     indicator_text.draw(String(_textBuffer));
     button_backspace.draw(true);
+    return true;
   }
 
   for (uint8_t characterIndex = 0; characterIndex < 25; characterIndex++)
@@ -872,6 +881,7 @@ bool TextEditor::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
       indicator_text.draw(String(_textBuffer));
       if (_textPosition < stringLength) _textPosition++;
       button_characters[characterIndex].draw(true);
+      return true;
     }
   }
 
@@ -883,6 +893,7 @@ bool TextEditor::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
       indicator_text.draw(String(_textBuffer));
       if (_textPosition < stringLength) _textPosition++;
       button_digits[digitIndex].draw(true);
+      return true;
     }
   }
 

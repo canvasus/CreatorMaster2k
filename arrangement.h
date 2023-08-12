@@ -31,8 +31,8 @@ class Arrangement
     void setArrangementPosition(uint8_t positionId, uint16_t startBars, uint8_t patternIndex);
     void updateArrangementStartPositions();
     void printItemArray(uint8_t lastIndex);
-    void moveItemUp();
-    void moveItemDown();
+    void moveItemUp(uint8_t itemId);
+    void moveItemDown(uint8_t itemId);
 
     // For later:
     //ArrangementItem arrangementItems_b[NR_ARRITEMS];
