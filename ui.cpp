@@ -84,6 +84,8 @@ void setupUI()
 
   graphicEditorView.layout();
   graphicEditorView.drawBorder = true;
+  
+  fileManagerView.layout();
   fileManagerView.drawBorder = true;
   systemView.layout();
 
@@ -734,14 +736,14 @@ void uiSetNormalViewMode()
   viewMode = VIEW_NORMAL;
   
   arrangementView.draw();
-  arrangementView.layout();
+  arrangementView.layout(); // FIX
 
   setChannelIndicators();
   patternView.draw();
-  patternView.layout();
+  patternView.layout(); // FIX
   
   trackDetailsView.draw();
-  trackDetailsView.layout();
+  trackDetailsView.layout(); // FIX
 
   uiRedrawArrangeView();
   uiRedrawPatternView();
@@ -750,7 +752,6 @@ void uiSetNormalViewMode()
 
 void uiSetEditorViewMode()
 {
-  // replace arrangement and pattern view with editor
   viewMode = VIEW_EDITOR;
   graphicEditorView.setTrack(&patterns[currentPattern].tracks[currentTrack]);
   graphicEditorView.grid.syncToTrack();
@@ -759,12 +760,9 @@ void uiSetEditorViewMode()
 
 void uiSetFileManagerViewMode()
 {
-  tft.writeTo(L2);
-  tft.fillRect(0, HEADER_H + PADDING, ARRANGE_W + PATTERN_W + TRACKDETAILS_W + 2 * PADDING, MAIN_H,  MAIN_BG_COLOR);
-  // replace arrangement and pattern view with list editor
   viewMode = VIEW_FILEMANAGER;
+  fileManagerView.selectedIndex = currentProject;
   fileManagerView.draw();
-  fileManagerView.layout();
 }
 
 void uiSetSystemViewMode()
@@ -807,22 +805,6 @@ void uiReturnFromTextEditor(bool status)
       Serial.printf("unknown text edit var caller: %d\n", textEditorView.callerVariableId);
       break;
   }
-  // switch (textEditorView.callerViewId)
-  // {
-  //   case VIEW_NORMAL:
-  //     uiSetNormalViewMode();
-  //     break;
-  //   case VIEW_EDITOR:
-  //     uiSetEditorViewMode();
-  //     break;
-  //   case VIEW_FILEMANAGER:
-  //     if (status) saveProjectInfo();
-  //     uiSetFileManagerViewMode();
-  //     break;
-  //   default:
-  //     Serial.printf("unknown text edit caller: %d\n", textEditorView.callerViewId);
-  //     break;
-  // }
 }
 
 void scrollbarUpClick(uint8_t clickType)

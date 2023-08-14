@@ -2,7 +2,6 @@
 
 const int chipSelect = BUILTIN_SDCARD;
 bool sdStatus = false;
-uint8_t currentProjectId = 0;
 ProjectInfo projectInfo[NR_PROJECTS];
 
 void initSDcard()
@@ -22,7 +21,7 @@ void initSDcard()
 
 void loadProject()
 {
-  Serial.printf("load project %d\n", currentProjectId);
+  //Serial.printf("load project %d\n", currentProject);
   loadPatterns();
   loadArrangementSettings();
   loadTransport();
@@ -68,7 +67,6 @@ void loadTrackEvents(uint8_t patternNr)
         memset(loadedEvents, 0, nrEvents * sizeof(event));
         dataFile.read((uint8_t *)loadedEvents, nrEvents * sizeof(event));
         patterns[patternNr].tracks[trackNr].paste(loadedEvents, nrEvents);
-        //Serial.printf("Pattern %d, Track %d, loaded %d events\n", patternNr, trackNr, nrEvents);
         free(loadedEvents);
       }
       else patterns[patternNr].tracks[trackNr].clear();
@@ -106,12 +104,22 @@ void saveTrackEvents(uint8_t patternNr)
 
 void loadSystemSettings()
 {
-  
+  char fileName[12] = "CM2K_SYSTEM";
+  if (SD.exists(fileName))
+  {
+    File dataFile = SD.open(fileName, FILE_READ);
+    //dataFile.read((uint8_t *)&projectInfo[currentProject], sizeof(ProjectInfo));
+    dataFile.close();
+  }
 }
 
 void saveSystemSettings()
 {
-
+  char fileName[12] = "CM2K_SYSTEM";
+  SD.remove(fileName);
+  File dataFile = SD.open(fileName, FILE_WRITE);
+  //dataFile.write((uint8_t *)&projectInfo[currentProject], sizeof(ProjectInfo));
+  dataFile.close();
 }
 
 void loadProjectInfo()
@@ -120,7 +128,7 @@ void loadProjectInfo()
   if (SD.exists(fileName))
   {
     File dataFile = SD.open(fileName, FILE_READ);
-    dataFile.read((uint8_t *)&projectInfo[currentProjectId], sizeof(ProjectInfo));
+    dataFile.read((uint8_t *)&projectInfo[currentProject], sizeof(ProjectInfo));
     dataFile.close();
   }
 }
@@ -130,7 +138,7 @@ void saveProjectInfo()
   char fileName[14] = "CM2K_PROJINFO";
   SD.remove(fileName);
   File dataFile = SD.open(fileName, FILE_WRITE);
-  dataFile.write((uint8_t *)&projectInfo[currentProjectId], sizeof(ProjectInfo));
+  dataFile.write((uint8_t *)&projectInfo[currentProject], sizeof(ProjectInfo));
   dataFile.close();
 }
 
@@ -218,32 +226,11 @@ void saveTransport()
 
 void setProjectfolder(uint8_t projectId)
 {
+  //Serial.printf("Set folder %d\n", projectId);
   SD.sdfs.chdir("/");
   char fileName[17];
   sprintf(fileName, "CM2K_PROJECT_%03d", projectId);
   if (!SD.exists(fileName)) SD.mkdir(fileName);
   SD.sdfs.chdir(fileName);
-  currentProjectId = projectId;
+  currentProject = projectId;
 }
-
-// void listContent()
-// {
-//   File root = SD.open("/");
-//   while (true) {
-//     File entry = root.openNextFile();
-//     if (!entry) break; // no more files
-//     if (entry.isDirectory())
-//     {
-//       Serial.print(entry.name());
-//       Serial.println("/");
-//     }
-//     else
-//     {
-//       Serial.print("  ");
-//       Serial.print(entry.name());
-//       Serial.print("  ");
-//       Serial.println(entry.size(), DEC);
-//     }
-//     entry.close();
-//   }
-// }

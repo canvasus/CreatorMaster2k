@@ -693,38 +693,41 @@ bool ArrangementView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickT
 void FileManagerView::layout()
 {
   button_new.layout("NEW PRJ", relX(0.80), relY(0.2), relW(0.19), relH(0.1) , CM2K_PRIMARYRED, CM2K_PRIMARYRED);
-  button_new.draw(false);
   button_new.cb = &newClick;
   button_new.setTextColors(RA8875_WHITE, RA8875_WHITE);
 
   button_loadPatterns.layout(F("LOAD PTRNS"), relX(0.80), relY(0.6), relW(0.19), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
-  button_loadPatterns.draw(false);
   button_loadPatterns.cb = &loadPatternsClick;
 
   button_load.layout(F("LOAD ALL"), relX(0.80), relY(0.7), relW(0.19), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
-  button_load.draw(false);
   button_load.cb = &loadClick;
 
   button_save.layout(F("SAVE"), relX(0.80), relY(0.8), relW(0.19), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
-  button_save.draw(false);
   button_save.cb = &saveClick;
 
   button_exit.layout(F("EXIT"), relX(0.80), relY(0.9), relW(0.19), relH(0.1) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
-  button_exit.draw(false);
   button_exit.cb = &exitEditorClick;
 
   for (uint8_t row = 0; row < NR_FILE_ROWS; row++)
   {
-    setProjectfolder(row);
-    loadProjectInfo();
-
     fileManagerRows[row].id = row;
     fileManagerRows[row].layout(relX(0.1), relY(0.02 + row * 0.96/(float)NR_FILE_ROWS), relW(0.5), relH(0.96/(float)NR_FILE_ROWS), TRACK_NORMAL_COLOR, TRACK_SELECTED_COLOR);
-    //fileManagerRows[row].draw(fileManagerRows[row].id == selectedIndex);
-    fileManagerRows[row].draw(row == selectedIndex);
-
   }
+}
 
+void FileManagerView::draw()
+{
+  tft.writeTo(L2);
+  tft.fillRect(geo.xPos, geo.yPos , geo.width, geo.height, geo.color1);
+  if (drawBorder) tft.drawRect(geo.xPos, geo.yPos , geo.width, geo.height, CONTAINER_BORDER_COLOR);
+
+  button_new.draw(false);
+  button_loadPatterns.draw(false);
+  button_load.draw(false);
+  button_save.draw(false);
+  button_exit.draw(false);
+
+  for (uint8_t row = 0; row < NR_FILE_ROWS; row++) fileManagerRows[row].draw(row == selectedIndex);
 }
 
 bool FileManagerView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType)
@@ -740,6 +743,7 @@ bool FileManagerView::checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickT
     if (fileManagerRows[row].checkCursor(xPos, yPos, clickType))
     {
       fileManagerRowClick(row, clickType);
+      Serial.printf("clicked file %d, selectedIndex = %d\n", row, selectedIndex);
       return true;
     }
   }

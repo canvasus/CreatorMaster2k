@@ -413,6 +413,7 @@ class FileManagerView : public Container
     //Scrollbar scrollbar;
     bool checkChildren(uint16_t xPos, uint16_t yPos, uint8_t clickType);
     void layout();
+    void draw();
 };
 
 class NoteElement
