@@ -645,6 +645,9 @@ void ArrangementView::layout()
   arrangementRows[0].active = true;
   arrangementRows[0].draw(true);
 
+  //indicator_scrollUp.layout("^", relX(0.86), relY(0.1), relW(0.1), relH(0.08) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  //indicator_scrollDown.layout("v", relX(0.86), relY(0.8), relW(0.1), relH(0.08) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+
   button_new.layout("NEW", relX(0.02), relY(0.8), relW(0.2), relH(0.08) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
   button_new.draw(false);
   button_new.cb = &newArrangeItemClick;
@@ -766,13 +769,15 @@ void FileManagerRow::draw(bool selected)
   tft.setFontScale(0);
   if (selected) tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_SELECTED_COLOR); // background
   else tft.fillRect(_geo.xPos + 1, _geo.yPos , _geo.width - 2, _geo.height, TRACK_NORMAL_COLOR); // background
-  tft.setCursor(_geo.xPos + 20, _geo.yPos + 5);
   
   if (selected) tft.setTextColor(RA8875_WHITE);
   else tft.setTextColor(INDICATOR_TEXT_COLOR);
-  
-  if (projectInfo[id].isUserNamed) tft.printf(projectInfo[id].projectName);
+
+  tft.setCursor(_geo.xPos + 10, _geo.yPos + 5);  
+  if (projectInfo[id].isUserNamed) tft.print(projectInfo[id].projectName);
   else tft.printf("PROJECT %2d", id + 1);
+  tft.setCursor(_geo.xPos + 10, _geo.yPos + 100);
+  tft.print(projectInfo[id].projectRevision);
 
   //Serial.printf("FileManagerRow::draw, id = %d, isUserNamed = %d, name = %s\n", id, projectInfo[id].isUserNamed,  projectInfo[id].projectName);
 }
@@ -791,41 +796,49 @@ void TextEditor::layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t h
   _textBuffer[12] = 0;
   _textPosition = 0;
   geo.configure("", xPos, yPos, width, height, color1, color2);
-  //Serial.printf("Text editor at: x %d, y %d, w %d, h %d\n", xPos, yPos, width, height);
   
-  indicator_text.layout("", relX(0.05), relY(0.05), relW(0.8), relH(0.10) , BUTTON_FILL_NORMAL, CM2K_DARKORANGE, INDICATOR_LABEL_NONE);
+  indicator_text.layout("", geo.relX(0.03), geo.relY(0.03), geo.relW(0.55), geo.relH(0.09) , BUTTON_FILL_NORMAL, CM2K_DARKORANGE, INDICATOR_LABEL_NONE);
 
+  button_backspace.layout("<<", geo.relX(0.70), geo.relY(0.03), geo.relW(0.20), geo.relH(0.09), CM2K_MOSSGREEN, BUTTON_FILL_PRESSED);
+  button_backspace.setLabelOffset(6, 7);
+  button_backspace.setTextColors(RA8875_WHITE, RA8875_WHITE);
+
+  uint8_t rowHeight = geo.relH(0.12);
+  uint8_t columnWidth = geo.relW(0.14);
+  uint8_t characterHeight = geo.relH(0.11);
+  uint8_t characterWidth = geo.relW(0.13);
+  uint16_t startOffsetX = geo.relX(0.03);
+  uint16_t startOffsetY = geo.relY(0.15);
+  
   for (uint8_t digitIndex = 0; digitIndex < 10; digitIndex++)
   {
-    uint16_t _xPos = geo.relX(0.03 + digitIndex * 0.07);
-    uint16_t _yPos = geo.relY(0.2);
-    button_digits[digitIndex].layout((char)(digitIndex + 48), _xPos, _yPos, geo.relW(0.065), geo.relH(0.15), BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+    const uint8_t charsPerRow = 7;
+    uint8_t row = digitIndex / charsPerRow;
+    uint8_t column = digitIndex % charsPerRow;
+    uint16_t _xPos = startOffsetX + column * columnWidth;
+    uint16_t _yPos = startOffsetY + row * rowHeight;
+    button_digits[digitIndex].layout((char)(digitIndex + 48), _xPos, _yPos, characterWidth, characterHeight, CM2K_MOSSGREEN, CM2K_DARKGREEN);
     button_digits[digitIndex].setLabelOffset(8, 6);
+    button_digits[digitIndex].setTextColors(RA8875_WHITE, RA8875_WHITE);
   }
 
   for (uint8_t characterIndex = 0; characterIndex < 25; characterIndex++)
   {
-    uint16_t _xPos = 0;
-    uint16_t _yPos = 0;
-    if (characterIndex < 13)
-    {
-      _xPos = geo.relX(0.03 + characterIndex * 0.07);
-      _yPos = geo.relY(0.37);
-    } 
-    else
-    {
-      _xPos = geo.relX(0.03 + (characterIndex - 13) * 0.07);
-      _yPos = geo.relY(0.54);
-    } 
-    button_characters[characterIndex].layout((char)(characterIndex + 65), _xPos, _yPos, geo.relW(0.065), geo.relH(0.15), BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+    const uint8_t charsPerRow = 7;
+    uint8_t row = 2 + characterIndex / charsPerRow;
+    uint8_t column = characterIndex % charsPerRow;
+    uint16_t _xPos = startOffsetX + column * columnWidth;
+    uint16_t _yPos = startOffsetY + row * rowHeight;
+
+    button_characters[characterIndex].layout((char)(characterIndex + 65), _xPos, _yPos, characterWidth, characterHeight, CM2K_MOSSGREEN, CM2K_DARKGREEN);
     button_characters[characterIndex].setLabelOffset(8, 6);
+    button_characters[characterIndex].setTextColors(RA8875_WHITE, RA8875_WHITE);
   }
 
-  button_backspace.layout("<<", geo.relX(0.73), geo.relY(0.2), geo.relW(0.1), geo.relH(0.15), BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
-  button_backspace.setLabelOffset(8, 6);
-
-  button_ok.layout(F("OK"), geo.relX(0.1), geo.relY(0.75), geo.relW(0.2), geo.relH(0.2) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
-  button_cancel.layout(F("CANCEL"), geo.relX(0.6), geo.relY(0.75), geo.relW(0.2), geo.relH(0.2) , BUTTON_FILL_NORMAL, BUTTON_FILL_PRESSED);
+  button_ok.layout(F("OK"), geo.relX(0.1), geo.relY(0.88), geo.relW(0.28), geo.relH(0.11) , CM2K_MOSSGREEN, CM2K_DARKGREEN);
+  button_cancel.layout(F("CANCEL"), geo.relX(0.6), geo.relY(0.88), geo.relW(0.28), geo.relH(0.11) , CM2K_MOSSGREEN, CM2K_DARKGREEN);
+  button_ok.setTextColors(RA8875_WHITE, RA8875_WHITE);
+  button_cancel.setTextColors(RA8875_WHITE, RA8875_WHITE);
 }
 
 void TextEditor::draw()

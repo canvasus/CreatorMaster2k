@@ -47,10 +47,9 @@ elapsedMillis uiTimerSlow = 0;
 const uint8_t uiSlowInterval = 100;
 elapsedMillis uiResetTimer = 0;
 const uint16_t uiResetInterval = 400;
+const unsigned long screenSaverTimeout = 120000; // 2min
 
 uint8_t viewMode = VIEW_NORMAL;
-
-const unsigned long screenSaverTimeout = 120000; // 2min
 
 void setupUI()
 {
@@ -333,6 +332,12 @@ void uiUpdateSlowItems()
     {
       lastTrackIndex = currentTrack;
       uiRedrawTrackDetailsView();
+    }
+
+    if (transport.cycle && (transport.state == SEQ_PLAYING) && transport.recording && !patterns[currentPattern].tracks[currentTrack].isUserNamed)
+    {
+      memcpy(patternView.trackRows[currentTrack].trackName, patterns[currentPattern].tracks[currentTrack].config.name, 12);
+      patternView.trackRows[currentTrack].draw(true); // redraw to update auto name
     }
   }
 }
@@ -783,7 +788,7 @@ void uiSetTextEditViewMode()
 {
   textEditorView.callerViewId = viewMode;
   viewMode = VIEW_TEXTEDIT;
-  textEditorView.layout(200, 150, 400, 200, CM2K_GREYBLUE, CM2K_GREYBLUE);
+  textEditorView.layout(patternView.geo.xPos + 5, patternView.geo.yPos + 40, patternView.geo.width - 10, patternView.geo.height - 100 , CM2K_PALEPURPLE, CM2K_PALEPURPLE);
   textEditorView.draw();
 }
 
@@ -792,10 +797,16 @@ void uiReturnFromTextEditor(bool status)
   switch (textEditorView.callerVariableId)
   {
     case TEXTEDIT_TRACK_NAME:
-      uiSetNormalViewMode();
+      //uiSetNormalViewMode();
+      viewMode = VIEW_NORMAL;
+      uiRedrawPatternView();
+      //uiRedrawArrangeView();
       break;
     case TEXTEDIT_PATTERN_NAME:
-      uiSetNormalViewMode();
+      //uiSetNormalViewMode();
+      viewMode = VIEW_NORMAL;
+      uiRedrawPatternView();
+      uiRedrawArrangeView();
       break;
     case TEXTEDIT_PROJECT_NAME:
       if (status) saveProjectInfo();

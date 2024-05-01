@@ -44,37 +44,35 @@ void updateSequencer()
 
 void tickPattern()
 {
-  // elapsedMicros timer = 0;
-  // static uint16_t counter = 0;
-  // static uint16_t timerMax = 0;
-
   if (transport.state == SEQ_PLAYING && ( (patterns[currentPattern].patternTick % 8) == 0) ) sendClock();
 
   if (transport.state == SEQ_PRECOUNT) handlePrecount();
-  if (transport.state == SEQ_PLAYING && transport.arrangementOn)
+  
+  if (transport.state == SEQ_PLAYING)
   {
-    static uint8_t lastArrPosition = 0;
-    currentArrangementPosition = arrangement.tick();
-    if (lastArrPosition != currentArrangementPosition)
+    if (transport.arrangementOn)
     {
-      lastArrPosition = currentArrangementPosition;
-      patterns[currentPattern].reset();
-      currentPattern = arrangement.arrangementItems_a[currentArrangementPosition].patternIndex;
-      setMuteStatus();
+      static uint8_t lastArrPosition = 0;
+      currentArrangementPosition = arrangement.tick();
+      
+      if (lastArrPosition != currentArrangementPosition)
+      {
+        lastArrPosition = currentArrangementPosition;
+        patterns[currentPattern].reset();
+        currentPattern = arrangement.arrangementItems_a[currentArrangementPosition].patternIndex;
+        setMuteStatus();
+      }
     }
-   }
-  if (transport.state == SEQ_PLAYING) patterns[currentPattern].tick();
+      
+    if (transport.cycle && (patterns[currentPattern].patternTick >= transport.rightLocatorTick) )
+    {
+      patterns[currentPattern].setPosition(transport.leftLocatorTick);
+      if (transport.recording) patterns[currentPattern].tracks[currentTrack].reset();
+      patterns[currentPattern].tracks[currentTrack].setAutoName();
+    }
 
-  // RESOURCE USAGE TEST
-  // uint32_t _timer = timer;
-  // timerMax = max(_timer, timerMax);
-  // counter++;
-  // if (counter > 1000)
-  // {
-  //   counter = 0;
-  //   Serial.printf("Usage: %d / %d = %.3f\n", timerMax, transport.oneTickUs, (100.0 * timerMax / transport.oneTickUs));
-  //   timerMax = 0;
-  // }
+  patterns[currentPattern].tick();
+  }
 }
 
 void setMuteStatus()

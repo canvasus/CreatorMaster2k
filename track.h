@@ -35,6 +35,7 @@ struct TrackConfig
 
   bool      generatorOn = false;
   char      name[13];
+  //uint8_t ghostOf = 0;
 };
 
 class Generator
@@ -73,6 +74,7 @@ class Track
     Track();
     TrackConfig config;
     uint16_t  _nrEvents;
+    uint16_t _nrGhostEvents;
     uint16_t  quantize = 1;
     uint16_t  memUsage = 0;
     uint8_t   memBlocks = 0;
@@ -87,6 +89,8 @@ class Track
 
     volatile uint16_t nextEventId;
     event * events;
+    event * ghostEvents;
+
     uint16_t  addEvent(uint32_t timestamp, uint8_t type, uint8_t data1, uint8_t data2);
     uint16_t  addNoteDirect(uint32_t timestampOn, uint32_t timestampOff, uint8_t note, uint8_t velocity);
     void      clear();

@@ -25,4 +25,5 @@ class Pattern
     void setMuteStatus(uint8_t trackId, bool muteOn);
     void clear();
     void syncPortSettings(uint8_t trackId);
+    void setPosition(uint32_t tick);
 };

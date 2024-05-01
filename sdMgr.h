@@ -40,3 +40,5 @@ void saveTransport();
 void loadProjectInfo();
 void saveProjectInfo();
 uint16_t getNrEvents(event * eventBuffer, uint16_t bufferSizeBlocks);
+
+void storeMidiFile(uint8_t patternNr);

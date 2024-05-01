@@ -15,7 +15,7 @@
 #define RA8875_MISO 12  //ER-TFTM070 pin 6
 #define RA8875_SCLK 13   //ER-TFTM070 pin 8
 
-#define PADCONFIG ((1 << 0) | (1 << 3) | (1 << 6))
+//#define PADCONFIG ((1 << 0) | (1 << 3) | (1 << 6))
 
 #define SCREEN_XRES 800
 #define SCREEN_YRES 480
@@ -44,8 +44,7 @@
 #define TEXTEDIT_PATTERN_NAME 1
 #define TEXTEDIT_PROJECT_NAME 2
 
-
-extern KeyboardController keyboard1;
+//extern KeyboardController keyboard1;
 extern MouseController mouse1;
 extern RA8875 tft;
 

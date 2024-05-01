@@ -64,8 +64,8 @@ void Arrangement::updateArrangementStartPositions()
     if (itemId == 0) arrangementItems_a[itemId].startTick = 0;
     if (arrangementItems_a[itemId].status == ARRITEM_ACTIVE && itemId > 0)
     {
-      uint16_t previousArrItemStart = arrangementItems_a[itemId - 1].startTick;
-      uint16_t previousArrItemLength = arrangementItems_a[itemId - 1].lengthTicks;
+      uint32_t previousArrItemStart = arrangementItems_a[itemId - 1].startTick;
+      uint32_t previousArrItemLength = arrangementItems_a[itemId - 1].lengthTicks;
       arrangementItems_a[itemId].startTick = previousArrItemStart + previousArrItemLength;
     }
   }

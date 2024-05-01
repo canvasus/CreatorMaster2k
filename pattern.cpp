@@ -44,6 +44,12 @@ void Pattern::reset()
   for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++) tracks[trackId].reset();
 }
 
+void Pattern::setPosition(uint32_t tick)
+{
+  patternTick = tick;
+  for (uint8_t trackId = 0; trackId < NR_TRACKS; trackId++) tracks[trackId].setPosition(tick);
+}
+
 uint16_t Pattern::getActivity(uint8_t trackId)
 {
   uint16_t activity = trackActivity[trackId];

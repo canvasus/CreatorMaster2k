@@ -4,6 +4,21 @@ const int chipSelect = BUILTIN_SDCARD;
 bool sdStatus = false;
 ProjectInfo projectInfo[NR_PROJECTS];
 
+struct MidiHeader
+{
+  uint8_t MThd[4] = {0x4D, 0x54, 0x68, 0x64};
+  uint32_t chunkLength = 6;
+  uint16_t format = 1;
+  uint16_t nrTracks = 0;
+  uint16_t resolution = RESOLUTION;
+};
+
+struct TrackHeader
+{
+  uint8_t MThd[4] = {0x4D, 0x54, 0x72, 0x6B};
+  uint32_t chunkLength = 0;
+};
+
 void initSDcard()
 {
   if (!SD.begin(chipSelect)) { Serial.println("Card failed, or not present"); }
@@ -135,6 +150,7 @@ void loadProjectInfo()
 
 void saveProjectInfo()
 {
+  projectInfo[currentProject].projectRevision = PROJECT_REVISION;
   char fileName[14] = "CM2K_PROJINFO";
   SD.remove(fileName);
   File dataFile = SD.open(fileName, FILE_WRITE);
@@ -233,4 +249,25 @@ void setProjectfolder(uint8_t projectId)
   if (!SD.exists(fileName)) SD.mkdir(fileName);
   SD.sdfs.chdir(fileName);
   currentProject = projectId;
+}
+
+void storeMidiFile(uint8_t patternNr)
+{
+  char fileName[16];
+  sprintf(fileName, "PATTERN_%03d.mid", patternNr);
+  SD.remove(fileName);
+  File dataFile = SD.open(fileName, FILE_WRITE);
+  
+  //dataFile.write((uint8_t *)&patterns[patternNr].config, sizeof(PatternConfig));
+  for (uint8_t trackNr = 0; trackNr < NR_TRACKS; trackNr++)
+  {
+    if (patterns[patternNr].tracks[trackNr].getNrEvents() > 0)
+    {
+      // add track events to output data
+      // modify header
+    }
+    //dataFile.write((uint8_t *)&patterns[patternNr].tracks[trackNr].config, sizeof(TrackConfig));
+  }
+  
+  dataFile.close();
 }

@@ -19,12 +19,17 @@
 #define CM2K_PALERED          0xe308
 
 #define CM2K_PALEGREEN        0x8508
+#define CM2K_MOSSGREEN        0x6508
+#define CM2K_DARKGREEN        0x0308
+
+#define CM2K_PALEPURPLE       0x8310
 
 #define CM2K_DARKORANGE       0xc200
 #define CM2K_ORANGE           0xe400
 
 #define CM2K_BLUEGREY         0xc518
 
+// Note: these below are 16-bit and not correct, to fix!
 #define CM2K_LIGHTGREY        0xc618 //0xef5d
 #define CM2K_MEDIUMGREY       0xce99
 #define CM2K_DARKGREY         0x7bef
@@ -33,8 +38,8 @@
 #define CM2K_BABYBLUE         0xCEFC
 #define CM2K_PURPLEBLUE       0xA55B
 #define CM2K_GREYBLUE         0xadb9
-//#define CM2K_DARKORANGE       0xfda0
 #define CM2K_PURPLE           0xf81f
+//-----------------------------
 
 // Top and right sections
 #define MAIN_BG_COLOR           CM2K_GREYBLUE
@@ -86,8 +91,8 @@
 #define EDITOR_GRID_MINOR_COLOR     CM2K_BLUEGREY 
 #define EDITOR_GRID_MAJOR_COLOR     CM2K_BLUEGREY
 
-#define TEXTEDITOR_BG_COLOR       CM2K_PURPLEBLUE
-#define TEXTEDITOR_BORDER_COLOR   CM2K_DARKBLUE
+#define TEXTEDITOR_BG_COLOR       CM2K_PALEGREEN
+#define TEXTEDITOR_BORDER_COLOR   CM2K_DARKGREEN
 
 // -------
 
@@ -282,6 +287,10 @@ class ArrangementView :  public Container
     Button button_delete;
     Button button_up;
     Button button_down;
+    
+    Indicator indicator_scrollUp;
+    Indicator indicator_scrollDown;
+    
     Indicator indicator_muteArray[NR_TRACKS];
     Indicator indicator_patternLength;
     Indicator indicator_patternPosition;
@@ -389,11 +398,10 @@ class FileManagerRow
     FileManagerRow();
     uint8_t id;
     bool isActive;
-    Indicator indicator_name;
     void layout(uint16_t xPos, uint16_t yPos, uint16_t width, uint16_t height, uint16_t color1, uint16_t color2);
     void draw(bool selected);
     bool checkCursor(uint16_t xPos, uint16_t yPos, uint8_t clickType); 
-    
+ 
 };
 
 class FileManagerView : public Container
